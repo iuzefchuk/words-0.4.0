@@ -1,0 +1,56 @@
+@mixin transition() {
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
+}
+
+.fade {
+  &-enter-active,
+  &-leave-active {
+    @include transition();
+    transition-property: opacity;
+  }
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+  }
+}
+
+.fade-up-down {
+  &-enter-active,
+  &-leave-active {
+    @include transition();
+    transition-property: opacity, transform;
+  }
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+    transform: translate3d(0, 1rem, 0);
+  }
+}
+
+.fade-down-up {
+  &-enter-active,
+  &-leave-active {
+    @include transition();
+    transition-property: opacity, transform;
+  }
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+    transform: translate3d(0, -1rem, 0);
+  }
+}
+.fade-down {
+  &-enter-active,
+  &-leave-active {
+    @include transition();
+    transition-property: opacity, transform;
+  }
+  &-enter-from {
+    transform: translate3d(0, -1rem, 0);
+  }
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+  }
+}

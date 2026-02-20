@@ -1,0 +1,52 @@
+@use "sass:string";
+@use "sass:color";
+
+$colors: (
+  "white": rgb(255 255 255),
+  "gray-faintest": rgb(250 250 250),
+  "gray-fainter": rgb(244 244 245),
+  "gray-faint": rgb(228 228 231),
+  "gray-lightest": rgb(212 212 216),
+  "gray-lighter": rgb(161 161 170),
+  "gray-light": rgb(113 113 122),
+  "gray": rgb(82 82 91),
+  "gray-dark": rgb(63 63 70),
+  "gray-darker": rgb(39 39 42),
+  "gray-darkest": rgb(24 24 27),
+  "blue": rgb(8 120 183),
+  "red": rgb(238 83 83),
+  "green": rgb(17 172 132),
+  "yellow": rgb(234 173 12),
+  "pink-saturated": rgb(202 121 221),
+  "pink": rgb(232 197 241),
+  "purple-light": rgb(149 129 250),
+  "purple": rgb(110 86 228),
+  "purple-dark": rgb(99 70 245),
+  "purple-darker": rgb(79 55 200),
+);
+
+@function getDisplayP3Value($color) {
+  @return #{string.slice(#{calc($color / 255)}, 1, 5)};
+}
+
+@function getWideGamutColor($rgb) {
+  @return "color(display-p3 #{getDisplayP3Value(color.channel($rgb, "red", $space: rgb))} #{getDisplayP3Value(color.channel($rgb, "green", $space: rgb))} #{getDisplayP3Value(color.channel($rgb, "blue", $space: rgb))})";
+}
+
+@mixin setColors($is-wide-gamut: false) {
+  @each $color, $value in $colors {
+    $final: if(
+      sass($is-wide-gamut): getWideGamutColor($value) ; else: $value,
+    );
+    --color-#{$color}: #{$final};
+  }
+}
+
+:root {
+  @supports not (color: color(display-p3 1 1 1)) {
+    @include setColors();
+  }
+  @supports (color: color(display-p3 1 1 1)) {
+    @include setColors(true);
+  }
+}

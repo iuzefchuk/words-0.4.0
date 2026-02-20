@@ -1,0 +1,48 @@
+:root {
+  --space-6xs: 1px;
+  --space-5xs: 0.05rem;
+  --space-4xs: 0.1rem;
+  --space-3xs: 0.15rem;
+  --space-2xs: 0.2rem;
+  --space-xs: 0.25rem;
+  --space-s: 0.5rem;
+  --space-m: 0.75rem;
+  --space-l: 1rem;
+  --space-xl: 1.25rem;
+  --space-2xl: 1.5rem;
+  --space-3xl: 1.75rem;
+  --space-4xl: 2rem;
+  --space-5xl: 2.25rem;
+  --space-6xl: 2.5rem;
+
+  --font-size-smaller: 12px;
+  --font-size-small: 14px;
+  --font-size: 16px;
+  --font-size-big: 18px;
+  --font-size-bigger: 20px;
+  --font-size-biggest: 24px;
+
+  --line-height-smaller: 1.125rem;
+  --line-height-small: 1.25rem;
+  --line-height: 1.5rem;
+  --line-height-big: 1.75rem;
+  --line-height-bigger: 1.75rem;
+
+  --font-weight-smaller: 200;
+  --font-weight-small: 300;
+  --font-weight: 400;
+  --font-weight-big: 500;
+  --font-weight-bigger: 600;
+
+  --transition-timing-function: ease;
+
+  --box-shadow-level-0: 0 1px 2px var(--color-gray-faint);
+  --box-shadow-level-1:
+    0 1px 3px 0 var(--color-gray-lightest),
+    0 1px 2px -1px var(--color-gray-lightest);
+  --box-shadow-inner: inset 0 1px 2px 0 var(--color-gray-lightest);
+
+  --z-index-level-1: 10;
+  --z-index-level-2: 20;
+  --z-index-level-3: 30;
+}

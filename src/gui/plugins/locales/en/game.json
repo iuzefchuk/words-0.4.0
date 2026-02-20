@@ -1,0 +1,18 @@
+{
+  "bonus_dw": "DW",
+  "bonus_tw": "TW",
+  "bonus_dl": "DL",
+  "bonus_tl": "TL",
+  "player_user": "You",
+  "unassigned_count": "left",
+  "action_resign": "Resign",
+  "action_pass": "Pass",
+  "action_clear": "Clear",
+  "action_play": "Play",
+  "error_cell_2": "cell placement is invalid",
+  "error_cell_3": "none of the cells are useable as first",
+  "error_tile_1": "can't form tile sequence",
+  "error_tile_2": "no tile sequences found",
+  "error_tile_3": "tile sequence is invalid",
+  "error_tile_4": "{word} not in dictionary"
+}

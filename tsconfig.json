@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "paths": { "@/*": ["./src/*"] },
+    "types": ["vue"], 
+  },
+  "include": ["src", "vite.config.ts"]
+}
