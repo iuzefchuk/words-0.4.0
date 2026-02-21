@@ -162,8 +162,8 @@ class TurnHistory {
     return this.currentTurn.tileSequence;
   }
 
-  get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined | null {
-    return this.previousTurn ? this.previousTurn.tileSequence : null;
+  get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined {
+    return this.previousTurn?.tileSequence;
   }
 
   getScoreFor(player: Player): number {
@@ -188,8 +188,8 @@ class TurnHistory {
     this.turns.push(Turn.create({ player }));
   }
 
-  private get previousTurn(): Turn | null {
-    return this.turns.at(-2) ?? null;
+  private get previousTurn(): Turn | undefined {
+    return this.turns.at(-2) ?? undefined;
   }
 
   private getTurnsFor(player: Player): Array<Turn> {
@@ -233,7 +233,7 @@ export class TurnManager {
     return this.history.currentTurn.isValid;
   }
 
-  get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined | null {
+  get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined {
     return this.history.previousTurnTileSequence;
   }
 

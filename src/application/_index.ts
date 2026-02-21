@@ -17,7 +17,7 @@ export type GameState = {
   isFinished: boolean;
   tilesRemaining: number;
   userTiles: ReadonlyArray<GameTile>;
-  currentTurnScore: number | undefined;
+  currentTurnScore?: number;
   userScore: number;
   opponentScore: number;
   currentPlayerIsUser: boolean;
@@ -30,7 +30,8 @@ export class Game {
   private constructor(private gameDomain: GameDomain) {}
 
   static start(): Game {
-    return new Game(GameDomain.create());
+    const gameDomain = GameDomain.create()
+    return new Game(gameDomain);
   }
 
   get layoutCells(): ReadonlyArray<GameCell> {
