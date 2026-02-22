@@ -1,39 +1,36 @@
-import { Axis, CellIndex } from '../Layout/Layout.js';
-import { TileId } from '../Inventory.js';
-import { TurnInput, TurnStateType } from './Turn.js';
+import { Axis, CellIndex, Layout } from '../Layout/Layout.js';
+import { LettersCount, TileId } from '../Inventory.js';
+import { Placement, TurnInput, TurnManager, TurnStateType } from './Turn.js';
 import { LayoutCellUsabilityCalculator } from '../Layout/LayoutCellUsabilityCalculator.js';
 import { TurnStateComputer } from './TurnStateComputer.js';
+import { Dictionary, FrozenState } from '../Dictionary/Dictionary.js';
 
-type InputBuilderConfig = readonly [
-  targetCell: CellIndex,
-  targetCellPosition: number,
-  axis: Axis,
-  tileSequence: ReadonlyArray<TileId>,
-];
+type ComputerConfig = {
+  playerLettersCount: LettersCount;
+  cell: CellIndex;
+  axis: Axis;
+};
+
+type ComputerIterationConfig = {
+  axis: Axis;
+  axisCells: ReadonlyArray<CellIndex>;
+  cellAxisPosition: number;
+  lettersCount: LettersCount;
+  placement?: Placement;
+  state: FrozenState;
+};
 
 export class TurnInputGenerator {
   constructor(private readonly dependencies: Dependencies) {}
 
-  generate({ playerTiles }: { playerTiles: ReadonlyArray<TileId> }): TurnInput | null {
-    if (playerTiles.length === 0) return null;
-    const availableTargetCells = this.getAvailableTargetCells();
-    if (availableTargetCells.length === 0) return null;
-    const targetCellPositions = Array.from({ length: playerTiles.length }, (_, i) => i);
-    const axes = Object.values(Axis);
-    const playerTileCombinations = this.generatePlayerTileCombinations(playerTiles);
-    const indexer = new CartesianProductIndexer([
-      availableTargetCells,
-      targetCellPositions,
-      axes,
-      playerTileCombinations,
-    ] as const);
-    while (true) {
-      const config = indexer.nextInto();
-      if (config === null) break;
-      const input = this.buildInputFromConfig(config);
-      if (input) {
-        const state = new TurnStateComputer(this.dependencies).compute(input);
-        if (state.type === TurnStateType.Valid) return input;
+  generate({ playerLettersCount }: { playerLettersCount: LettersCount }): TurnInput | null {
+    if (playerLettersCount.size === 0) return null;
+    const targetCells = this.getAvailableTargetCells();
+    if (targetCells.length === 0) return null;
+    for (const cell of targetCells) {
+      for (const axis of Object.values(Axis)) {
+        const input = new TurnInputComputer(this.dependencies).compute({ playerLettersCount, cell, axis });
+        if (input) return input;
       }
     }
     return null;
@@ -43,66 +40,128 @@ export class TurnInputGenerator {
     const { layout, turnManager } = this.dependencies;
     return new LayoutCellUsabilityCalculator(layout, turnManager).getAllUsableAsFirst();
   }
+}
 
-  private generatePlayerTileCombinations(playerTiles: ReadonlyArray<TileId>): ReadonlyArray<ReadonlyArray<TileId>> {
-    const { dictionary } = this.dependencies;
-    const combinations: Array<ReadonlyArray<TileId>> = [];
-    const helper = (current: Array<string>, remaining: ReadonlyArray<TileId>) => {
-      if (current.length > 0 && dictionary.hasSubstring(current.join(''))) {
-        combinations.push([...current]);
-      }
-      for (let i = 0; i < remaining.length; i++) {
-        helper([...current, remaining[i]], [...remaining.slice(0, i), ...remaining.slice(i + 1)]);
-      }
-    };
-    helper([], playerTiles);
-    return combinations;
+class TurnInputComputer {
+  private readonly crossCheckCache: CrossCheckCache;
+
+  constructor(private readonly dependencies: Dependencies) {
+    const { layout, dictionary, turnManager } = this.dependencies;
+    this.crossCheckCache = new CrossCheckCache(layout, dictionary, turnManager);
   }
 
-  private buildInputFromConfig(config: InputBuilderConfig): TurnInput | null {
-    const { layout, turnManager } = this.dependencies;
-    const [targetCell, targetCellPosition, axis, tileSequence] = config;
-    if (targetCellPosition > tileSequence.length) return null;
-    const axisCells = layout.getAxisCells({ axis, targetCell });
-    const cellSequenceFirstIndex = axisCells.indexOf(targetCell) - targetCellPosition;
-    const cellSequence = axisCells.slice(cellSequenceFirstIndex, cellSequenceFirstIndex + tileSequence.length);
-    const cellSequenceHasConnectedCells = cellSequence.some(cell => turnManager.isCellConnected(cell));
-    if (cellSequenceHasConnectedCells) return null;
-    const initPlacement = tileSequence.map((tile: TileId, index: number) => ({ cell: cellSequence[index], tile }));
-    return { initPlacement };
+  compute({ playerLettersCount, cell, axis }: ComputerConfig): TurnInput | null {
+    const { layout, dictionary } = this.dependencies;
+    const axisCells = layout.getAxisCells({ axis, targetCell: cell });
+    const cellAxisPosition = axisCells.indexOf(cell);
+    const state = dictionary.rootState;
+    const firstIterationConfig = { axis, axisCells, cellAxisPosition, lettersCount: playerLettersCount, state };
+    return this.computeIteration(firstIterationConfig);
+  }
+
+  private computeIteration({
+    axis,
+    axisCells,
+    cellAxisPosition,
+    lettersCount,
+    placement = [],
+    state,
+  }: ComputerIterationConfig): TurnInput | null {
+    const { turnManager, inventory } = this.dependencies;
+    const placementIsWord = placement.length > 0 && state.isFinal;
+    if (placementIsWord) {
+      const input: TurnInput = { initPlacement: [...placement] };
+      const turnState = new TurnStateComputer(this.dependencies).compute(input);
+      if (turnState.type === TurnStateType.Valid) return input;
+    }
+
+    if (cellAxisPosition >= axisCells.length) return null;
+    const cell = axisCells[cellAxisPosition];
+    if (turnManager.isCellConnected(cell)) return null;
+    const allowedTiles = this.crossCheckCache.getAllowedTiles(cell, axis);
+
+    for (const [tile, nextState] of state.transitions) {
+      if (!allowedTiles.has(tile)) continue;
+      const letter = inventory.getTileLetter(tile);
+      const lettersRemaining = lettersCount.get(letter) ?? 0;
+      if (lettersRemaining === 0) continue;
+
+      // apply tile
+      lettersCount.set(letter, lettersRemaining - 1);
+      placement.push({ cell, tile });
+
+      //check for results
+      const result = this.computeIteration({
+        axis,
+        axisCells,
+        cellAxisPosition: cellAxisPosition + 1,
+        lettersCount,
+        placement,
+        state: nextState,
+      });
+      if (result) return result;
+
+      //reverse tile application
+      placement.pop();
+      lettersCount.set(letter, lettersRemaining);
+    }
+
+    return null;
   }
 }
 
-class CartesianProductIndexer<Arrays extends Array<ReadonlyArray<unknown>>> {
-  private readonly arrays: Arrays;
-  private readonly lengths: Array<number>;
-  private readonly indices: Array<number>;
-  private readonly buffer: { [K in keyof Arrays]: Arrays[K] extends ReadonlyArray<infer U> ? U : never };
-  private readonly totalCombinations: number;
-  private sequentialIndex = 0;
+class CrossCheckCache {
+  private readonly cache = new Map<CellIndex, Set<TileId>>();
 
-  constructor(arrayList: Arrays) {
-    if (arrayList.length === 0) throw new Error('Must provide at least one array');
-    for (const array of arrayList) if (array.length === 0) throw new Error('Arrays must not be empty');
-    this.arrays = arrayList;
-    this.lengths = arrayList.map(a => a.length);
-    this.indices = new Array(arrayList.length).fill(0);
-    this.buffer = arrayList.map(a => a[0]) as typeof this.buffer;
-    this.totalCombinations = this.lengths.reduce((acc, len) => acc * len, 1);
+  constructor(
+    private readonly layout: Layout,
+    private readonly dictionary: Dictionary,
+    private readonly turnManager: TurnManager,
+  ) {}
+
+  getAllowedTiles(cell: CellIndex, axis: Axis): ReadonlySet<TileId> {
+    const cached = this.cache.get(cell);
+    if (cached) return cached;
+    const allowed = this.computeAllowedTiles(cell, axis);
+    this.cache.set(cell, allowed);
+    return allowed;
   }
 
-  nextInto(): typeof this.buffer | null {
-    if (this.sequentialIndex >= this.totalCombinations) return null;
-    for (let i = 0; i < this.arrays.length; i++) {
-      this.buffer[i] = this.arrays[i][this.indices[i]];
+  private computeAllowedTiles(cell: CellIndex, axis: Axis): Set<TileId> {
+    const crossAxis = axis === Axis.X ? Axis.Y : Axis.X;
+    const axisCells = this.layout.getAxisCells({ axis: crossAxis, targetCell: cell });
+    const index = axisCells.indexOf(cell);
+    let prefix = '';
+    for (let i = index - 1; i >= 0; i--) {
+      const tile = this.turnManager.findTileByCell(axisCells[i]);
+      if (!tile) break;
+      prefix = tile + prefix;
     }
-    // odometer increment
-    for (let i = 0; i < this.indices.length; i++) {
-      this.indices[i]++;
-      if (this.indices[i] < this.lengths[i]) break;
-      this.indices[i] = 0;
+    let suffix = '';
+    for (let i = index + 1; i < axisCells.length; i++) {
+      const tile = this.turnManager.findTileByCell(axisCells[i]);
+      if (!tile) break;
+      suffix += tile;
     }
-    this.sequentialIndex++;
-    return this.buffer;
+    if (prefix === '' && suffix === '') {
+      const all = new Set<TileId>();
+      this.collectTiles(this.dictionary.rootState, all);
+      return all;
+    }
+    const allowed = new Set<TileId>();
+    const all = new Set<TileId>();
+    this.collectTiles(this.dictionary.rootState, all);
+    for (const letter of all) {
+      const word = prefix + letter + suffix;
+      if (this.dictionary.hasWord(word)) allowed.add(letter);
+    }
+    return allowed;
+  }
+
+  private collectTiles(state: FrozenState, set: Set<TileId>) {
+    for (const [char, child] of state.transitions) {
+      if (!set.has(char)) set.add(char);
+      this.collectTiles(child, set);
+    }
   }
 }

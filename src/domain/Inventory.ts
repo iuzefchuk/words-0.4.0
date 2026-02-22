@@ -90,6 +90,8 @@ const LETTER_POINTS = {
 
 export type TileId = string;
 
+export type LettersCount = Map<Letter, number>;
+
 class Tile {
   private constructor(
     readonly id: TileId,
@@ -184,6 +186,15 @@ export class Inventory {
 
   getTilesFor(player: Player): ReadonlyArray<TileId> {
     return this.getRackFor(player).tileIds;
+  }
+
+  getLetterCountFor(player: Player): LettersCount {
+    const map = new Map<Letter, number>();
+    for (const tile of this.getTilesFor(player)) {
+      const letter = this.getTileLetter(tile);
+      map.set(letter, (map.get(letter) ?? 0) + 1);
+    }
+    return map;
   }
 
   areTilesEqual(firstTile: TileId, secondTile: TileId): boolean {

@@ -1,101 +1,105 @@
+import { TileId } from '../Inventory.js';
 import DATA from './data.js';
 
-type State = { id: number; isFinal: boolean; transitions: { [char: string]: State } };
+type State = { id: number; isFinal: boolean; transitions: Map<TileId, State> };
 
-class FstRootStateFactory {
+export type FrozenState = {
+  readonly id: number;
+  readonly isFinal: boolean;
+  readonly transitions: ReadonlyArray<readonly [TileId, FrozenState]>;
+};
+
+class DictionaryRootStateFactory {
+  private result = this.createState();
   private nextId = 0;
-  private unminimizedStates: Array<{ parent: State; char: string; child: State }> = [];
-  private minimizedStateRegistry = new Map<string, State>();
+  private unminimizedList: Array<{ parent: State; char: TileId; child: State }> = [];
+  private minimizedMap = new Map<string, State>();
   private previousWord = '';
-  private root: State;
 
-  constructor() {
-    this.root = this.newState();
+  create(sortedWords: ReadonlyArray<string>): State {
+    for (const word of sortedWords) this.insertWordIntoResult(word);
+    this.minimizeUnminimized({ downTo: 0 });
+    return this.result;
   }
 
-  static create(wordsInAlphabeticalOrder: ReadonlyArray<string>): State {
-    const creator = new FstRootStateFactory();
-    for (const word of wordsInAlphabeticalOrder) creator.insert(word);
-    creator.minimizeStates(0); // finish remaining unminimized states
-    return creator.root;
+  private createState(): State {
+    return { id: this.nextId++, isFinal: false, transitions: new Map() };
   }
 
-  private newState(): State {
-    return { id: this.nextId++, isFinal: false, transitions: {} };
-  }
-
-  private insert(word: string): void {
-    const prefix = this.getCommonPrefix(word, this.previousWord);
-    this.minimizeStates(prefix);
-    let state = prefix === 0 ? this.root : this.unminimizedStates[prefix - 1].child;
-    for (const char of word.slice(prefix)) {
-      const next = this.newState();
-      state.transitions[char] = next;
-      this.unminimizedStates.push({ parent: state, char, child: next });
-      state = next;
+  private insertWordIntoResult(word: string): void {
+    let commonPrefix = 0;
+    const minLength = Math.min(word.length, this.previousWord.length);
+    while (commonPrefix < minLength && word[commonPrefix] === this.previousWord[commonPrefix]) commonPrefix++;
+    this.minimizeUnminimized({ downTo: commonPrefix });
+    let node = commonPrefix === 0 ? this.result : this.unminimizedList[commonPrefix - 1].child;
+    for (let i = commonPrefix; i < word.length; i++) {
+      const wordChar = word[i] as TileId;
+      const newState = this.createState();
+      node.transitions.set(wordChar, newState);
+      this.unminimizedList.push({ parent: node, char: wordChar, child: newState });
+      node = newState;
     }
-    state.isFinal = true;
+    node.isFinal = true;
     this.previousWord = word;
   }
 
-  private getCommonPrefix(a: string, b: string): number {
-    let i = 0;
-    while (i < a.length && a[i] === b[i]) i++;
-    return i;
-  }
-
-  private minimizeStates(downTo: number): void {
-    for (let i = this.unminimizedStates.length - 1; i >= downTo; i--) {
-      const { parent, char, child } = this.unminimizedStates[i];
-      const key = this.createStateKey(child);
-      const existing = this.minimizedStateRegistry.get(key);
+  private minimizeUnminimized({ downTo }: { downTo: number }): void {
+    for (let i = this.unminimizedList.length - 1; i >= downTo; i--) {
+      const { parent, char, child } = this.unminimizedList[i];
+      const key = this.generateKeyFor(child);
+      const existing = this.minimizedMap.get(key);
       if (existing) {
-        parent.transitions[char] = existing;
+        parent.transitions.set(char, existing);
       } else {
-        this.minimizedStateRegistry.set(key, child);
+        this.minimizedMap.set(key, child);
       }
-      this.unminimizedStates.pop();
+      this.unminimizedList.pop();
     }
   }
 
-  private createStateKey(state: State): string {
-    let key = state.isFinal ? '1|' : '0|';
-    for (const char in state.transitions) {
-      // char code + state id ensures deterministic unique key
-      key += char.charCodeAt(0).toString(36) + ':' + state.transitions[char].id + ',';
-    }
+  private generateKeyFor(state: State): string {
+    let key = state.isFinal ? '1' : '0';
+    for (const [char, child] of state.transitions) key += char + child.id;
     return key;
   }
 }
 
 export class Dictionary {
-  private constructor(private readonly rootState: State) {}
+  private constructor(public readonly rootState: FrozenState) {}
 
   static create(): Dictionary {
-    const rootState = FstRootStateFactory.create(DATA);
-    return new Dictionary(rootState);
+    const rootState = new DictionaryRootStateFactory().create(DATA);
+    const frozenRootState = this.freezeState(rootState);
+    return new Dictionary(frozenRootState);
   }
 
-  hasSubstring(sub: string): boolean {
-    const dfs = (state: State, index: number): boolean => {
-      if (index === sub.length) return true; // matched all chars
-      for (const char in state.transitions) {
-        const nextState = state.transitions[char];
-        if (char === sub[index]) if (dfs(nextState, index + 1)) return true;
-        // also try skipping current char in FST to start matching later in word
-        if (dfs(nextState, index)) return true;
-      }
-      return false;
+  private static freezeState(state: State): FrozenState {
+    const cache = new Map<number, FrozenState>();
+    const dfs = (node: State): FrozenState => {
+      const cached = cache.get(node.id);
+      if (cached) return cached;
+      const frozenTransitions: Array<readonly [TileId, FrozenState]> = [];
+      const frozen: FrozenState = { id: node.id, isFinal: node.isFinal, transitions: frozenTransitions };
+      cache.set(node.id, frozen);
+      for (const [char, child] of node.transitions) frozenTransitions.push([char, dfs(child)]);
+      return frozen;
     };
-    return dfs(this.rootState, 0);
+    return dfs(state);
   }
 
   hasWord(word: string): boolean {
     let state = this.rootState;
-    for (const char of word) {
-      const charState = state.transitions[char];
-      if (!charState) return false;
-      state = charState;
+    for (let i = 0; i < word.length; i++) {
+      const char = word[i] as TileId;
+      let found: FrozenState | null = null;
+      for (const [c, next] of state.transitions) {
+        if (c === char) {
+          found = next;
+          break;
+        }
+      }
+      if (!found) return false;
+      state = found;
     }
     return state.isFinal;
   }
