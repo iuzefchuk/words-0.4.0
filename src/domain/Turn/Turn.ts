@@ -47,7 +47,7 @@ class Link {
   ) {}
 
   static create(cell: CellIndex, tile: TileId) {
-    return new Link(cell, tile);
+    return new this(cell, tile);
   }
 }
 
@@ -59,8 +59,8 @@ class Turn {
     private state: TurnState,
   ) {}
 
-  static create({ player }: { player: Player }): Turn {
-    return new Turn(crypto.randomUUID(), player, [], { type: TurnStateType.Unvalidated });
+  static create({ player }: { player: Player }) {
+    return new this(crypto.randomUUID(), player, [], { type: TurnStateType.Unvalidated });
   }
 
   get cellSequence(): ReadonlyArray<CellIndex> | undefined {
@@ -131,8 +131,8 @@ class TurnHistory {
 
   private constructor(private turns: Array<Turn>) {}
 
-  static create(): TurnHistory {
-    return new TurnHistory([]);
+  static create() {
+    return new this([]);
   }
 
   get isEmpty(): boolean {
@@ -205,10 +205,10 @@ export class TurnManager {
     private playerStates: Map<Player, PlayerStates>,
   ) {}
 
-  static create({ players }: { players: Array<Player> }): TurnManager {
+  static create({ players }: { players: Array<Player> }) {
     const playerStates = new Map(players.map(p => [p, PlayerStates.Started]));
     const history = TurnHistory.create();
-    const manager = new TurnManager(history, playerStates);
+    const manager = new this(history, playerStates);
     manager.startTurnForNextPlayer();
     return manager;
   }

@@ -30,8 +30,8 @@ export class Layout {
 
   private constructor() {}
 
-  static create(): Layout {
-    return new Layout();
+  static create() {
+    return new this();
   }
 
   get cells(): ReadonlyArray<CellIndex> {
