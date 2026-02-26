@@ -1,5 +1,5 @@
 import { Layout, CellIndex } from '../Layout/Layout.js';
-import { Inventory, TileId } from '../Inventory.js';
+import { Inventory, TileId } from '../Inventory/Inventory.js';
 import { Player } from '../Player.js';
 import { TurnStateComputer } from './TurnStateComputer.js';
 import { Dictionary } from '../Dictionary/Dictionary.js';

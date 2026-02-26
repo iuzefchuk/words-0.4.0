@@ -1,23 +1,29 @@
+import { Letter } from '../Inventory/Inventory.js';
 import DATA from './data.js';
 
-type Transition = { parentNode: Node; childNodeChar: string; childNode: Node };
+type Transition = { parentNode: Node; childLetter: Letter; childNode: Node };
 
-type Node = { id: number; isFinal: boolean; children: Map<string, Node> };
+type Node = { id: number; isFinal: boolean; children: Map<Letter, Node> };
 
-type FrozenNode = {
+export type FrozenNode = {
   readonly id: number;
   readonly isFinal: boolean;
-  readonly children: ReadonlyMap<string, FrozenNode>;
+  readonly children: ReadonlyMap<Letter, FrozenNode>;
 };
 
 type NodeGenerator = Generator<Node, Node>;
 
 export class Dictionary {
-  private constructor(public readonly rootNode: Readonly<FrozenNode>) {}
+  private constructor(
+    public readonly rootNode: Readonly<FrozenNode>,
+    public readonly allLetters: ReadonlySet<Letter>,
+  ) {}
 
   static create(): Dictionary {
     const rootNode = Dictionary.RootNodeFactory.create(DATA);
-    return new Dictionary(rootNode);
+    const allLetters = new Set<Letter>();
+    this.populateLetterSetFromNode(allLetters, rootNode);
+    return new Dictionary(rootNode, allLetters);
   }
 
   static RootNodeFactory = class {
@@ -62,10 +68,10 @@ export class Dictionary {
     ): Generator<Transition> {
       let parentNode = node;
       for (let i = 0; i < wordSubstring.length; i++) {
-        const childNodeChar = wordSubstring[i];
+        const childLetter = wordSubstring[i] as Letter;
         const childNode = generator.next().value;
-        parentNode.children.set(childNodeChar, childNode);
-        yield { parentNode, childNodeChar, childNode };
+        parentNode.children.set(childLetter, childNode);
+        yield { parentNode, childLetter, childNode };
         parentNode = childNode;
       }
       parentNode.isFinal = true;
@@ -102,36 +108,48 @@ export class Dictionary {
       }
 
       private minimizeTransition(node: Transition): void {
-        const { childNode, childNodeChar, parentNode } = node;
-        const childNodeKey = this.createUniqueKeyForNode(childNode);
-        const cachedChildNode = this.minimizedNodeCache.get(childNodeKey);
+        const { childNode, childLetter, parentNode } = node;
+        const childKey = this.createUniqueKeyForNode(childNode);
+        const cachedChildNode = this.minimizedNodeCache.get(childKey);
         if (cachedChildNode) {
-          parentNode.children.set(childNodeChar, cachedChildNode);
+          parentNode.children.set(childLetter, cachedChildNode);
         } else {
-          this.minimizedNodeCache.set(childNodeKey, childNode);
+          this.minimizedNodeCache.set(childKey, childNode);
         }
       }
 
       private createUniqueKeyForNode(node: Node): string {
         let key = node.isFinal ? '1' : '0';
-        for (const [char, child] of node.children) key += char + child.id;
+        for (const [letter, childNode] of node.children) key += letter + childNode.id;
         return key;
       }
     };
   };
+
+  private static populateLetterSetFromNode(set: Set<Letter>, node: FrozenNode): void {
+    for (const [childLetter, childNode] of node.children) {
+      if (!set.has(childLetter)) set.add(childLetter);
+      this.populateLetterSetFromNode(set, childNode);
+    }
+  }
 
   hasWords(words: ReadonlyArray<string>): boolean {
     return words.every(word => this.hasWord(word));
   }
 
   hasWord(word: string): boolean {
-    let currentNode = this.rootNode;
+    const node = this.getNodeFor(word);
+    return node?.isFinal || false;
+  }
+
+  getNodeFor(word: string, startNode: FrozenNode = this.rootNode): FrozenNode | null {
+    let currentNode = startNode;
     for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      const nextNode = currentNode.children.get(char);
-      if (!nextNode) return false;
+      const letter = word[i] as Letter;
+      const nextNode = currentNode.children.get(letter);
+      if (!nextNode) return null;
       currentNode = nextNode;
     }
-    return currentNode.isFinal;
+    return currentNode;
   }
 }

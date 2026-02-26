@@ -1,9 +1,9 @@
 import { shuffleArrayWithFisherYates } from '@/shared/helpers.js';
-import { Player } from './Player.js';
+import { Player } from '../Player.js';
 
 export type TileId = string;
 
-export type LettersCount = Map<Letter, number>;
+export type LetterTilesMap = Map<Letter, Array<TileId>>;
 
 export enum Letter {
   A = 'A',
@@ -61,13 +61,8 @@ export class Inventory {
     return this.getRackFor(player).tileIds;
   }
 
-  getLetterCountFor(player: Player): LettersCount {
-    const map = new Map<Letter, number>();
-    for (const tile of this.getTilesFor(player)) {
-      const letter = this.getTileLetter(tile);
-      map.set(letter, (map.get(letter) ?? 0) + 1);
-    }
-    return map;
+  getletterTilesMapFor(player: Player): LetterTilesMap {
+    return this.getRackFor(player).letterTilesMap;
   }
 
   areTilesEqual(firstTile: TileId, secondTile: TileId): boolean {
@@ -143,6 +138,16 @@ class Rack {
 
   get tileIds(): ReadonlyArray<TileId> {
     return this.tiles.map(tile => tile.id);
+  }
+
+  get letterTilesMap(): LetterTilesMap {
+    const map: LetterTilesMap = new Map();
+    for (const tile of this.tiles) {
+      const tiles = map.get(tile.letter);
+      if (tiles) tiles.push(tile.id);
+      else map.set(tile.letter, []);
+    }
+    return map;
   }
 
   shuffle(): void {

@@ -1,7 +1,8 @@
-import { TileId } from '../Inventory.js';
+import { TileId } from '../Inventory/Inventory.js';
 import { Layout, Axis, CellIndex } from '../Layout/Layout.js';
 import { TurnManager, Placement } from './Turn.js';
 
+// TODO optimize
 export class TurnPlacementFactory {
   constructor(
     private readonly layout: Layout,

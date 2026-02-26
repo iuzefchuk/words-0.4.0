@@ -1,5 +1,5 @@
 import { CellIndex } from '../Layout/Layout.js';
-import { TileId } from '../Inventory.js';
+import { TileId } from '../Inventory/Inventory.js';
 import { TurnState, TurnStateType, Placement, TurnInput } from './Turn.js';
 import { LayoutCellUsabilityCalculator } from '../Layout/LayoutCellUsabilityCalculator.js';
 import { LayoutAxisCalculator } from '../Layout/LayoutAxisCalculator.js';

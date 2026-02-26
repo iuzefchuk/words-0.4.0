@@ -1,6 +1,7 @@
 import { TurnManager } from '../Turn/Turn.js';
 import { CellIndex, Axis, Layout } from './Layout.js';
 
+// TODO optimize
 export class LayoutAxisCalculator {
   private static readonly defaultAxis = Axis.X;
 

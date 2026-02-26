@@ -1,5 +1,5 @@
 import { Layout, CellIndex, Bonus } from './Layout/Layout.js';
-import { Inventory, TileId, Letter } from './Inventory.js';
+import { Inventory, TileId, Letter } from './Inventory/Inventory.js';
 import { Player } from './Player.js';
 import { TurnInput, TurnManager } from './Turn/Turn.js';
 import { TurnInputGenerator } from './Turn/TurnInputGenerator.js';
@@ -151,9 +151,12 @@ export class GameDomain {
   }
 
   generateTurnInput({ player }: { player: Player }): TurnInput | null {
-    return new TurnInputGenerator(GameDomain.layout, this.turnManager).generate({
-      playerTiles: this.inventory.getTilesFor(player),
-    });
+    return new TurnInputGenerator({
+      layout: GameDomain.layout,
+      dictionary: GameDomain.dictionary,
+      inventory: this.inventory,
+      turnManager: this.turnManager,
+    }).generateFor(player);
   }
 
   private finishGame(): void {
