@@ -1,12 +1,12 @@
-import { CellIndex, Layout } from '../Layout/Layout.js';
-import { Inventory, TileId } from '../Inventory/Inventory.js';
-import { TurnState, TurnStateType, Placement, TurnManager } from './_Turn.js';
-import { CellUsabilityCalculator } from '../Layout/CellUsabilityCalculator.js';
-import { AxisCalculator } from '../Layout/AxisCalculator.js';
+import { Dictionary } from '@/domain/Dictionary/Dictionary.js';
+import { TileId, Inventory } from '@/domain/Inventory/Inventory.js';
+import { CellIndex, Layout } from '@/domain/Layout/Layout.js';
+import { AxisCalculator } from '@/domain/Layout/services/AxisCalculator.js';
+import { CellUsabilityCalculator } from '@/domain/Layout/services/CellUsabilityCalculator.js';
+import { Placement, TurnManager, State, StateType } from '../Turn.js';
 import { PlacementCreator } from './PlacementCreator.js';
-import { Dictionary } from '../Dictionary/Dictionary.js';
 
-type BaseContext = { initPlacement: Placement; dependencies: Dependencies };
+type BaseContext = { initialPlacement: Placement; dependencies: Dependencies };
 type SequencesContext = BaseContext & { sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> } };
 type PlacementsContext = SequencesContext & { placements: ReadonlyArray<Placement> };
 type WordsContext = PlacementsContext & { words: ReadonlyArray<string> };
@@ -23,15 +23,15 @@ export enum ValidationErrors {
   WordNotInDictionary = 'error_tile_4',
 }
 
-export class TurnStateComputer {
+export class StateComputer {
   static execute(
-    initPlacement: Placement,
+    initialPlacement: Placement,
     layout: Layout,
     dictionary: Dictionary,
     inventory: Inventory,
     turnManager: TurnManager,
-  ): TurnState {
-    const initialContext = { initPlacement, dependencies: { layout, dictionary, inventory, turnManager } };
+  ): State {
+    const initialContext = { initialPlacement, dependencies: { layout, dictionary, inventory, turnManager } };
     const { result } = this.Pipeline.initialize(initialContext)
       .addStep(this.computeSequences)
       .addStep(this.computePlacements)
@@ -39,13 +39,13 @@ export class TurnStateComputer {
       .addStep(this.computeScore);
     return result.isValid
       ? {
-          type: TurnStateType.Valid,
+          type: StateType.Valid,
           sequences: result.ctx.sequences,
           score: result.ctx.score,
           words: result.ctx.words,
         }
       : {
-          type: TurnStateType.Invalid,
+          type: StateType.Invalid,
           error: result.error,
         };
   }
@@ -87,9 +87,9 @@ export class TurnStateComputer {
 
   static computeSequences(ctx: BaseContext): PipelineResult<SequencesContext> {
     const { layout, turnManager } = ctx.dependencies;
-    const tiles = ctx.initPlacement.map(placement => placement.tile);
+    const tiles = ctx.initialPlacement.map(placement => placement.tile);
     if (tiles.length === 0) return this.failComputer(ValidationErrors.InvalidTilePlacement);
-    const cells = ctx.initPlacement.map(placement => placement.cell);
+    const cells = ctx.initialPlacement.map(placement => placement.cell);
     if (cells.length === 0) return this.failComputer(ValidationErrors.InvalidCellPlacement);
     const cellUsabilityCalculator = new CellUsabilityCalculator(layout, turnManager);
     const noCellsUsableAsFirst = cells.every(cell => !cellUsabilityCalculator.isUsableAsFirst(cell));

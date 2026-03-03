@@ -3,7 +3,7 @@ import { Player } from '../Player.js';
 
 export type TileId = string;
 
-export type LetterTiles = Map<Letter, Array<TileId>>;
+export type TileCollection = Map<Letter, Array<TileId>>;
 
 export enum Letter {
   A = 'A',
@@ -62,8 +62,8 @@ export class Inventory {
     return this.getRackFor(player).tileIds;
   }
 
-  getletterTilesFor(player: Player): LetterTiles {
-    return this.getRackFor(player).letterTiles;
+  getTileCollectionFor(player: Player): TileCollection {
+    return this.getRackFor(player).tileCollection;
   }
 
   areTilesEqual(firstTile: TileId, secondTile: TileId): boolean {
@@ -140,14 +140,17 @@ class Rack {
   get tileIds(): ReadonlyArray<TileId> {
     return this.tiles.map(tile => tile.id);
   }
-  get letterTiles(): LetterTiles {
-    const map: LetterTiles = new Map();
+  get tileCollection(): TileCollection {
+    const collection: TileCollection = new Map();
     for (const tile of this.tiles) {
-      const tiles = map.get(tile.letter);
-      if (tiles) tiles.push(tile.id);
-      else map.set(tile.letter, []);
+      const tiles = collection.get(tile.letter);
+      if (tiles) {
+        tiles.push(tile.id);
+      } else {
+        collection.set(tile.letter, [tile.id]);
+      }
     }
-    return map;
+    return collection;
   }
 
   shuffle(): void {

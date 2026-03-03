@@ -1,7 +1,7 @@
-import { Dictionary } from '../Dictionary/Dictionary.js';
-import { Inventory, Letter } from '../Inventory/Inventory.js';
-import { CellIndex, Coordinates, Layout } from '../Layout/Layout.js';
-import { TurnManager } from './_Turn.js';
+import { Dictionary } from '@/domain/Dictionary/Dictionary.js';
+import { Letter, Inventory } from '@/domain/Inventory/Inventory.js';
+import { Coordinates, Layout, CellIndex } from '@/domain/Layout/Layout.js';
+import { TurnManager } from '../Turn.js';
 
 export type CachedUsableLettersComputer = {
   getFor(coords: Coordinates): ReadonlySet<Letter>;

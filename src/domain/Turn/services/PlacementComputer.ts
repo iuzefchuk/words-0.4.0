@@ -1,37 +1,50 @@
 import { FrozenNode, Dictionary } from '@/domain/Dictionary/Dictionary.js';
-import { Letter, TileId, Inventory, LetterTiles } from '@/domain/Inventory/Inventory.js';
+import { Letter, TileId, Inventory, TileCollection } from '@/domain/Inventory/Inventory.js';
 import { CellIndex, Layout, Coordinates, Axis } from '@/domain/Layout/Layout.js';
-import { TurnManager, Placement, TurnStateType } from '../Turn.js';
-import { TurnStateComputer } from './TurnStateComputer.js';
+import { TurnManager, Placement, StateType } from '../Turn.js';
+import { StateComputer } from './StateComputer.js';
 import { CachedUsableLettersComputer } from './UsableLettersComputer.js';
 
-type EnterFrame = { stage: Stage.Enter; direction: Direction; node: FrozenNode; position: number };
-type AdvanceFrame = { stage: Stage.Advance; direction: Direction; node: FrozenNode; position: number; step: -1 | 1 };
-type ExpandFrame = {
-  stage: Stage.Expand;
-  direction: Direction;
-  node: FrozenNode;
-  position: number;
-  step: -1 | 1;
-  nextPosition: number;
-  nextCell: CellIndex;
-  iterator: Iterator<[Letter, FrozenNode]>;
-  usableLetters: ReadonlySet<Letter>;
+type BaseTask = {
+  state: { position: number; direction: Direction; node: FrozenNode };
 };
-type BacktrackFrame = { stage: Stage.Backtrack; letter: Letter; placedTile: TileId };
-type Frame = EnterFrame | AdvanceFrame | ExpandFrame | BacktrackFrame;
+type ContinuatedTask = BaseTask & {
+  continuation: { nextPosition: number; nextCell: CellIndex; nextTile?: TileId };
+};
+type IteratedTask = ContinuatedTask & {
+  iteration: { childNodeIterator: Iterator<[Letter, FrozenNode]>; usableLetters: ReadonlySet<Letter> };
+};
+type LinkedTask = IteratedTask & {
+  link: { letter: Letter; tile: TileId };
+};
 
-enum Stage {
-  Enter = 'Enter',
-  Advance = 'Advance',
-  Expand = 'Expand',
-  Backtrack = 'Backtrack',
+type InitiateTask = BaseTask & { type: TaskType.Initiate };
+type ValidateTask = BaseTask & { type: TaskType.Validate };
+type CalculateContinuationTask = BaseTask & { type: TaskType.CalculateContinuation };
+type ContinueTask = ContinuatedTask & { type: TaskType.Continue };
+type AddLinkTask = IteratedTask & { type: TaskType.AddLink };
+type RemoveLinkTask = LinkedTask & { type: TaskType.RemoveLink };
+
+type Task = InitiateTask | ValidateTask | CalculateContinuationTask | ContinueTask | AddLinkTask | RemoveLinkTask;
+
+enum TaskType {
+  Initiate = 'Initiate',
+  Validate = 'Validate',
+  CalculateContinuation = 'CalculateContinuation',
+  Continue = 'Continue',
+  AddLink = 'AddLink',
+  RemoveLink = 'RemoveLink',
 }
 
 enum Direction {
   Left = 'Left',
   Right = 'Right',
 }
+
+const STEPS: Record<Direction, -1 | 1> = {
+  [Direction.Left]: -1,
+  [Direction.Right]: 1,
+};
 
 export class PlacementComputer {
   constructor(
@@ -42,101 +55,112 @@ export class PlacementComputer {
     private readonly cachedUsableLettersComputer: CachedUsableLettersComputer,
   ) {}
 
-  execute({ playerLetterTiles, coords }: { playerLetterTiles: LetterTiles; coords: Coordinates }): Placement | null {
-    const tiles = playerLetterTiles;
+  execute({
+    playerTileCollection,
+    coords,
+  }: {
+    playerTileCollection: TileCollection;
+    coords: Coordinates;
+  }): Placement | null {
     const axisCells = this.layout.getAxisCells(coords);
     const oppositeAxis = this.layout.getOppositeAxis(coords.axis);
     const startPosition = axisCells.indexOf(coords.cell);
     if (startPosition === -1) return null;
-    const initPlacement: Placement = [];
-    const stack: Array<Frame> = [
-      { stage: Stage.Enter, direction: Direction.Left, node: this.dictionary.rootNode, position: startPosition },
+    const tiles = new Map(playerTileCollection);
+    const newPlacement: Placement = [];
+    const pendingTasks: Array<Task> = [
+      {
+        type: TaskType.Initiate,
+        state: { position: startPosition, direction: Direction.Left, node: this.dictionary.rootNode },
+      },
     ];
-    while (stack.length > 0) {
-      const frame = stack.pop()!;
-      if (frame.stage === Stage.Enter) {
-        const validResultIsPossible = initPlacement.length > 0 && frame.node.isFinal;
-        if (frame.direction === Direction.Right && validResultIsPossible) {
-          const potentialTurnState = TurnStateComputer.execute(
-            initPlacement,
+    while (pendingTasks.length > 0) {
+      const task = pendingTasks.pop()!;
+      if (task.type === TaskType.Initiate) {
+        const { direction, node } = task.state;
+        const placementIsUsable = newPlacement.length > 0 && node.isFinal;
+        if (direction === Direction.Right && placementIsUsable) {
+          const potentialTurnState = StateComputer.execute(
+            newPlacement,
             this.layout,
             this.dictionary,
             this.inventory,
             this.turnManager,
           );
-          if (potentialTurnState.type === TurnStateType.Valid) return initPlacement;
+          if (potentialTurnState.type === StateType.Valid) return newPlacement;
         }
+        if (direction === Direction.Left) {
+          pendingTasks.push({ type: TaskType.Initiate, state: { ...task.state, direction: Direction.Right } });
+        }
+        pendingTasks.push({ ...task, type: TaskType.Validate });
       }
-      if (frame.stage === Stage.Enter) this.enter(stack, frame);
-      else if (frame.stage === Stage.Advance) this.advance(stack, frame, axisCells, oppositeAxis);
-      else if (frame.stage === Stage.Expand) this.expand(stack, frame, tiles, initPlacement);
-      else if (frame.stage === Stage.Backtrack) this.backtrack(frame, tiles, initPlacement);
+      if (task.type === TaskType.Validate) this.validate(pendingTasks, task);
+      if (task.type === TaskType.CalculateContinuation) this.calculateContinuation(pendingTasks, task, axisCells);
+      if (task.type === TaskType.Continue) this.continue(pendingTasks, task, oppositeAxis);
+      if (task.type === TaskType.AddLink) this.addLink(pendingTasks, task, tiles, newPlacement);
+      if (task.type === TaskType.RemoveLink) this.removeLink(task, tiles, newPlacement);
     }
     return null;
   }
 
-  private enter(stack: Array<Frame>, frame: EnterFrame): void {
-    const { direction: phase } = frame;
-    if (phase === Direction.Left) {
-      stack.push({ ...frame, stage: Stage.Enter, direction: Direction.Right });
-      stack.push({ ...frame, stage: Stage.Advance, direction: Direction.Left, step: -1 });
-    } else if (phase === Direction.Right) {
-      stack.push({ ...frame, stage: Stage.Advance, direction: Direction.Right, step: 1 });
-    }
+  private validate(pendingTasks: Array<Task>, task: ValidateTask): void {
+    const { position, direction } = task.state;
+    const isEdge =
+      STEPS[direction] === -1
+        ? this.layout.isCellPositionOnLeftEdge(position)
+        : this.layout.isCellPositionOnRightEdge(position);
+    if (!isEdge) pendingTasks.push({ ...task, type: TaskType.CalculateContinuation });
   }
 
-  private advance(
-    stack: Array<Frame>,
-    frame: AdvanceFrame,
+  private calculateContinuation(
+    pendingTasks: Array<Task>,
+    task: CalculateContinuationTask,
     axisCells: ReadonlyArray<CellIndex>,
-    oppositeAxis: Axis,
   ): void {
-    const { node, position, step } = frame;
-    const isEdge =
-      step === -1 ? this.layout.isCellPositionOnLeftEdge(position) : this.layout.isCellPositionOnRightEdge(position);
-    if (isEdge) return;
-    const nextPosition = position + step;
-    if (nextPosition < 0 || nextPosition >= axisCells.length) return;
+    const { position, direction } = task.state;
+    const nextPosition = position + STEPS[direction];
     const nextCell = axisCells[nextPosition];
-    const connectedTile = this.turnManager.findTileByCell(nextCell);
-    if (connectedTile) {
-      const letter = this.inventory.getTileLetter(connectedTile);
+    const nextTile = this.turnManager.findTileByCell(nextCell);
+    pendingTasks.push({ ...task, type: TaskType.Continue, continuation: { nextPosition, nextCell, nextTile } });
+  }
+
+  private continue(pendingTasks: Array<Task>, task: ContinueTask, oppositeAxis: Axis): void {
+    const { node } = task.state;
+    const { nextPosition, nextCell, nextTile } = task.continuation;
+    if (nextTile) {
+      const letter = this.inventory.getTileLetter(nextTile);
       const nextNode = node.children.get(letter);
       if (!nextNode) return;
-      stack.push({ ...frame, stage: Stage.Enter, node: nextNode, position: nextPosition });
+      pendingTasks.push({ type: TaskType.Initiate, state: { ...task.state, position: nextPosition, node: nextNode } });
     } else {
-      stack.push({
-        ...frame,
-        stage: Stage.Expand,
-        nextPosition,
-        nextCell,
-        iterator: node.children.entries(),
-        usableLetters: this.cachedUsableLettersComputer.getFor({ axis: oppositeAxis, cell: nextCell }),
-      });
+      const childNodeIterator = node.children.entries();
+      const usableLetters = this.cachedUsableLettersComputer.getFor({ axis: oppositeAxis, cell: nextCell });
+      pendingTasks.push({ ...task, type: TaskType.AddLink, iteration: { childNodeIterator, usableLetters } });
     }
   }
 
-  private expand(stack: Array<Frame>, frame: ExpandFrame, tiles: LetterTiles, initPlacement: Placement): void {
-    const { direction, nextPosition, nextCell, iterator, usableLetters } = frame;
-    const next = iterator.next();
+  private addLink(pendingTasks: Array<Task>, task: AddLinkTask, tiles: TileCollection, newPlacement: Placement): void {
+    const { nextPosition, nextCell } = task.continuation;
+    const { childNodeIterator, usableLetters } = task.iteration;
+    const next = childNodeIterator.next();
     if (next.done) return;
     const [letter, nextNode] = next.value;
-    stack.push(frame);
+    pendingTasks.push(task); // re-queueing the same task to continue iteration
     if (!usableLetters.has(letter)) return;
-    const tilesWithLetter = tiles.get(letter);
-    if (!tilesWithLetter || tilesWithLetter.length === 0) return;
-    const tile = tilesWithLetter.pop();
-    if (!tile) throw new Error('Tile has to exist');
-    initPlacement.push({ cell: nextCell, tile });
-    stack.push({ stage: Stage.Backtrack, letter, placedTile: tile });
-    stack.push({ stage: Stage.Enter, direction, node: nextNode, position: nextPosition });
+    const letterTiles = tiles.get(letter);
+    if (!letterTiles || letterTiles.length === 0) return;
+    const tile = letterTiles.pop();
+    if (!tile) throw new Error('Tile has to be present');
+    newPlacement.push({ cell: nextCell, tile });
+    pendingTasks.push({ ...task, type: TaskType.RemoveLink, link: { letter, tile } });
+    pendingTasks.push({ type: TaskType.Initiate, state: { ...task.state, position: nextPosition, node: nextNode } });
   }
 
-  private backtrack(frame: BacktrackFrame, tiles: LetterTiles, initPlacement: Placement): void {
-    const { letter, placedTile } = frame;
-    const tilesWithLetter = tiles.get(letter);
-    if (!tilesWithLetter) throw new Error('Backtracked letter has to exist');
-    tilesWithLetter.push(placedTile);
-    initPlacement.pop();
+  private removeLink(task: RemoveLinkTask, tiles: TileCollection, newPlacement: Placement): void {
+    const { letter, tile } = task.link;
+    const letterTiles = tiles.get(letter);
+    if (!letterTiles) throw new Error('Letter tiles have to be present');
+    letterTiles.push(tile);
+    newPlacement.pop();
   }
 }

@@ -1,6 +1,6 @@
-import { TileId } from '../Inventory/Inventory.js';
-import { Coordinates, Layout } from '../Layout/Layout.js';
-import { Placement, TurnManager } from './_Turn.js';
+import { TileId } from '@/domain/Inventory/Inventory.js';
+import { Layout, Coordinates } from '@/domain/Layout/Layout.js';
+import { TurnManager, Placement } from '../Turn.js';
 
 // TODO optimize
 export class PlacementCreator {

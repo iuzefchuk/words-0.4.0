@@ -1,13 +1,13 @@
-import { Axis, CellIndex, Coordinates, Layout } from '../Layout/Layout.js';
-import { Inventory, Letter } from '../Inventory/Inventory.js';
-import { Placement, TurnManager } from './_Turn.js';
-import { CellUsabilityCalculator } from '../Layout/CellUsabilityCalculator.js';
-import { Dictionary } from '../Dictionary/Dictionary.js';
-import { Player } from '../Player.js';
+import { Dictionary } from '@/domain/Dictionary/Dictionary.js';
+import { Inventory, Letter } from '@/domain/Inventory/Inventory.js';
+import { Layout, Axis, CellIndex, Coordinates } from '@/domain/Layout/Layout.js';
+import { CellUsabilityCalculator } from '@/domain/Layout/services/CellUsabilityCalculator.js';
+import { Player } from '@/domain/Player.js';
+import { TurnManager, Placement } from '../Turn.js';
 import { PlacementComputer } from './PlacementComputer.js';
-import { CachedUsableLettersComputer, UsableLettersComputer } from './UsableLettersComputer.js';
+import { UsableLettersComputer, CachedUsableLettersComputer } from './UsableLettersComputer.js';
 
-export class PlacementGenerator {
+export class InitialPlacementGenerator {
   constructor(
     private readonly layout: Layout,
     private readonly dictionary: Dictionary,
@@ -16,12 +16,12 @@ export class PlacementGenerator {
   ) {}
 
   execute(player: Player): Placement | null {
-    const playerLetterTiles = this.inventory.getletterTilesFor(player);
-    if (playerLetterTiles.size === 0) return null;
+    const playerTileCollection = this.inventory.getTileCollectionFor(player);
+    if (playerTileCollection.size === 0) return null;
     const availableTargetCells = new CellUsabilityCalculator(this.layout, this.turnManager).getAllUsableAsFirst();
     if (availableTargetCells.length === 0) return null;
     const lettersComputer = new UsableLettersComputer(this.layout, this.dictionary, this.inventory, this.turnManager);
-    const cachedLettersComputer = new PlacementGenerator.CachedUsableLettersComputer(lettersComputer);
+    const cachedLettersComputer = new InitialPlacementGenerator.CachedUsableLettersComputer(lettersComputer);
     for (const cell of availableTargetCells) {
       for (const axis of Object.values(Axis)) {
         const input = new PlacementComputer(
@@ -30,7 +30,7 @@ export class PlacementGenerator {
           this.inventory,
           this.turnManager,
           cachedLettersComputer,
-        ).execute({ playerLetterTiles, coords: { axis, cell } });
+        ).execute({ playerTileCollection, coords: { axis, cell } });
         if (input) return input;
       }
     }

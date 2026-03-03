@@ -2,8 +2,8 @@ import { Layout, CellIndex, Bonus } from './Layout/Layout.js';
 import { Inventory, TileId, Letter } from './Inventory/Inventory.js';
 import { Player } from './Player.js';
 import { Placement, TurnManager } from './Turn/Turn.js';
-import { PlacementGenerator } from './Turn/PlacementGenerator.js';
 import { Dictionary } from './Dictionary/Dictionary.js';
+import { InitialPlacementGenerator } from './Turn/services/InitialPlacementGenerator.js';
 
 export class GameDomain {
   private isMutable: boolean = true;
@@ -113,11 +113,7 @@ export class GameDomain {
 
   computeTurnState(): void {
     this.checkMutability();
-    this.turnManager.computeCurrentTurnState({
-      layout: GameDomain.layout,
-      dictionary: GameDomain.dictionary,
-      inventory: this.inventory,
-    });
+    this.turnManager.computeCurrentTurnState(GameDomain.layout, GameDomain.dictionary, this.inventory);
   }
 
   resetTurn(): void {
@@ -149,12 +145,12 @@ export class GameDomain {
   }
 
   generatePlacement({ player }: { player: Player }): Placement | null {
-    return new PlacementGenerator({
-      layout: GameDomain.layout,
-      dictionary: GameDomain.dictionary,
-      inventory: this.inventory,
-      turnManager: this.turnManager,
-    }).generateFor(player);
+    return new InitialPlacementGenerator(
+      GameDomain.layout,
+      GameDomain.dictionary,
+      this.inventory,
+      this.turnManager,
+    ).execute(player);
   }
 
   private finishGame(): void {

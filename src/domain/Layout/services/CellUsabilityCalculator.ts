@@ -1,5 +1,5 @@
-import { TurnManager } from '../Turn/_Turn.js';
-import { CellIndex, Layout } from './Layout.js';
+import { TurnManager } from '@/domain/Turn/Turn.js';
+import { Layout, CellIndex } from '../Layout.js';
 
 export class CellUsabilityCalculator {
   constructor(

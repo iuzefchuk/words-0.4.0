@@ -1,30 +1,29 @@
-import { Layout, CellIndex } from '../Layout/Layout.js';
-import { Inventory, TileId } from '../Inventory/Inventory.js';
-import { Player } from '../Player.js';
-import { TurnStateComputer } from './TurnStateComputer.js';
 import { Dictionary } from '../Dictionary/Dictionary.js';
+import { TileId, Inventory } from '../Inventory/Inventory.js';
+import { CellIndex, Layout } from '../Layout/Layout.js';
+import { Player } from '../Player.js';
+import { StateComputer } from './services/StateComputer.js';
 
 export type Placement = Array<Link>;
 
-type TurnStateUnvalidated = { type: TurnStateType.Unvalidated };
-type TurnStateInvalid = { type: TurnStateType.Invalid; error: string };
-type TurnStateValid = { type: TurnStateType.Valid } & TurnComputeds;
-export type TurnState = TurnStateUnvalidated | TurnStateInvalid | TurnStateValid;
-
-type TurnComputeds = {
+export type State = StateUnvalidated | StateInvalid | StateValid;
+type StateUnvalidated = { type: StateType.Unvalidated };
+type StateInvalid = { type: StateType.Invalid; error: string };
+type StateValid = { type: StateType.Valid } & StateComputeds;
+type StateComputeds = {
   sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> };
   score: number;
   words: ReadonlyArray<string>;
 };
 
-export enum TurnStateType {
+export enum StateType {
   Unvalidated = 'Unvalidated',
   Invalid = 'Invalid',
   Valid = 'Valid',
 }
 
-enum PlayerStates {
-  Started = 'Started',
+enum PlayerMove {
+  StartedGame = 'StartedGame',
   PlayedBySave = 'PlayedBySave',
   PlayedByPass = 'PlayedByPass',
   Won = 'Won',
@@ -32,17 +31,17 @@ enum PlayerStates {
 }
 
 export class TurnManager {
-  private static readonly finalPlayerStates = [PlayerStates.Won, PlayerStates.Tied];
+  private static readonly finalMoves = [PlayerMove.Won, PlayerMove.Tied];
 
   private constructor(
     private readonly history: TurnHistory,
-    private playerStates: Map<Player, PlayerStates>,
+    private lastMoves: Map<Player, PlayerMove>,
   ) {}
 
   static create({ players }: { players: Array<Player> }): TurnManager {
     const history = TurnHistory.create();
-    const playerStates = new Map(players.map(p => [p, PlayerStates.Started]));
-    const manager = new TurnManager(history, playerStates);
+    const lastMoves = new Map(players.map(player => [player, PlayerMove.StartedGame]));
+    const manager = new TurnManager(history, lastMoves);
     manager.startTurnForNextPlayer();
     return manager;
   }
@@ -90,7 +89,7 @@ export class TurnManager {
   }
 
   hasPlayerPassed(player: Player): boolean {
-    return this.playerStates.get(player) === PlayerStates.PlayedByPass;
+    return this.lastMoves.get(player) === PlayerMove.PlayedByPass;
   }
 
   connectTileToCell({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
@@ -103,9 +102,9 @@ export class TurnManager {
     this.history.currentTurn.disconnectTileFromCell({ tile });
   }
 
-  computeCurrentTurnState(dependencies: { layout: Layout; dictionary: Dictionary; inventory: Inventory }): void {
+  computeCurrentTurnState(layout: Layout, dictionary: Dictionary, inventory: Inventory): void {
     this.checkMutability();
-    this.history.currentTurn.computeState({ ...dependencies, turnManager: this });
+    this.history.currentTurn.computeState(layout, dictionary, inventory, this);
   }
 
   resetCurrentTurn(): void {
@@ -116,20 +115,20 @@ export class TurnManager {
   saveCurrentTurn(): void {
     this.checkMutability();
     if (!this.currentTurnIsSavable) throw new Error('Turn is not saveable');
-    this.setPlayerState(this.history.currentPlayer, PlayerStates.PlayedBySave);
+    this.logPlayerLastMove(this.history.currentPlayer, PlayerMove.PlayedBySave);
     this.startTurnForNextPlayer();
   }
 
   passCurrentTurn(): void {
     this.checkMutability();
-    this.setPlayerState(this.history.currentPlayer, PlayerStates.PlayedByPass);
+    this.logPlayerLastMove(this.history.currentPlayer, PlayerMove.PlayedByPass);
     this.startTurnForNextPlayer();
   }
 
   resignCurrentTurn(): void {
     this.checkMutability();
     const winner = this.history.nextPlayer;
-    this.setPlayerState(winner, PlayerStates.Won);
+    this.logPlayerLastMove(winner, PlayerMove.Won);
   }
 
   startTurnForNextPlayer(): void {
@@ -138,13 +137,13 @@ export class TurnManager {
   }
 
   private checkMutability(): void {
-    for (const state of this.playerStates.values()) {
-      if (TurnManager.finalPlayerStates.includes(state)) throw new Error('Turns are immutable because game is ended');
+    for (const move of this.lastMoves.values()) {
+      if (TurnManager.finalMoves.includes(move)) throw new Error('Turns are immutable because game is ended');
     }
   }
 
-  private setPlayerState(player: Player, state: PlayerStates): void {
-    this.playerStates.set(player, state);
+  private logPlayerLastMove(player: Player, move: PlayerMove): void {
+    this.lastMoves.set(player, move);
   }
 }
 
@@ -216,71 +215,66 @@ class TurnHistory {
 class Turn {
   private constructor(
     readonly player: Player,
-    private initPlacement: Placement,
-    private state: TurnState,
+    private initialPlacement: Placement,
+    private state: State,
   ) {}
 
   static create({ player }: { player: Player }): Turn {
-    const initPlacement: Placement = [];
-    const state: TurnStateUnvalidated = { type: TurnStateType.Unvalidated };
-    return new Turn(player, initPlacement, state);
+    const initialPlacement: Placement = [];
+    const state: StateUnvalidated = { type: StateType.Unvalidated };
+    return new Turn(player, initialPlacement, state);
   }
 
   get cellSequence(): ReadonlyArray<CellIndex> | undefined {
-    return this.state.type === TurnStateType.Valid ? this.state.sequences.cell : undefined;
+    return this.state.type === StateType.Valid ? this.state.sequences.cell : undefined;
   }
   get tileSequence(): ReadonlyArray<TileId> | undefined {
-    return this.state.type === TurnStateType.Valid ? this.state.sequences.tile : undefined;
+    return this.state.type === StateType.Valid ? this.state.sequences.tile : undefined;
   }
   get error(): string | undefined {
-    return this.state.type === TurnStateType.Invalid ? this.state.error : undefined;
+    return this.state.type === StateType.Invalid ? this.state.error : undefined;
   }
   get score(): number | undefined {
-    return this.state.type === TurnStateType.Valid ? this.state.score : undefined;
+    return this.state.type === StateType.Valid ? this.state.score : undefined;
   }
   get words(): ReadonlyArray<string> | undefined {
-    return this.state.type === TurnStateType.Valid ? this.state.words : undefined;
+    return this.state.type === StateType.Valid ? this.state.words : undefined;
   }
   get isValid(): boolean {
-    return this.state.type === TurnStateType.Valid;
+    return this.state.type === StateType.Valid;
   }
 
-  computeState(dependencies: {
-    layout: Layout;
-    dictionary: Dictionary;
-    inventory: Inventory;
-    turnManager: TurnManager;
-  }): void {
-    this.state = TurnStateComputer.execute(this.initPlacement, dependencies);
+  computeState(layout: Layout, dictionary: Dictionary, inventory: Inventory, turnManager: TurnManager): void {
+    this.state = StateComputer.execute(this.initialPlacement, layout, dictionary, inventory, turnManager);
   }
 
   getConnectedTile(cell: CellIndex): TileId | undefined {
-    return this.initPlacement.find(link => link.cell === cell)?.tile;
+    return this.initialPlacement.find(link => link.cell === cell)?.tile;
   }
 
   getConnectedCell(tile: TileId): CellIndex | undefined {
-    return this.initPlacement.find(link => link.tile === tile)?.cell;
+    return this.initialPlacement.find(link => link.tile === tile)?.cell;
   }
 
   connectTileToCell({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
     this.validateCellAndTileAbsence(cell, tile);
-    this.initPlacement.push(Link.create(cell, tile));
-    this.initPlacement.sort((a, b) => a.cell - b.cell);
+    this.initialPlacement.push(Link.create(cell, tile));
+    this.initialPlacement.sort((a, b) => a.cell - b.cell);
   }
 
   disconnectTileFromCell({ tile }: { tile: TileId }): void {
-    const index = this.initPlacement.findIndex(link => link.tile === tile);
+    const index = this.initialPlacement.findIndex(link => link.tile === tile);
     if (index === -1) throw new Error(`Tile ${tile} not found`);
-    this.initPlacement.splice(index, 1);
+    this.initialPlacement.splice(index, 1);
   }
 
   reset(): void {
-    this.initPlacement.length = 0;
+    this.initialPlacement.length = 0;
   }
 
   private validateCellAndTileAbsence(cell: CellIndex, tile: TileId): void {
-    if (this.initPlacement.some(link => link.cell === cell)) throw new Error(`Cell ${cell} already connected`);
-    if (this.initPlacement.some(link => link.tile === tile)) throw new Error(`Tile ${tile} already connected`);
+    if (this.initialPlacement.some(link => link.cell === cell)) throw new Error(`Cell ${cell} already connected`);
+    if (this.initialPlacement.some(link => link.tile === tile)) throw new Error(`Tile ${tile} already connected`);
   }
 }
 

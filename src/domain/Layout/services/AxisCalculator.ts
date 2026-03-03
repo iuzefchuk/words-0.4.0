@@ -1,5 +1,5 @@
-import { TurnManager } from '../Turn/_Turn.js';
-import { CellIndex, Axis, Layout } from './Layout.js';
+import { TurnManager } from '@/domain/Turn/Turn.js';
+import { Axis, Layout, CellIndex } from '../Layout.js';
 
 // TODO optimize
 export class AxisCalculator {
