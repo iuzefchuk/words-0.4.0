@@ -1,15 +1,16 @@
 import { Letter } from '@/domain/enums.js';
-import type { Common as C } from '@/domain/Dictionary/types.d.ts';
 import { SORTED_WORDS } from '@/domain/Dictionary/constants.js';
+import { FrozenNode, NodeId } from '@/domain/Dictionary/types/local.js';
+import { Entry, NextEntryGenerator } from '@/domain/Dictionary/types/shared.js';
 import NodeTreeBuilder from '@/domain/Dictionary/construction/NodeTreeBuilder.js';
 
 export default class Dictionary {
   private constructor(
-    private readonly nodeTree: C.FrozenNode,
+    private readonly nodeTree: FrozenNode,
     public readonly allLetters: ReadonlySet<Letter>,
   ) {}
 
-  private get rootNode(): C.FrozenNode {
+  private get rootNode(): FrozenNode {
     return this.nodeTree;
   }
 
@@ -24,7 +25,7 @@ export default class Dictionary {
     return new Dictionary(nodeTree, allLetters);
   }
 
-  private static populateLetterSetFromNode(set: Set<Letter>, node: C.FrozenNode): void {
+  private static populateLetterSetFromNode(set: Set<Letter>, node: FrozenNode): void {
     for (const [childLetter, childNode] of node.children) {
       if (!set.has(childLetter)) set.add(childLetter);
       this.populateLetterSetFromNode(set, childNode);
@@ -47,7 +48,7 @@ export default class Dictionary {
 
   createNextEntryGenerator({ startEntry }: { startEntry: Entry }): NextEntryGenerator {
     const parentNode = this.findNodeById(startEntry);
-    function* generator(node: C.FrozenNode): Generator<[Letter, Entry]> {
+    function* generator(node: FrozenNode): Generator<[Letter, Entry]> {
       for (const [possibleNextLetter, nodeForPossibleNextLetter] of node.children) {
         yield [possibleNextLetter, nodeForPossibleNextLetter.id] as [Letter, Entry];
       }
@@ -59,7 +60,7 @@ export default class Dictionary {
     return this.findNodeById(entry).isFinal;
   }
 
-  private findNodeForWord(word: string, parentNodeId: C.NodeId = this.rootNode.id): C.FrozenNode | null {
+  private findNodeForWord(word: string, parentNodeId: NodeId = this.rootNode.id): FrozenNode | null {
     let currentNode = this.findNodeById(parentNodeId);
     for (let i = 0; i < word.length; i++) {
       const letter = word[i] as Letter;
@@ -71,8 +72,8 @@ export default class Dictionary {
     return currentNode;
   }
 
-  private findNodeById(nodeId: C.NodeId): C.FrozenNode {
-    const search = (node: C.FrozenNode): C.FrozenNode => {
+  private findNodeById(nodeId: NodeId): FrozenNode {
+    const search = (node: FrozenNode): FrozenNode => {
       if (node.id === nodeId) return node;
       for (const childNode of node.children.values()) {
         const found = search(childNode);

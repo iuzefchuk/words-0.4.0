@@ -1,4 +1,8 @@
-import type { Computation as C, Generation as G } from '@/domain/Turnkeeper/types.js';
+import { GameContext } from '@/domain/types.ts';
+import Dictionary from '@/domain/Dictionary/index.ts';
+import Inventory from '@/domain/Inventory/index.ts';
+import { TileCollection } from '@/domain/Inventory/types/shared.ts';
+import { Layout, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.js';
 import {
   GenerationDirection as Direction,
@@ -6,15 +10,41 @@ import {
   GenerationTransitionResultType as TransitionResultType,
   ValidationResultType,
 } from '@/domain/Turnkeeper/enums.js';
+import {
+  Computeds,
+  Context,
+  Frame,
+  TransitionResult,
+  ExploreFrame,
+  ValidateBoundsFrame,
+  CalculateTargetFrame,
+  ResolveTargetFrame,
+  UndoResolveTargetFrame,
+  PassTransitionResult,
+  SucceedTransitionResult,
+  FailTransitionResult,
+} from '@/domain/Turnkeeper/types/local/generation.ts';
+import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
+import { Turnkeeper, Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class PlacementGenerator {
   constructor(
-    private readonly layout: Layout,
-    private readonly dictionary: Dictionary,
-    private readonly inventory: Inventory,
-    private readonly turnkeeper: Turnkeeper,
-    private readonly cachedAnchorLettersComputer: C.CachedAnchorLettersComputer,
+    private readonly context: GameContext,
+    private readonly cachedAnchorLettersComputer: CachedAnchorLettersComputer,
   ) {}
+
+  private get layout(): Layout {
+    return this.context.layout;
+  }
+  private get dictionary(): Dictionary {
+    return this.context.dictionary;
+  }
+  private get inventory(): Inventory {
+    return this.context.inventory;
+  }
+  private get turnkeeper(): Turnkeeper {
+    return this.context.turnkeeper;
+  }
 
   *execute({
     playerTileCollection,
@@ -23,14 +53,14 @@ export default class PlacementGenerator {
     playerTileCollection: TileCollection;
     coords: AnchorCoordinates;
   }): Generator<Placement> {
-    const computeds: G.Computeds = {
+    const computeds: Computeds = {
       axisCells: this.layout.getAxisCells(coords),
       oppositeAxis: this.layout.getOppositeAxis(coords.axis),
     };
     const startIndex = computeds.axisCells.indexOf(coords.index);
     if (startIndex === -1) return;
-    const context: G.Context = { tiles: new Map(playerTileCollection), placement: [] };
-    const stack: Array<G.Frame> = [
+    const context: Context = { tiles: new Map(playerTileCollection), placement: [] };
+    const stack: Array<Frame> = [
       {
         phase: Phase.Explore,
         cursor: { index: startIndex, direction: Direction.Left, entry: this.dictionary.firstEntry },
@@ -49,7 +79,7 @@ export default class PlacementGenerator {
     }
   }
 
-  private transition(frame: G.Frame, context: G.Context, computeds: G.Computeds): G.TransitionResult {
+  private transition(frame: Frame, context: Context, computeds: Computeds): TransitionResult {
     switch (frame.phase) {
       case Phase.Explore:
         return this.explore(frame, context);
@@ -64,18 +94,16 @@ export default class PlacementGenerator {
     }
   }
 
-  private explore(frame: G.ExploreFrame, context: G.Context): G.TransitionResult {
+  private explore(frame: ExploreFrame, context: Context): TransitionResult {
     const { cursor } = frame;
     const placementIsUsable = context.placement.length > 0 && this.dictionary.isEntryPlayable(cursor.entry);
     if (cursor.direction === Direction.Right && placementIsUsable) {
-      const validationResult = new TurnValidator(this.layout, this.dictionary, this.inventory, this.turnkeeper).execute(
-        context.placement,
-      );
+      const validationResult = new TurnValidator(this.context).execute(context.placement);
       if (validationResult.type === ValidationResultType.Valid) {
         return PlacementGenerator.succeedTransition(context.placement);
       }
     }
-    const frames: Array<G.Frame> = [];
+    const frames: Array<Frame> = [];
     if (cursor.direction === Direction.Left) {
       frames.push({
         phase: Phase.Explore,
@@ -86,7 +114,7 @@ export default class PlacementGenerator {
     return PlacementGenerator.passTransition(frames);
   }
 
-  private validateBounds(frame: G.ValidateBoundsFrame): G.TransitionResult {
+  private validateBounds(frame: ValidateBoundsFrame): TransitionResult {
     const { cursor } = frame;
     const isEdge =
       cursor.direction === Direction.Left
@@ -96,7 +124,7 @@ export default class PlacementGenerator {
     return PlacementGenerator.passTransition([{ ...frame, phase: Phase.CalculateTarget }]);
   }
 
-  private calculateTarget(frame: G.CalculateTargetFrame, computeds: G.Computeds): G.TransitionResult {
+  private calculateTarget(frame: CalculateTargetFrame, computeds: Computeds): TransitionResult {
     const { cursor } = frame;
     const targetIndex = cursor.index + cursor.direction;
     const cell = computeds.axisCells[targetIndex];
@@ -110,7 +138,7 @@ export default class PlacementGenerator {
     ]);
   }
 
-  private resolveTarget(frame: G.ResolveTargetFrame, context: G.Context, computeds: G.Computeds): G.TransitionResult {
+  private resolveTarget(frame: ResolveTargetFrame, context: Context, computeds: Computeds): TransitionResult {
     const { cursor, target } = frame;
     if (target.meta.tile) {
       const letter = this.inventory.getTileLetter(target.meta.tile);
@@ -144,22 +172,22 @@ export default class PlacementGenerator {
     }
   }
 
-  private undoResolveTarget(frame: G.UndoResolveTargetFrame, context: G.Context): G.TransitionResult {
+  private undoResolveTarget(frame: UndoResolveTargetFrame, context: Context): TransitionResult {
     const { letter, tile } = frame.results;
     context.tiles.get(letter)!.push(tile);
     context.placement.pop();
     return PlacementGenerator.passTransition([]);
   }
 
-  private static passTransition(frames: Array<G.Frame>): G.PassTransitionResult {
+  private static passTransition(frames: Array<Frame>): PassTransitionResult {
     return { type: TransitionResultType.Continue, frames };
   }
 
-  private static succeedTransition(placement: Placement): G.SucceedTransitionResult {
+  private static succeedTransition(placement: Placement): SucceedTransitionResult {
     return { type: TransitionResultType.Success, placement };
   }
 
-  private static failTransition(): G.FailTransitionResult {
+  private static failTransition(): FailTransitionResult {
     return { type: TransitionResultType.Fail };
   }
 }

@@ -5,6 +5,8 @@
     "module": "nodenext",
     "paths": { "@/*": ["./src/*"] },
     "types": ["vue"], 
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
   },
   "include": ["src", "vite.config.ts"]
 }

@@ -1,21 +1,12 @@
-import type { Common as C } from '@/domain/Turnkeeper/types.d.ts';
+import { GameContext } from '@/domain/types.ts';
+import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { ValidationResult } from '@/domain/Turnkeeper/types/local/validation.ts';
 import InitialPlacementValidator from '@/domain/Turnkeeper/validation/InitialPlacementValidator.js';
 
 export default class TurnValidator {
-  constructor(
-    private readonly layout: Layout,
-    private readonly dictionary: Dictionary,
-    private readonly inventory: Inventory,
-    private readonly turnkeeper: Turnkeeper,
-  ) {}
+  constructor(private readonly context: GameContext) {}
 
-  execute(initialPlacement: Placement): C.ValidationResult {
-    return InitialPlacementValidator.execute(
-      initialPlacement,
-      this.layout,
-      this.dictionary,
-      this.inventory,
-      this.turnkeeper,
-    );
+  execute(initialPlacement: Placement): ValidationResult {
+    return InitialPlacementValidator.execute(initialPlacement, this.context);
   }
 }

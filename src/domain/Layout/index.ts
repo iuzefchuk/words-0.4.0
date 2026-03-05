@@ -1,5 +1,6 @@
 import { Bonus, Axis } from '@/domain/enums.js';
 import { BONUS_CELL_INDEXES } from '@/domain/Layout/constants.js';
+import { CellIndex, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 
 export default class Layout {
   private static readonly cellsPerAxis = 15;

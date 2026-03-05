@@ -1,3 +1,7 @@
+import { TileId } from '@/domain/Inventory/types/shared.ts';
+import { Layout, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
+import { Turnkeeper, Placement } from '@/domain/Turnkeeper/types/shared.ts';
+
 export default class PlacementBuilder {
   constructor(
     private readonly layout: Layout,

@@ -1,7 +1,12 @@
-import type { Common as C } from '@/domain/Turnkeeper/types.d.ts';
 import { Player } from '@/domain/enums.js';
+import { GameContext } from '@/domain/types.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.js';
 import { PlayerMove, ValidationResultType } from '@/domain/Turnkeeper/enums.js';
+import { TileId } from '@/domain/Inventory/types/shared.ts';
+import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { Link } from '@/domain/Turnkeeper/types/local/index.ts';
+import { ValidationResult, UnvalidatedValidationResult } from '@/domain/Turnkeeper/types/local/validation.ts';
 
 export default class Turnkeeper {
   private static readonly finalMoves = [PlayerMove.Won, PlayerMove.Tied];
@@ -75,9 +80,9 @@ export default class Turnkeeper {
     this.history.currentTurn.disconnectTileFromCell({ tile });
   }
 
-  validateCurrentTurn(layout: Layout, dictionary: Dictionary, inventory: Inventory): void {
+  validateCurrentTurn(context: GameContext): void {
     this.checkMutability();
-    this.history.currentTurn.validate(layout, dictionary, inventory, this);
+    this.history.currentTurn.validate(context);
   }
 
   resetCurrentTurn(): void {
@@ -189,12 +194,12 @@ class Turn {
   private constructor(
     readonly player: Player,
     private initialPlacement: Placement,
-    private validationResult: C.ValidationResult,
+    private validationResult: ValidationResult,
   ) {}
 
   static create({ player }: { player: Player }): Turn {
     const initialPlacement: Placement = [];
-    const validationResult: C.UnvalidatedValidationResult = { type: ValidationResultType.Unvalidated };
+    const validationResult: UnvalidatedValidationResult = { type: ValidationResultType.Unvalidated };
     return new Turn(player, initialPlacement, validationResult);
   }
 
@@ -217,8 +222,8 @@ class Turn {
     return this.validationResult.type === ValidationResultType.Valid;
   }
 
-  validate(layout: Layout, dictionary: Dictionary, inventory: Inventory, turnkeeper: Turnkeeper): void {
-    this.validationResult = new TurnValidator(layout, dictionary, inventory, turnkeeper).execute(this.initialPlacement);
+  validate(context: GameContext): void {
+    this.validationResult = new TurnValidator(context).execute(this.initialPlacement);
   }
 
   getConnectedTile(cell: CellIndex): TileId | undefined {
@@ -231,7 +236,7 @@ class Turn {
 
   connectTileToCell({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
     this.validateCellAndTileAbsence(cell, tile);
-    this.initialPlacement.push({ cell, tile } as C.Link);
+    this.initialPlacement.push({ cell, tile } as Link);
     this.initialPlacement.sort((a, b) => a.cell - b.cell);
   }
 

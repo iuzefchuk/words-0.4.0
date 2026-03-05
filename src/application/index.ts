@@ -1,13 +1,15 @@
 import { TIME } from '@/shared/consts.js';
 import { wait } from '@/shared/helpers.js';
-import GameDomain from '@/domain/_index.js';
+import GameDomain from '@/domain/index.js';
 import { Bonus, Letter, Player } from '@/domain/enums.js';
+import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { TileId } from '@/domain/Inventory/types/shared.ts';
 
 export const GAME_BONUSES = Bonus;
 
-export type GameCell = CellIndex;
-
 export const GAME_LETTERS = Letter;
+
+export type GameCell = CellIndex;
 
 export type GameTile = TileId;
 

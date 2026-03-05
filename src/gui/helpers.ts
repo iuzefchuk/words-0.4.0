@@ -1,4 +1,4 @@
-import { GAME_BONUSES, GAME_LETTERS } from '@/application/_index.js';
+import { GAME_BONUSES, GAME_LETTERS } from '@/application/index.js';
 
 export function setPromise(resolveCondition = () => true, intervalMs = 150): Promise<boolean> {
   return new Promise(resolve => {

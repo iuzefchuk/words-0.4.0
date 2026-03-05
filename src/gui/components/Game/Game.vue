@@ -7,7 +7,7 @@ import GameToast from '@/gui/components/Game/GameToast.vue';
 import { onMounted, ref, inject } from 'vue';
 import { useStoreGame } from '@/gui/stores/game.js';
 import { storeToRefs } from 'pinia';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/_index.js';
+import { transitionDurationMsKey } from '@/gui/plugins/provides/index.js';
 
 const storeGame = useStoreGame();
 const { gameIsFinished } = storeToRefs(storeGame);

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import GameTile from '@/gui/components/Game/GameTile.vue';
-import { GameCell, GAME_BONUSES } from '@/application/_index.js';
+import { GameCell, GAME_BONUSES } from '@/application/index.js';
 import { PropType, computed } from 'vue';
 import { useStoreGame } from '@/gui/stores/game.js';
 import { useStoreInventory } from '@/gui/stores/inventory.js';

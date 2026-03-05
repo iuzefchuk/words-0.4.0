@@ -1,18 +1,24 @@
-import type { Common as C, Validation as V } from '@/domain/Turnkeeper/types.d.ts';
+import { GameContext } from '@/domain/types.ts';
 import AxisCalculator from '@/domain/Layout/calculation/AxisCalculator.js';
 import PlacementBuilder from '@/domain/Turnkeeper/construction/PlacementBuilder.js';
-import { ValidationErrors as Errors, ValidationResultType as ResultType } from '@/domain/Turnkeeper/enums.js';
 import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.js';
+import { ValidationErrors as Errors, ValidationResultType as ResultType } from '@/domain/Turnkeeper/enums.js';
+import {
+  ValidationResult,
+  PipelineResult,
+  BaseContext,
+  ValidPipelineResult,
+  InvalidPipelineResult,
+  SequencesContext,
+  PlacementsContext,
+  WordsContext,
+  ScoreContext,
+} from '@/domain/Turnkeeper/types/local/validation.ts';
+import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class InitialPlacementValidator {
-  static execute(
-    initialPlacement: Placement,
-    layout: Layout,
-    dictionary: Dictionary,
-    inventory: Inventory,
-    turnkeeper: Turnkeeper,
-  ): C.ValidationResult {
-    const initialContext = { initialPlacement, dependencies: { layout, dictionary, inventory, turnkeeper } };
+  static execute(initialPlacement: Placement, gameContext: GameContext): ValidationResult {
+    const initialContext = { initialPlacement, gameContext };
     const { result } = this.Pipeline.initialize(initialContext)
       .addStep(this.computeSequences)
       .addStep(this.computePlacements)
@@ -32,24 +38,24 @@ export default class InitialPlacementValidator {
   }
 
   private static Pipeline = class Pipeline<Context> {
-    private constructor(public result: V.PipelineResult<Context>) {}
+    private constructor(public result: PipelineResult<Context>) {}
 
-    static initialize<Context extends V.BaseContext>(ctx: Context): Pipeline<Context> {
+    static initialize<Context extends BaseContext>(ctx: Context): Pipeline<Context> {
       return new Pipeline({ isValid: true, ctx });
     }
 
-    static createValidPipelineResult<Ctx>(ctx: Ctx): V.ValidPipelineResult<Ctx> {
+    static createValidPipelineResult<Context>(ctx: Context): ValidPipelineResult<Context> {
       return { isValid: true, ctx };
     }
 
-    static createInvalidPipelineResult(error: Errors): V.InvalidPipelineResult {
+    static createInvalidPipelineResult(error: Errors): InvalidPipelineResult {
       return { isValid: false, error };
     }
 
     addStep<NextContext extends Context>(
-      computer: (ctx: Context) => V.PipelineResult<NextContext>,
+      computer: (ctx: Context) => PipelineResult<NextContext>,
     ): Pipeline<NextContext> {
-      if (this.result.isValid) this.result = computer(this.result.ctx) as V.PipelineResult<NextContext>;
+      if (this.result.isValid) this.result = computer(this.result.ctx) as PipelineResult<NextContext>;
       return this as unknown as Pipeline<NextContext>;
     }
   };
@@ -57,17 +63,17 @@ export default class InitialPlacementValidator {
   private static passComputer<OldContext extends object, NextContext extends object>(
     oldCtx: OldContext,
     nextCtx: NextContext,
-  ): V.ValidPipelineResult<OldContext & NextContext> {
+  ): ValidPipelineResult<OldContext & NextContext> {
     Object.assign(oldCtx, nextCtx);
     return this.Pipeline.createValidPipelineResult(oldCtx as OldContext & NextContext);
   }
 
-  private static failComputer(error: Errors): V.InvalidPipelineResult {
+  private static failComputer(error: Errors): InvalidPipelineResult {
     return this.Pipeline.createInvalidPipelineResult(error);
   }
 
-  private static computeSequences(ctx: V.BaseContext): V.PipelineResult<V.SequencesContext> {
-    const { layout, turnkeeper } = ctx.dependencies;
+  private static computeSequences(ctx: BaseContext): PipelineResult<SequencesContext> {
+    const { layout, turnkeeper } = ctx.gameContext;
     const tiles = ctx.initialPlacement.map(placement => placement.tile);
     if (tiles.length === 0) return this.failComputer(Errors.InvalidTilePlacement);
     const cells = ctx.initialPlacement.map(placement => placement.cell);
@@ -78,8 +84,8 @@ export default class InitialPlacementValidator {
     return this.passComputer(ctx, { sequences: { cell: cells, tile: tiles } });
   }
 
-  private static computePlacements(ctx: V.SequencesContext): V.PipelineResult<V.PlacementsContext> {
-    const { layout, turnkeeper } = ctx.dependencies;
+  private static computePlacements(ctx: SequencesContext): PipelineResult<PlacementsContext> {
+    const { layout, turnkeeper } = ctx.gameContext;
     const tileSequence = ctx.sequences.tile;
     const axisCalculator = new AxisCalculator(layout, turnkeeper);
     const primaryAxis = axisCalculator.execute(ctx.sequences.cell);
@@ -103,8 +109,8 @@ export default class InitialPlacementValidator {
       : this.failComputer(Errors.InvalidTilePlacement);
   }
 
-  private static computeWords(ctx: V.PlacementsContext): V.PipelineResult<V.WordsContext> {
-    const { dictionary, inventory } = ctx.dependencies;
+  private static computeWords(ctx: PlacementsContext): PipelineResult<WordsContext> {
+    const { dictionary, inventory } = ctx.gameContext;
     const words: Array<string> = [];
     for (let i = 0; i < ctx.placements.length; i++) {
       const placement = ctx.placements[i];
@@ -117,8 +123,8 @@ export default class InitialPlacementValidator {
       : this.failComputer(Errors.WordNotInDictionary);
   }
 
-  private static computeScore(ctx: V.WordsContext): V.PipelineResult<V.ScoreContext> {
-    const { layout, inventory } = ctx.dependencies;
+  private static computeScore(ctx: WordsContext): PipelineResult<ScoreContext> {
+    const { layout, inventory } = ctx.gameContext;
     let totalScore = 0;
     for (const placement of ctx.placements) {
       let placementScore = 0;

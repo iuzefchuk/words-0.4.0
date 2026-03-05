@@ -1,40 +1,44 @@
-import type { Computation as C } from '@/domain/Turnkeeper/types.js';
 import { Player, Axis, Letter } from '@/domain/enums.js';
+import { GameContext } from '@/domain/types.ts';
+import { Inventory } from '@/domain/Inventory/types/shared.ts';
+import { Layout } from '@/domain/Layout/types/shared.ts';
+import { AnchorCoordinates, CellIndex } from '@/domain/Layout/types/shared.ts';
+import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
+import { Turnkeeper, Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import AnchorLettersComputer from '@/domain/Turnkeeper/computation/AnchorLettersComputer.js';
 import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.js';
 import PlacementGenerator from '@/domain/Turnkeeper/generation/PlacementGenerator.js';
 
 export default class InitialPlacementGenerator {
-  constructor(
-    private readonly layout: Layout,
-    private readonly dictionary: Dictionary,
-    private readonly inventory: Inventory,
-    private readonly turnkeeper: Turnkeeper,
-  ) {}
+  constructor(private readonly context: GameContext) {}
+
+  private get layout(): Layout {
+    return this.context.layout;
+  }
+  private get inventory(): Inventory {
+    return this.context.inventory;
+  }
+  private get turnkeeper(): Turnkeeper {
+    return this.context.turnkeeper;
+  }
 
   *execute(player: Player): Generator<Placement> {
     const playerTileCollection = this.inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
     const anchorCells = new AnchorCellFinder(this.layout, this.turnkeeper).execute();
     if (anchorCells.size === 0) return;
-    const computer = new AnchorLettersComputer(this.layout, this.dictionary, this.inventory, this.turnkeeper);
+    const computer = new AnchorLettersComputer(this.context);
     const cachedComputer = new InitialPlacementGenerator.CachedAnchorLettersComputer(computer);
     for (const cell of anchorCells) {
       for (const axis of Object.values(Axis)) {
         const coords: AnchorCoordinates = { axis, index: cell };
-        const generator = new PlacementGenerator(
-          this.layout,
-          this.dictionary,
-          this.inventory,
-          this.turnkeeper,
-          cachedComputer,
-        );
+        const generator = new PlacementGenerator(this.context, cachedComputer);
         for (const placement of generator.execute({ playerTileCollection, coords })) yield placement;
       }
     }
   }
 
-  static CachedAnchorLettersComputer = class implements C.CachedAnchorLettersComputer {
+  static CachedAnchorLettersComputer = class implements CachedAnchorLettersComputer {
     private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
       Object.values(Axis).map(axis => [axis, new Map()]),
     );

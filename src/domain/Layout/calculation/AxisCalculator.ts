@@ -1,4 +1,6 @@
 import { Axis } from '@/domain/enums.js';
+import { Layout, CellIndex } from '@/domain/Layout/types/shared.ts';
+import { Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class AxisCalculator {
   private static readonly defaultAxis = Axis.X;

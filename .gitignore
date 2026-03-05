@@ -5,6 +5,7 @@ dist-ssr
 coverage
 *.local
 *.lock
+__MACOSX
 
 # Log files
 logs

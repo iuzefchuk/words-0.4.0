@@ -1,9 +1,13 @@
 import { Player, Bonus, Letter } from '@/domain/enums.js';
-import Dictionary from '@/domain/Dictionary/_index.js';
-import Inventory from '@/domain/Inventory/_index.js';
-import Layout from '@/domain/Layout/_index.js';
-import Turnkeeper from '@/domain/Turnkeeper/_index.js';
+import { GameContext } from '@/domain/types.ts';
+import Dictionary from '@/domain/Dictionary/index.js';
+import Inventory from '@/domain/Inventory/index.js';
+import Layout from '@/domain/Layout/index.js';
+import Turnkeeper from '@/domain/Turnkeeper/index.js';
 import TurnGenerator from '@/domain/Turnkeeper/TurnGenerator.js';
+import { TileId } from '@/domain/Inventory/types/shared.ts';
+import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class GameDomain {
   private static readonly layout = Layout.create();
@@ -20,6 +24,15 @@ export default class GameDomain {
     const inventory = Inventory.create({ players });
     const turnkeeper = Turnkeeper.create({ players });
     return new GameDomain(inventory, turnkeeper);
+  }
+
+  get context(): GameContext {
+    return {
+      layout: GameDomain.layout,
+      dictionary: GameDomain.dictionary,
+      inventory: this.inventory,
+      turnkeeper: this.turnkeeper,
+    };
   }
 
   get isFinished(): boolean {
@@ -113,7 +126,7 @@ export default class GameDomain {
 
   validateTurn(): void {
     this.checkMutability();
-    this.turnkeeper.validateCurrentTurn(GameDomain.layout, GameDomain.dictionary, this.inventory);
+    this.turnkeeper.validateCurrentTurn(this.context);
   }
 
   resetTurn(): void {
@@ -145,7 +158,7 @@ export default class GameDomain {
   }
 
   generatePlacement({ player }: { player: Player }): Placement | null {
-    const generator = new TurnGenerator(GameDomain.layout, GameDomain.dictionary, this.inventory, this.turnkeeper);
+    const generator = new TurnGenerator(this.context);
     for (const placement of generator.execute(player)) return placement;
     return null;
   }

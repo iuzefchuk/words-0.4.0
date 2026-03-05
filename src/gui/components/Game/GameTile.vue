@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { PropType, watch, ref, inject } from 'vue';
 import { getLetterSvgHtml } from '@/gui/helpers.js';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/_index.js';
+import { transitionDurationMsKey } from '@/gui/plugins/provides/index.js';
 
 const transitionDurationMs = inject(transitionDurationMsKey);
 const { letter, isInverted, isHighlighted, isElevated } = defineProps({

@@ -1,3 +1,6 @@
+import { CellIndex, Layout } from '@/domain/Layout/types/shared.ts';
+import { Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
+
 export default class AnchorCellFinder {
   constructor(
     private readonly layout: Layout,

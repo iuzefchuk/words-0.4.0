@@ -1,12 +1,25 @@
+import { GameContext } from '@/domain/types.ts';
 import { Letter } from '@/domain/enums.js';
+import { Dictionary } from '@/domain/Dictionary/types/shared.ts';
+import { Inventory } from '@/domain/Inventory/types/shared.ts';
+import { AnchorCoordinates, CellIndex, Layout } from '@/domain/Layout/types/shared.ts';
+import { Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class AnchorLettersComputer {
-  constructor(
-    private readonly layout: Layout,
-    private readonly dictionary: Dictionary,
-    private readonly inventory: Inventory,
-    private readonly turnkeeper: Turnkeeper,
-  ) {}
+  constructor(private readonly context: GameContext) {}
+
+  private get layout(): Layout {
+    return this.context.layout;
+  }
+  private get dictionary(): Dictionary {
+    return this.context.dictionary;
+  }
+  private get inventory(): Inventory {
+    return this.context.inventory;
+  }
+  private get turnkeeper(): Turnkeeper {
+    return this.context.turnkeeper;
+  }
 
   execute(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const axisCells = this.layout.getAxisCells(coords);
