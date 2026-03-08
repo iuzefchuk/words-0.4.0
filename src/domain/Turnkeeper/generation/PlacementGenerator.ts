@@ -20,7 +20,7 @@ import {
   CalculateTargetFrame,
   ResolveTargetFrame,
   UndoResolveTargetFrame,
-  PassTransitionResult,
+  ContinueTransitionResult,
   SucceedTransitionResult,
   FailTransitionResult,
 } from '@/domain/Turnkeeper/types/local/generation.ts';
@@ -111,7 +111,7 @@ export default class PlacementGenerator {
       });
     }
     frames.push({ ...frame, phase: Phase.ValidateBounds });
-    return PlacementGenerator.passTransition(frames);
+    return PlacementGenerator.continueTransition(frames);
   }
 
   private validateBounds(frame: ValidateBoundsFrame): TransitionResult {
@@ -121,7 +121,7 @@ export default class PlacementGenerator {
         ? this.layout.isCellPositionOnLeftEdge(cursor.index)
         : this.layout.isCellPositionOnRightEdge(cursor.index);
     if (isEdge) return PlacementGenerator.failTransition();
-    return PlacementGenerator.passTransition([{ ...frame, phase: Phase.CalculateTarget }]);
+    return PlacementGenerator.continueTransition([{ ...frame, phase: Phase.CalculateTarget }]);
   }
 
   private calculateTarget(frame: CalculateTargetFrame, computeds: Computeds): TransitionResult {
@@ -129,7 +129,7 @@ export default class PlacementGenerator {
     const targetIndex = cursor.index + cursor.direction;
     const cell = computeds.axisCells[targetIndex];
     const tile = this.turnkeeper.findTileByCell(cell);
-    return PlacementGenerator.passTransition([
+    return PlacementGenerator.continueTransition([
       {
         ...frame,
         phase: Phase.ResolveTarget,
@@ -144,7 +144,7 @@ export default class PlacementGenerator {
       const letter = this.inventory.getTileLetter(target.meta.tile);
       const nextEntry = this.dictionary.findEntryForWord({ word: letter, startEntry: cursor.entry });
       if (!nextEntry) return PlacementGenerator.failTransition();
-      return PlacementGenerator.passTransition([
+      return PlacementGenerator.continueTransition([
         { phase: Phase.Explore, cursor: { ...cursor, index: target.index, entry: nextEntry } },
       ]);
     } else {
@@ -160,7 +160,7 @@ export default class PlacementGenerator {
         }
         const tile = letterTiles.pop()!;
         context.placement.push({ cell: target.meta.cell, tile });
-        return PlacementGenerator.passTransition([
+        return PlacementGenerator.continueTransition([
           { phase: Phase.UndoResolveTarget, cursor, results: { letter: possibleNextLetter, tile } },
           {
             phase: Phase.Explore,
@@ -176,10 +176,10 @@ export default class PlacementGenerator {
     const { letter, tile } = frame.results;
     context.tiles.get(letter)!.push(tile);
     context.placement.pop();
-    return PlacementGenerator.passTransition([]);
+    return PlacementGenerator.continueTransition([]);
   }
 
-  private static passTransition(frames: Array<Frame>): PassTransitionResult {
+  private static continueTransition(frames: Array<Frame>): PassTransitionResult {
     return { type: TransitionResultType.Continue, frames };
   }
 

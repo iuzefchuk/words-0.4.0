@@ -67,7 +67,7 @@ onMounted(() => {
   color: var(--primary-color);
   background: var(--primary-bg);
   font-size: var(--font-size);
-  font-weight: (--font-weight-small);
+  font-weight: var(--font-weight-small);
   display: flex;
   flex-direction: column;
   align-items: center;

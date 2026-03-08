@@ -5,7 +5,7 @@ import { transitionDurationMsKey } from '@/gui/plugins/provides/index.js';
 
 const transitionDurationMs = inject(transitionDurationMsKey);
 const { letter, isInverted, isHighlighted, isElevated } = defineProps({
-  letter: { type: Object as PropType<string>, required: true },
+  letter: { type: String, required: true },
   isInverted: { type: Boolean, default: false },
   isHighlighted: { type: Boolean, default: false },
   isElevated: { type: Boolean, default: false },

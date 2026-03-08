@@ -19,7 +19,7 @@ export const useStoreToast = defineStore('toast', () => {
 
   async function addToast(toast: Toast): Promise<void> {
     toast.timestamp = crypto.randomUUID();
-    if (state.toastList.value.length > CONFIG.list_length_max) state.toastList.value.shift();
+    if (state.toastList.value.length >= CONFIG.list_length_max) state.toastList.value.shift();
     state.toastList.value.push(toast);
     await wait(CONFIG.duration_ms);
     removeToast(toast.timestamp);

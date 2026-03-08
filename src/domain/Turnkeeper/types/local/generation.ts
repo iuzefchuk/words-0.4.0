@@ -8,6 +8,7 @@ import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import { Entry } from '@/domain/Dictionary/types/shared.ts';
 import { TileCollection, TileId } from '@/domain/Inventory/types/shared.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
+
 // TODO revisit naming
 
 export type Computeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
@@ -32,7 +33,7 @@ export type Frame =
   | ResolveTargetFrame
   | UndoResolveTargetFrame;
 
-export type PassTransitionResult = { type: TransitionResultType.Continue; frames: Array<Frame> };
+export type ContinueTransitionResult = { type: TransitionResultType.Continue; frames: Array<Frame> };
 export type SucceedTransitionResult = { type: TransitionResultType.Success; placement: Placement };
 export type FailTransitionResult = { type: TransitionResultType.Fail };
-export type TransitionResult = PassTransitionResult | SucceedTransitionResult | FailTransitionResult;
+export type TransitionResult = ContinueTransitionResult | SucceedTransitionResult | FailTransitionResult;

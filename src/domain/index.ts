@@ -146,9 +146,7 @@ export default class GameDomain {
 
   passTurn(): void {
     this.checkMutability();
-    const { currentPlayer } = this.turnkeeper;
     this.turnkeeper.passCurrentTurn();
-    this.inventory.replenishTilesFor(currentPlayer);
     this.turnkeeper.startTurnForNextPlayer();
   }
 
