@@ -1,14 +1,14 @@
-import { GameContext } from '@/domain/types.ts';
 import AxisCalculator from '@/domain/Layout/calculation/AxisCalculator.ts';
 import PlacementBuilder from '@/domain/Turnkeeper/construction/PlacementBuilder.ts';
 import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.ts';
-import { ValidationErrors as Errors, ValidationResultType as ResultType } from '@/domain/Turnkeeper/enums.ts';
+import { ValidationErrors, ValidationStatus } from '@/domain/Turnkeeper/enums.ts';
 import {
-  ValidationResult,
-  PipelineResult,
-  BaseContext,
-  ValidPipelineResult,
-  InvalidPipelineResult,
+  FinalResult,
+  StepResult,
+  PendingResult,
+  InvalidResult,
+  PipelineContext,
+  InitialContext,
   SequencesContext,
   PlacementsContext,
   WordsContext,
@@ -17,75 +17,63 @@ import {
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class InitialPlacementValidator {
-  static execute(initialPlacement: Placement, gameContext: GameContext): ValidationResult {
-    const initialContext = { initialPlacement, gameContext };
-    const { result } = this.Pipeline.initialize(initialContext)
+  static execute(ctx: InitialContext): FinalResult {
+    return this.Pipeline.initialize(ctx)
       .addStep(this.computeSequences)
       .addStep(this.computePlacements)
       .addStep(this.computeWords)
-      .addStep(this.computeScore);
-    return result.isValid
-      ? {
-          type: ResultType.Valid,
-          sequences: result.ctx.sequences,
-          score: result.ctx.score,
-          words: result.ctx.words,
-        }
-      : {
-          type: ResultType.Invalid,
-          error: result.error,
-        };
+      .addStep(this.computeScore)
+      .getFinalResult();
   }
 
-  private static Pipeline = class Pipeline<Context> {
-    private constructor(public result: PipelineResult<Context>) {}
+  private static Pipeline = class Pipeline<Context extends PipelineContext> {
+    private constructor(private result: StepResult<Context>) {}
 
-    static initialize<Context extends BaseContext>(ctx: Context): Pipeline<Context> {
-      return new Pipeline({ isValid: true, ctx });
+    static initialize(ctx: InitialContext): Pipeline<InitialContext> {
+      return new Pipeline({ status: ValidationStatus.Pending, ctx });
     }
 
-    static createValidPipelineResult<Context>(ctx: Context): ValidPipelineResult<Context> {
-      return { isValid: true, ctx };
+    static continue<CurrentContext extends PipelineContext, NextContext extends object>(
+      ctx: CurrentContext,
+      newCtxValues: NextContext,
+    ): PendingResult<CurrentContext & NextContext> {
+      Object.assign(ctx, newCtxValues);
+      return { status: ValidationStatus.Pending, ctx: ctx as CurrentContext & NextContext };
     }
 
-    static createInvalidPipelineResult(error: Errors): InvalidPipelineResult {
-      return { isValid: false, error };
+    static fail(error: ValidationErrors): InvalidResult {
+      return { status: ValidationStatus.Invalid, error };
     }
 
-    addStep<NextContext extends Context>(
-      computer: (ctx: Context) => PipelineResult<NextContext>,
-    ): Pipeline<NextContext> {
-      if (this.result.isValid) this.result = computer(this.result.ctx) as PipelineResult<NextContext>;
+    addStep<NextContext extends Context>(computer: (ctx: Context) => StepResult<NextContext>): Pipeline<NextContext> {
+      if (this.result.status === ValidationStatus.Pending) {
+        this.result = computer(this.result.ctx) as StepResult<NextContext>;
+      }
       return this as unknown as Pipeline<NextContext>;
+    }
+
+    getFinalResult(): FinalResult {
+      if (this.result.status === ValidationStatus.Invalid) return this.result;
+      const { sequences, placements, words, score } = this.result.ctx as ScoreContext;
+      if (score === undefined) throw new Error('Can`t show end result when pipeline wasn`t completed');
+      return { status: ValidationStatus.Valid, sequences, placements, words, score };
     }
   };
 
-  private static passComputer<OldContext extends object, NextContext extends object>(
-    oldCtx: OldContext,
-    nextCtx: NextContext,
-  ): ValidPipelineResult<OldContext & NextContext> {
-    Object.assign(oldCtx, nextCtx);
-    return this.Pipeline.createValidPipelineResult(oldCtx as OldContext & NextContext);
-  }
-
-  private static failComputer(error: Errors): InvalidPipelineResult {
-    return this.Pipeline.createInvalidPipelineResult(error);
-  }
-
-  private static computeSequences(ctx: BaseContext): PipelineResult<SequencesContext> {
+  private static computeSequences(ctx: InitialContext): StepResult<SequencesContext> {
     const { layout, turnkeeper } = ctx.gameContext;
     const tiles = ctx.initialPlacement.map(placement => placement.tile);
-    if (tiles.length === 0) return this.failComputer(Errors.InvalidTilePlacement);
+    if (tiles.length === 0) return this.Pipeline.fail(ValidationErrors.InvalidTilePlacement);
     const cells = ctx.initialPlacement.map(placement => placement.cell);
-    if (cells.length === 0) return this.failComputer(Errors.InvalidCellPlacement);
+    if (cells.length === 0) return this.Pipeline.fail(ValidationErrors.InvalidCellPlacement);
     const anchorCells = new AnchorCellFinder(layout, turnkeeper).execute();
     const someCellsAreAnchor = cells.some(cell => anchorCells.has(cell));
     return someCellsAreAnchor
-      ? this.passComputer(ctx, { sequences: { cell: cells, tile: tiles } })
-      : this.failComputer(Errors.NoCellsUsableAsFirst);
+      ? this.Pipeline.continue(ctx, { sequences: { cell: cells, tile: tiles } })
+      : this.Pipeline.fail(ValidationErrors.NoCellsUsableAsFirst);
   }
 
-  private static computePlacements(ctx: SequencesContext): PipelineResult<PlacementsContext> {
+  private static computePlacements(ctx: SequencesContext): StepResult<PlacementsContext> {
     const { layout, turnkeeper } = ctx.gameContext;
     const tileSequence = ctx.sequences.tile;
     const axisCalculator = new AxisCalculator(layout, turnkeeper);
@@ -96,7 +84,7 @@ export default class InitialPlacementValidator {
       tileSequence,
     });
     const isPlacementUsable = (placement: Placement): boolean => placement.length > 1;
-    if (!isPlacementUsable(primaryPlacement)) return this.failComputer(Errors.InvalidTilePlacement);
+    if (!isPlacementUsable(primaryPlacement)) return this.Pipeline.fail(ValidationErrors.InvalidTilePlacement);
     const placements: Array<Placement> = [primaryPlacement];
     for (const cell of ctx.sequences.cell) {
       const placement = placementBuilder.execute({
@@ -105,12 +93,10 @@ export default class InitialPlacementValidator {
       });
       if (isPlacementUsable(placement)) placements.push(placement);
     }
-    return placements.length > 0
-      ? this.passComputer(ctx, { placements })
-      : this.failComputer(Errors.InvalidTilePlacement);
+    return this.Pipeline.continue(ctx, { placements });
   }
 
-  private static computeWords(ctx: PlacementsContext): PipelineResult<WordsContext> {
+  private static computeWords(ctx: PlacementsContext): StepResult<WordsContext> {
     const { dictionary, inventory } = ctx.gameContext;
     const words: Array<string> = [];
     for (let i = 0; i < ctx.placements.length; i++) {
@@ -120,11 +106,11 @@ export default class InitialPlacementValidator {
       words[i] = word;
     }
     return dictionary.hasWords(words)
-      ? this.passComputer(ctx, { words })
-      : this.failComputer(Errors.WordNotInDictionary);
+      ? this.Pipeline.continue(ctx, { words })
+      : this.Pipeline.fail(ValidationErrors.WordNotInDictionary);
   }
 
-  private static computeScore(ctx: WordsContext): PipelineResult<ScoreContext> {
+  private static computeScore(ctx: WordsContext): StepResult<ScoreContext> {
     const { layout, inventory } = ctx.gameContext;
     const newCells = new Set(ctx.sequences.cell);
     let totalScore = 0;
@@ -138,6 +124,6 @@ export default class InitialPlacementValidator {
       }
       totalScore += placementScore * placementMultiplier;
     }
-    return this.passComputer(ctx, { score: totalScore });
+    return this.Pipeline.continue(ctx, { score: totalScore });
   }
 }

@@ -8,7 +8,7 @@ import {
   GenerationDirection as Direction,
   GenerationPhase as Phase,
   GenerationTransitionResultType as TransitionResultType,
-  ValidationResultType,
+  ValidationStatus,
 } from '@/domain/Turnkeeper/enums.ts';
 import {
   Computeds,
@@ -99,7 +99,7 @@ export default class PlacementGenerator {
     const placementIsUsable = context.placement.length > 0 && this.dictionary.isEntryPlayable(cursor.entry);
     if (cursor.direction === Direction.Right && placementIsUsable) {
       const validationResult = new TurnValidator(this.context).execute(context.placement);
-      if (validationResult.type === ValidationResultType.Valid) {
+      if (validationResult.status === ValidationStatus.Valid) {
         return PlacementGenerator.succeedTransition(context.placement);
       }
     }

@@ -6,8 +6,9 @@ export enum PlayerMove {
   Tied = 'Tied',
 }
 
-export enum ValidationResultType {
+export enum ValidationStatus {
   Unvalidated = 'Unvalidated',
+  Pending = 'Pending',
   Invalid = 'Invalid',
   Valid = 'Valid',
 }

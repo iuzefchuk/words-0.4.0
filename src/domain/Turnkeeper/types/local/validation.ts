@@ -1,30 +1,26 @@
 import { GameContext } from '@/domain/types.ts';
-import { ValidationErrors as Errors, ValidationResultType as ResultType } from '@/domain/Turnkeeper/enums.ts';
+import { ValidationErrors, ValidationStatus } from '@/domain/Turnkeeper/enums.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
-// TODO revisit naming
+export type UnvalidatedResult = { status: ValidationStatus.Unvalidated };
+export type PendingResult<Context> = { status: ValidationStatus.Pending; ctx: Context };
+export type InvalidResult = { status: ValidationStatus.Invalid; error: ValidationErrors };
+export type ValidResult = { status: ValidationStatus.Valid } & Computeds;
+export type StepResult<Context> = PendingResult<Context> | InvalidResult;
+export type FinalResult = InvalidResult | ValidResult;
+export type ValidationResult = UnvalidatedResult | InvalidResult | ValidResult;
 
-export type UnvalidatedValidationResult = { type: ResultType.Unvalidated };
-export type InvalidValidationResult = { type: ResultType.Invalid; error: string };
-export type ValidValidationResult = { type: ResultType.Valid } & ValidationComputeds;
-export type ValidationResult = UnvalidatedValidationResult | InvalidValidationResult | ValidValidationResult;
+export type InitialContext = { initialPlacement: Placement; gameContext: GameContext };
+export type SequencesContext = InitialContext & ComputedSequences;
+export type PlacementsContext = SequencesContext & ComputedPlacements;
+export type WordsContext = PlacementsContext & ComputedWords;
+export type ScoreContext = WordsContext & ComputedScore;
+export type PipelineContext = InitialContext | SequencesContext | PlacementsContext | WordsContext | ScoreContext;
 
-export type ValidationComputeds = {
-  sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> };
-  score: number;
-  words: ReadonlyArray<string>;
-};
-
-export type BaseContext = { initialPlacement: Placement; gameContext: GameContext };
-export type SequencesContext = BaseContext & {
-  sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> };
-};
-export type PlacementsContext = SequencesContext & { placements: ReadonlyArray<Placement> };
-export type WordsContext = PlacementsContext & { words: ReadonlyArray<string> };
-export type ScoreContext = WordsContext & { score: number };
-
-export type PipelineResult<Context> = ValidPipelineResult<Context> | InvalidPipelineResult;
-export type ValidPipelineResult<Context> = { isValid: true; ctx: Context };
-export type InvalidPipelineResult = { isValid: false; error: Errors };
+type ComputedSequences = { sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> } };
+type ComputedPlacements = { placements: ReadonlyArray<Placement> };
+type ComputedWords = { words: ReadonlyArray<string> };
+type ComputedScore = { score: number };
+type Computeds = ComputedSequences & ComputedPlacements & ComputedWords & ComputedScore;

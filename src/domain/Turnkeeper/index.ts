@@ -1,12 +1,12 @@
 import { Player } from '@/domain/enums.ts';
 import { GameContext } from '@/domain/types.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
-import { PlayerMove, ValidationResultType } from '@/domain/Turnkeeper/enums.ts';
+import { PlayerMove, ValidationStatus } from '@/domain/Turnkeeper/enums.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import { Link } from '@/domain/Turnkeeper/types/local/index.ts';
-import { ValidationResult, UnvalidatedValidationResult } from '@/domain/Turnkeeper/types/local/validation.ts';
+import { ValidationResult, UnvalidatedResult } from '@/domain/Turnkeeper/types/local/validation.ts';
 
 export default class Turnkeeper {
   private static readonly finalMoves = [PlayerMove.Won, PlayerMove.Tied];
@@ -210,27 +210,27 @@ class Turn {
 
   static create({ player }: { player: Player }): Turn {
     const initialPlacement: Placement = [];
-    const validationResult: UnvalidatedValidationResult = { type: ValidationResultType.Unvalidated };
+    const validationResult: UnvalidatedResult = { status: ValidationStatus.Unvalidated };
     return new Turn(player, initialPlacement, validationResult);
   }
 
   get cellSequence(): ReadonlyArray<CellIndex> | undefined {
-    return this.validationResult.type === ValidationResultType.Valid ? this.validationResult.sequences.cell : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.sequences.cell : undefined;
   }
   get tileSequence(): ReadonlyArray<TileId> | undefined {
-    return this.validationResult.type === ValidationResultType.Valid ? this.validationResult.sequences.tile : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.sequences.tile : undefined;
   }
   get error(): string | undefined {
-    return this.validationResult.type === ValidationResultType.Invalid ? this.validationResult.error : undefined;
+    return this.validationResult.status === ValidationStatus.Invalid ? this.validationResult.error : undefined;
   }
   get score(): number | undefined {
-    return this.validationResult.type === ValidationResultType.Valid ? this.validationResult.score : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.score : undefined;
   }
   get words(): ReadonlyArray<string> | undefined {
-    return this.validationResult.type === ValidationResultType.Valid ? this.validationResult.words : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.words : undefined;
   }
   get isValid(): boolean {
-    return this.validationResult.type === ValidationResultType.Valid;
+    return this.validationResult.status === ValidationStatus.Valid;
   }
   get links(): ReadonlyArray<{ cell: CellIndex; tile: TileId }> {
     return this.initialPlacement;

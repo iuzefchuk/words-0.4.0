@@ -7,6 +7,6 @@ export default class TurnValidator {
   constructor(private readonly context: GameContext) {}
 
   execute(initialPlacement: Placement): ValidationResult {
-    return InitialPlacementValidator.execute(initialPlacement, this.context);
+    return InitialPlacementValidator.execute({ initialPlacement, gameContext: this.context });
   }
 }
