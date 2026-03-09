@@ -1,6 +1,6 @@
-import { shuffleArrayWithFisherYates } from '@/shared/helpers.js';
-import { Player, Letter } from '@/domain/enums.js';
-import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/Inventory/constants.js';
+import { shuffleArrayWithFisherYates } from '@/shared/helpers.ts';
+import { Player, Letter } from '@/domain/enums.ts';
+import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/Inventory/constants.ts';
 import { TileId, TileCollection } from '@/domain/Inventory/types/shared.ts';
 
 export default class Inventory {

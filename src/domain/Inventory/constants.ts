@@ -1,4 +1,4 @@
-import { Letter } from '@/domain/enums.js';
+import { Letter } from '@/domain/enums.ts';
 
 export const LETTER_DISTRIBUTION = {
   [Letter.A]: 10,

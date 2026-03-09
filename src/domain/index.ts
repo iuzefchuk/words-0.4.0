@@ -1,10 +1,10 @@
-import { Player, Bonus, Letter } from '@/domain/enums.js';
+import { Player, Bonus, Letter } from '@/domain/enums.ts';
 import { GameContext } from '@/domain/types.ts';
-import Dictionary from '@/domain/Dictionary/index.js';
-import Inventory from '@/domain/Inventory/index.js';
-import Layout from '@/domain/Layout/index.js';
-import Turnkeeper from '@/domain/Turnkeeper/index.js';
-import TurnGenerator from '@/domain/Turnkeeper/TurnGenerator.js';
+import Dictionary from '@/domain/Dictionary/index.ts';
+import Inventory from '@/domain/Inventory/index.ts';
+import Layout from '@/domain/Layout/index.ts';
+import Turnkeeper from '@/domain/Turnkeeper/index.ts';
+import TurnGenerator from '@/domain/Turnkeeper/TurnGenerator.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';

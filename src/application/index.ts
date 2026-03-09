@@ -1,7 +1,7 @@
-import { TIME } from '@/shared/consts.js';
-import { wait } from '@/shared/helpers.js';
-import GameDomain from '@/domain/index.js';
-import { Bonus, Letter, Player } from '@/domain/enums.js';
+import { TIME } from '@/shared/consts.ts';
+import { wait } from '@/shared/helpers.ts';
+import GameDomain from '@/domain/index.ts';
+import { Bonus, Letter, Player } from '@/domain/enums.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
 

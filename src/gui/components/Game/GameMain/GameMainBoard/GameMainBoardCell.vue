@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import GameTile from '@/gui/components/Game/GameTile.vue';
-import { GameCell, GAME_BONUSES } from '@/application/index.js';
+import { GameCell, GAME_BONUSES } from '@/application/index.ts';
 import { PropType, computed } from 'vue';
-import { useStoreGame } from '@/gui/stores/game.js';
-import { useStoreInventory } from '@/gui/stores/inventory.js';
-import { getBonusName } from '@/gui/helpers.js';
+import { useStoreGame } from '@/gui/stores/game.ts';
+import { useStoreInventory } from '@/gui/stores/inventory.ts';
+import { getBonusName } from '@/gui/helpers.ts';
 
 const { cell } = defineProps({
   cell: { type: Object as PropType<GameCell>, required: true },

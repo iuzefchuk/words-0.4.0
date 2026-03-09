@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useStoreDialog, DialogStatus } from '@/gui/stores/dialog.js';
+import { useStoreDialog, DialogStatus } from '@/gui/stores/dialog.ts';
 
 const storeDialog = useStoreDialog();
 const { state: dialog, setDialogStatus } = storeDialog;

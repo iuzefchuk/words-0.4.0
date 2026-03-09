@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { useStoreDialog } from '@/gui/stores/dialog.js';
-import { useStoreGame } from '@/gui/stores/game.js';
-import { useStoreInventory } from '@/gui/stores/inventory.js';
-import { useStoreToast } from '@/gui/stores/toast.js';
+import { useStoreDialog } from '@/gui/stores/dialog.ts';
+import { useStoreGame } from '@/gui/stores/game.ts';
+import { useStoreInventory } from '@/gui/stores/inventory.ts';
+import { useStoreToast } from '@/gui/stores/toast.ts';
 import { storeToRefs } from 'pinia';
 
 const storeDialog = useStoreDialog();

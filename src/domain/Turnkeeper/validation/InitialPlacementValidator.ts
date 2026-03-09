@@ -1,8 +1,8 @@
 import { GameContext } from '@/domain/types.ts';
-import AxisCalculator from '@/domain/Layout/calculation/AxisCalculator.js';
-import PlacementBuilder from '@/domain/Turnkeeper/construction/PlacementBuilder.js';
-import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.js';
-import { ValidationErrors as Errors, ValidationResultType as ResultType } from '@/domain/Turnkeeper/enums.js';
+import AxisCalculator from '@/domain/Layout/calculation/AxisCalculator.ts';
+import PlacementBuilder from '@/domain/Turnkeeper/construction/PlacementBuilder.ts';
+import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.ts';
+import { ValidationErrors as Errors, ValidationResultType as ResultType } from '@/domain/Turnkeeper/enums.ts';
 import {
   ValidationResult,
   PipelineResult,

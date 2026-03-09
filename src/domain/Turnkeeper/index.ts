@@ -1,7 +1,7 @@
-import { Player } from '@/domain/enums.js';
+import { Player } from '@/domain/enums.ts';
 import { GameContext } from '@/domain/types.ts';
-import TurnValidator from '@/domain/Turnkeeper/TurnValidator.js';
-import { PlayerMove, ValidationResultType } from '@/domain/Turnkeeper/enums.js';
+import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
+import { PlayerMove, ValidationResultType } from '@/domain/Turnkeeper/enums.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';

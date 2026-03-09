@@ -1,7 +1,7 @@
-import { Player } from '@/domain/enums.js';
+import { Player } from '@/domain/enums.ts';
 import { GameContext } from '@/domain/types.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
-import InitialPlacementGenerator from '@/domain/Turnkeeper/generation/InitialPlacementGenerator.js';
+import InitialPlacementGenerator from '@/domain/Turnkeeper/generation/InitialPlacementGenerator.ts';
 
 export default class TurnGenerator {
   private readonly initialPlacementGenerator: InitialPlacementGenerator;

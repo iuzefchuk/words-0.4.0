@@ -5,9 +5,9 @@ import GameEndscreen from '@/gui/components/Game/GameEndscreen.vue';
 import GameLoader from '@/gui/components/Game/GameLoader.vue';
 import GameToast from '@/gui/components/Game/GameToast.vue';
 import { onMounted, ref, inject } from 'vue';
-import { useStoreGame } from '@/gui/stores/game.js';
+import { useStoreGame } from '@/gui/stores/game.ts';
 import { storeToRefs } from 'pinia';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.js';
+import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
 
 const storeGame = useStoreGame();
 const { gameIsFinished } = storeToRefs(storeGame);

@@ -1,5 +1,5 @@
 import { GameContext } from '@/domain/types.ts';
-import { Letter } from '@/domain/enums.js';
+import { Letter } from '@/domain/enums.ts';
 import { Dictionary } from '@/domain/Dictionary/types/shared.ts';
 import { Inventory } from '@/domain/Inventory/types/shared.ts';
 import { AnchorCoordinates, CellIndex, Layout } from '@/domain/Layout/types/shared.ts';

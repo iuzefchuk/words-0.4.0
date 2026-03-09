@@ -1,4 +1,4 @@
-import { Bonus } from '@/domain/enums.js';
+import { Bonus } from '@/domain/enums.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 
 export const BONUS_CELL_INDEXES: Record<Bonus, ReadonlyArray<CellIndex>> = {

@@ -1,9 +1,9 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
-import directives from './plugins/directives/index.js';
-import provides from './plugins/provides/index.js';
-import locales from './plugins/locales/index.js';
+import directives from './plugins/directives/index.ts';
+import provides from './plugins/provides/index.ts';
+import locales from './plugins/locales/index.ts';
 
 (async function init() {
   try {

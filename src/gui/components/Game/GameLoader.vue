@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { ref, computed, watch, inject } from 'vue';
-import { useCounter } from '@/gui/composables/counter.js';
-import { GAME_LETTERS } from '@/application/index.js';
+import { useCounter } from '@/gui/composables/counter.ts';
+import { GAME_LETTERS } from '@/application/index.ts';
 import GameTile from './GameTile.vue';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.js';
+import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
 
 const transitionDurationMs = inject(transitionDurationMsKey, 0);
 const { isActive } = defineProps({

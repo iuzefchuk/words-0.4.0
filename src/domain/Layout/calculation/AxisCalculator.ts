@@ -1,4 +1,4 @@
-import { Axis } from '@/domain/enums.js';
+import { Axis } from '@/domain/enums.ts';
 import { Layout, CellIndex } from '@/domain/Layout/types/shared.ts';
 import { Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
 

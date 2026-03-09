@@ -1,6 +1,6 @@
 import { App } from 'vue';
-import { LocaleFile, LocaleType, NumberSeparatorType } from '@/gui/plugins/locales/enums.js';
-import { NUMBER_SEPARATOR_TYPE_FOR_LOCALE } from '@/gui/plugins/locales/consts.js';
+import { LocaleFile, LocaleType, NumberSeparatorType } from '@/gui/plugins/locales/enums.ts';
+import { NUMBER_SEPARATOR_TYPE_FOR_LOCALE } from '@/gui/plugins/locales/consts.ts';
 import { ref, watch } from 'vue';
 
 export default {
@@ -14,7 +14,7 @@ export default {
         {},
         ...(await Promise.all(
           Object.values(LocaleFile).map(async entity => {
-            const module = await import(`@/gui/plugins/locales/${localeType.value}/${entity}.json`);
+            const module = await import(`@/gui/plugins/locales/${localeType.value}/${entity}.tson`);
             return { [entity]: module };
           }),
         )),

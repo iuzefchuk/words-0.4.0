@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { setPromise } from '@/gui/helpers.js';
+import { setPromise } from '@/gui/helpers.ts';
 
 export enum DialogStatus {
   None = 'None',

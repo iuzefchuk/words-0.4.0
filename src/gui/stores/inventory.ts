@@ -1,7 +1,7 @@
-import { GameCell, GameTile } from '@/application/index.js';
+import { GameCell, GameTile } from '@/application/index.ts';
 import { defineStore, storeToRefs } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
-import { useStoreGame } from '@/gui/stores/game.js';
+import { useStoreGame } from '@/gui/stores/game.ts';
 
 export const useStoreInventory = defineStore('inventory', () => {
   const storeGame = useStoreGame();

@@ -3,13 +3,13 @@ import Dictionary from '@/domain/Dictionary/index.ts';
 import Inventory from '@/domain/Inventory/index.ts';
 import { TileCollection } from '@/domain/Inventory/types/shared.ts';
 import { Layout, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
-import TurnValidator from '@/domain/Turnkeeper/TurnValidator.js';
+import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
 import {
   GenerationDirection as Direction,
   GenerationPhase as Phase,
   GenerationTransitionResultType as TransitionResultType,
   ValidationResultType,
-} from '@/domain/Turnkeeper/enums.js';
+} from '@/domain/Turnkeeper/enums.ts';
 import {
   Computeds,
   Context,

@@ -1,4 +1,4 @@
-import { Letter } from '@/domain/enums.js';
+import { Letter } from '@/domain/enums.ts';
 import { NodeId, FrozenNode } from '@/domain/Dictionary/types/local.ts';
 import { Entry } from '@/domain/Dictionary/types/shared.ts';
 

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { wait } from '@/shared/helpers.js';
+import { wait } from '@/shared/helpers.ts';
 
 type Toast = {
   html: string;
