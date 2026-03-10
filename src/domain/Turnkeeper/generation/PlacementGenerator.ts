@@ -2,17 +2,13 @@ import { GameContext } from '@/domain/types.ts';
 import Dictionary from '@/domain/Dictionary/index.ts';
 import Inventory from '@/domain/Inventory/index.ts';
 import { TileCollection, TileId } from '@/domain/Inventory/types/shared.ts';
-import { Layout, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
+import { Layout } from '@/domain/Layout/types/shared.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
+import { GenerationDirection, GenerationTask, TaskCommandType, ValidationStatus } from '@/domain/Turnkeeper/enums.ts';
 import {
-  GenerationDirection,
-  GenerationTask,
-  GenerationTaskResult,
-  ValidationStatus,
-} from '@/domain/Turnkeeper/enums.ts';
-import {
-  State,
-  Computeds,
+  Arguments,
+  DispatcherState,
+  DispatcherComputeds,
   Traversal,
   Candidate,
   EvaluateTask,
@@ -22,210 +18,236 @@ import {
   DoResolveTask,
   UndoResolveTask,
   Task,
-  ContinueResult,
-  SuccessResult,
-  FailResult,
-  TaskResult,
+  Result,
+  ContinueTaskCommand,
+  ReturnTaskCommand,
+  StopTaskCommand,
+  TaskCommand,
 } from '@/domain/Turnkeeper/types/local/generation.ts';
 import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
-import { Turnkeeper, Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { Placement, Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class PlacementGenerator {
-  constructor(
-    private readonly context: GameContext,
-    private readonly cachedAnchorLettersComputer: CachedAnchorLettersComputer,
-  ) {}
-
-  private get layout(): Layout {
-    return this.context.layout;
-  }
-  private get dictionary(): Dictionary {
-    return this.context.dictionary;
-  }
-  private get inventory(): Inventory {
-    return this.context.inventory;
-  }
-  private get turnkeeper(): Turnkeeper {
-    return this.context.turnkeeper;
-  }
-
-  *execute({
-    playerTileCollection,
-    coords,
-  }: {
-    playerTileCollection: TileCollection;
-    coords: AnchorCoordinates;
-  }): Generator<Placement> {
-    const state: State = { tiles: new Map(playerTileCollection), placement: [] };
-    const computeds: Computeds = {
-      axisCells: this.layout.getAxisCells(coords),
-      oppositeAxis: this.layout.getOppositeAxis(coords.axis),
+  static *execute(args: Arguments): Generator<Result> {
+    const { context, coords } = args;
+    const { dictionary } = context;
+    const dispatcher = PlacementGenerator.TaskDispatcher.create(args);
+    const initialTask: EvaluateTask = {
+      type: GenerationTask.EvaluateTraversal,
+      traversal: {
+        index: dispatcher.computeds.axisCells.indexOf(coords.cellIndex),
+        direction: GenerationDirection.Left,
+        entry: dictionary.firstEntry,
+      },
     };
-    const startIndex = computeds.axisCells.indexOf(coords.cellIndex);
-    if (startIndex === -1) throw new Error('Start index has to exist');
-    const taskStack: Array<Task> = [
-      {
-        type: GenerationTask.EvaluateTraversal,
-        traversal: { index: startIndex, direction: GenerationDirection.Left, entry: this.dictionary.firstEntry },
-      },
-    ];
-    while (taskStack.length > 0) {
-      const task = taskStack.pop()!;
-      const result = this.perform(task, state, computeds);
-      if (result.type === GenerationTaskResult.Success) {
-        yield [...result.placement];
-        continue;
-      }
-      if (result.type === GenerationTaskResult.Continue) {
-        for (let i = result.tasks.length - 1; i >= 0; i--) taskStack.push(result.tasks[i]);
-      }
+    const commandResolver = PlacementGenerator.TaskCommandResolver.create(initialTask);
+    yield* commandResolver.execute(task => dispatcher.execute(task));
+  }
+
+  private static TaskCommandResolver = class TaskCommandResolver {
+    private constructor(private readonly tasks: Array<Task> = []) {}
+
+    static create(initialTask: Task): TaskCommandResolver {
+      const tasks = [initialTask];
+      return new TaskCommandResolver(tasks);
     }
-  }
 
-  private perform(task: Task, state: State, computeds: Computeds): TaskResult {
-    switch (task.type) {
-      case GenerationTask.EvaluateTraversal:
-        return this.evaluateTraversal(task, state);
-      case GenerationTask.ValidateTraversal:
-        return this.validateTraversal(task);
-      case GenerationTask.CalculateCandidate:
-        return this.calculateCandidate(task, computeds);
-      case GenerationTask.ResolveCandidate:
-        return this.resolveCandidate(task, state, computeds);
-      case GenerationTask.DoResolve:
-        return this.doResolve(task, state);
-      case GenerationTask.UndoResolve:
-        return this.undoResolve(task, state);
-    }
-  }
-
-  private static continue(tasks: Array<Task>): ContinueResult {
-    return { type: GenerationTaskResult.Continue, tasks };
-  }
-
-  private static pass(placement: Placement): SuccessResult {
-    return { type: GenerationTaskResult.Success, placement };
-  }
-
-  private static fail(): FailResult {
-    return { type: GenerationTaskResult.Fail };
-  }
-
-  private evaluateTraversal(task: EvaluateTask, state: State): TaskResult {
-    const { traversal } = task;
-    const placementIsUsable = state.placement.length > 0 && this.dictionary.isEntryPlayable(traversal.entry);
-    if (traversal.direction === GenerationDirection.Right && placementIsUsable) {
-      const validationResult = new TurnValidator(this.context).execute(state.placement);
-      if (validationResult.status === ValidationStatus.Valid) {
-        return PlacementGenerator.pass(state.placement);
+    *execute(dispatcher: (task: Task) => TaskCommand): Generator<Result> {
+      while (this.tasks.length > 0) {
+        const task = this.pop();
+        const command = dispatcher(task);
+        if (command.type === TaskCommandType.ContinueExecute) this.addTasts(command.newTasks);
+        if (command.type === TaskCommandType.ReturnResult) yield command.result;
       }
     }
-    const tasks: Array<Task> = [];
-    if (traversal.direction === GenerationDirection.Left) {
-      tasks.push({
-        type: GenerationTask.EvaluateTraversal,
-        traversal: { ...traversal, direction: GenerationDirection.Right },
-      });
+
+    private addTasts(tasks: Array<Task>): void {
+      for (let i = tasks.length - 1; i >= 0; i--) this.tasks.push(tasks[i]);
     }
-    tasks.push({ ...task, type: GenerationTask.ValidateTraversal });
-    return PlacementGenerator.continue(tasks);
-  }
 
-  private validateTraversal(task: ValidateTask): TaskResult {
-    const { traversal } = task;
-    const isEdge =
-      traversal.direction === GenerationDirection.Left
-        ? this.layout.isCellPositionOnLeftEdge(traversal.index)
-        : this.layout.isCellPositionOnRightEdge(traversal.index);
-    if (isEdge) return PlacementGenerator.fail();
-    return PlacementGenerator.continue([{ ...task, type: GenerationTask.CalculateCandidate }]);
-  }
+    private pop(): Task {
+      const lastTask = this.tasks.pop();
+      if (!lastTask) throw new Error('Task has to exist');
+      return lastTask;
+    }
 
-  private calculateCandidate(task: CalculateTask, computeds: Computeds): TaskResult {
-    const { traversal } = task;
-    const targetIndex = traversal.index + traversal.direction;
-    const cell = computeds.axisCells[targetIndex];
-    const tile = this.turnkeeper.findTileByCell(cell);
-    return PlacementGenerator.continue([
-      {
-        ...task,
-        type: GenerationTask.ResolveCandidate,
-        candidate: { index: targetIndex, cell, connectedTile: tile },
-      },
-    ]);
-  }
+    static continue(newTasks: Array<Task>): ContinueTaskCommand {
+      return { type: TaskCommandType.ContinueExecute, newTasks };
+    }
 
-  private resolveCandidate(task: ResolveTask, state: State, computeds: Computeds): TaskResult {
-    const { traversal, candidate } = task;
-    if (candidate.connectedTile) return this.followConnectedTile(traversal, candidate, candidate.connectedTile);
-    return this.branchOverLetters(traversal, candidate, state, computeds);
-  }
+    static stop(): StopTaskCommand {
+      return { type: TaskCommandType.StopExecute };
+    }
 
-  private followConnectedTile(traversal: Traversal, candidate: Candidate, connectedTile: TileId): TaskResult {
-    const letter = this.inventory.getTileLetter(connectedTile);
-    const nextEntry = this.dictionary.findEntryForWord({ word: letter, startEntry: traversal.entry });
-    if (!nextEntry) return PlacementGenerator.fail();
-    return PlacementGenerator.continue([
-      {
-        type: GenerationTask.EvaluateTraversal,
-        traversal: { ...traversal, index: candidate.index, entry: nextEntry },
-      },
-    ]);
-  }
+    static return(result: Result): ReturnTaskCommand {
+      return { type: TaskCommandType.ReturnResult, result };
+    }
+  };
 
-  private branchOverLetters(
-    traversal: Traversal,
-    candidate: Candidate,
-    state: State,
-    computeds: Computeds,
-  ): TaskResult {
-    const generator = this.dictionary.createNextEntryGenerator({ startEntry: traversal.entry });
-    const anchorLetters = this.cachedAnchorLettersComputer.find({
-      axis: computeds.oppositeAxis,
-      cellIndex: candidate.cell,
-    });
-    const branchTasks: Array<Task> = [];
-    for (const [possibleNextLetter, entryWithPossibleNextLetter] of generator) {
-      const letterTiles = state.tiles.get(possibleNextLetter);
-      if (!anchorLetters.has(possibleNextLetter) || !letterTiles || letterTiles.length === 0) {
-        continue;
+  private static TaskDispatcher = class TaskDispatcher {
+    private constructor(
+      private readonly context: GameContext,
+      private readonly lettersComputer: CachedAnchorLettersComputer,
+      private state: DispatcherState,
+      public computeds: DispatcherComputeds,
+    ) {}
+
+    private get layout(): Layout {
+      return this.context.layout;
+    }
+    private get dictionary(): Dictionary {
+      return this.context.dictionary;
+    }
+    private get inventory(): Inventory {
+      return this.context.inventory;
+    }
+    private get turnkeeper(): Turnkeeper {
+      return this.context.turnkeeper;
+    }
+    private get placement(): Placement {
+      return this.state.placement;
+    }
+    private get tiles(): TileCollection {
+      return this.state.tiles;
+    }
+
+    static create({ context, lettersComputer, playerTileCollection, coords }: Arguments): TaskDispatcher {
+      const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: [] };
+      const computeds: DispatcherComputeds = {
+        axisCells: context.layout.getAxisCells(coords),
+        oppositeAxis: context.layout.getOppositeAxis(coords.axis),
+      };
+      return new TaskDispatcher(context, lettersComputer, state, computeds);
+    }
+
+    execute(task: Task): TaskCommand {
+      switch (task.type) {
+        case GenerationTask.EvaluateTraversal:
+          return this.evaluateTraversal(task);
+        case GenerationTask.ValidateTraversal:
+          return this.validateTraversal(task);
+        case GenerationTask.CalculateCandidate:
+          return this.calculateCandidate(task);
+        case GenerationTask.ResolveCandidate:
+          return this.resolveCandidate(task);
+        case GenerationTask.DoResolve:
+          return this.doResolve(task);
+        case GenerationTask.UndoResolve:
+          return this.undoResolve(task);
       }
-      const tile = letterTiles[letterTiles.length - 1];
-      branchTasks.push(
+    }
+
+    private evaluateTraversal(task: EvaluateTask): TaskCommand {
+      const { traversal } = task;
+      const placementIsUsable = this.placement.length > 0 && this.dictionary.isEntryPlayable(traversal.entry);
+      if (traversal.direction === GenerationDirection.Right && placementIsUsable) {
+        const validationResult = new TurnValidator(this.context).execute(this.placement);
+        if (validationResult.status === ValidationStatus.Valid) {
+          return PlacementGenerator.TaskCommandResolver.return(this.placement);
+        }
+      }
+      const tasks: Array<Task> = [];
+      if (traversal.direction === GenerationDirection.Left) {
+        tasks.push({
+          type: GenerationTask.EvaluateTraversal,
+          traversal: { ...traversal, direction: GenerationDirection.Right },
+        });
+      }
+      tasks.push({ ...task, type: GenerationTask.ValidateTraversal });
+      return PlacementGenerator.TaskCommandResolver.continue(tasks);
+    }
+
+    private validateTraversal(task: ValidateTask): TaskCommand {
+      const { traversal } = task;
+      const isEdge =
+        traversal.direction === GenerationDirection.Left
+          ? this.layout.isCellPositionOnLeftEdge(traversal.index)
+          : this.layout.isCellPositionOnRightEdge(traversal.index);
+      if (isEdge) return PlacementGenerator.TaskCommandResolver.stop();
+      return PlacementGenerator.TaskCommandResolver.continue([{ ...task, type: GenerationTask.CalculateCandidate }]);
+    }
+
+    private calculateCandidate(task: CalculateTask): TaskCommand {
+      const { traversal } = task;
+      const targetIndex = traversal.index + traversal.direction;
+      const cell = this.computeds.axisCells[targetIndex];
+      const tile = this.turnkeeper.findTileByCell(cell);
+      return PlacementGenerator.TaskCommandResolver.continue([
         {
-          type: GenerationTask.DoResolve,
-          traversal,
-          candidate,
-          resolution: { letter: possibleNextLetter, tile },
+          ...task,
+          type: GenerationTask.ResolveCandidate,
+          candidate: { index: targetIndex, cell, connectedTile: tile },
         },
+      ]);
+    }
+
+    private resolveCandidate(task: ResolveTask): TaskCommand {
+      const { traversal, candidate } = task;
+      if (candidate.connectedTile) return this.followConnectedTile(traversal, candidate, candidate.connectedTile);
+      return this.branchOverLetters(traversal, candidate);
+    }
+
+    private followConnectedTile(traversal: Traversal, candidate: Candidate, connectedTile: TileId): TaskCommand {
+      const letter = this.inventory.getTileLetter(connectedTile);
+      const nextEntry = this.dictionary.findEntryForWord({ word: letter, startEntry: traversal.entry });
+      if (!nextEntry) return PlacementGenerator.TaskCommandResolver.stop();
+      return PlacementGenerator.TaskCommandResolver.continue([
         {
           type: GenerationTask.EvaluateTraversal,
-          traversal: { ...traversal, index: candidate.index, entry: entryWithPossibleNextLetter },
+          traversal: { ...traversal, index: candidate.index, entry: nextEntry },
         },
-        {
-          type: GenerationTask.UndoResolve,
-          traversal,
-          resolution: { letter: possibleNextLetter, tile },
-        },
-      );
+      ]);
     }
-    if (branchTasks.length === 0) return PlacementGenerator.fail();
-    return PlacementGenerator.continue(branchTasks);
-  }
 
-  private doResolve(task: DoResolveTask, state: State): TaskResult {
-    const { candidate, resolution } = task;
-    const letterTiles = state.tiles.get(resolution.letter)!;
-    const tileIndex = letterTiles.indexOf(resolution.tile);
-    if (tileIndex !== -1) letterTiles.splice(tileIndex, 1);
-    state.placement.push({ cell: candidate.cell, tile: resolution.tile });
-    return PlacementGenerator.continue([]);
-  }
+    private branchOverLetters(traversal: Traversal, candidate: Candidate): TaskCommand {
+      const generator = this.dictionary.createNextEntryGenerator({ startEntry: traversal.entry });
+      const anchorLetters = this.lettersComputer.execute({
+        axis: this.computeds.oppositeAxis,
+        cellIndex: candidate.cell,
+      });
+      const branchTasks: Array<Task> = [];
+      for (const [possibleNextLetter, entryWithPossibleNextLetter] of generator) {
+        const letterTiles = this.tiles.get(possibleNextLetter);
+        if (!anchorLetters.has(possibleNextLetter) || !letterTiles || letterTiles.length === 0) {
+          continue;
+        }
+        const tile = letterTiles[letterTiles.length - 1];
+        branchTasks.push(
+          {
+            type: GenerationTask.DoResolve,
+            traversal,
+            candidate,
+            resolution: { letter: possibleNextLetter, tile },
+          },
+          {
+            type: GenerationTask.EvaluateTraversal,
+            traversal: { ...traversal, index: candidate.index, entry: entryWithPossibleNextLetter },
+          },
+          {
+            type: GenerationTask.UndoResolve,
+            traversal,
+            resolution: { letter: possibleNextLetter, tile },
+          },
+        );
+      }
+      if (branchTasks.length === 0) return PlacementGenerator.TaskCommandResolver.stop();
+      return PlacementGenerator.TaskCommandResolver.continue(branchTasks);
+    }
 
-  private undoResolve(task: UndoResolveTask, state: State): TaskResult {
-    const { letter, tile } = task.resolution;
-    state.tiles.get(letter)!.push(tile);
-    state.placement.pop();
-    return PlacementGenerator.continue([]);
-  }
+    private doResolve(task: DoResolveTask): TaskCommand {
+      const { candidate, resolution } = task;
+      const letterTiles = this.tiles.get(resolution.letter)!;
+      const tileIndex = letterTiles.indexOf(resolution.tile);
+      if (tileIndex !== -1) letterTiles.splice(tileIndex, 1);
+      this.placement.push({ cell: candidate.cell, tile: resolution.tile });
+      return PlacementGenerator.TaskCommandResolver.continue([]);
+    }
+
+    private undoResolve(task: UndoResolveTask): TaskCommand {
+      const { letter, tile } = task.resolution;
+      this.tiles.get(letter)!.push(tile);
+      this.placement.pop();
+      return PlacementGenerator.TaskCommandResolver.continue([]);
+    }
+  };
 }

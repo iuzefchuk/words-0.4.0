@@ -34,8 +34,8 @@ export enum GenerationTask {
   UndoResolve = 'UndoResolve',
 }
 
-export enum GenerationTaskResult {
-  Continue = 'Continue',
-  Success = 'Success',
-  Fail = 'Fail',
+export enum TaskCommandType {
+  ContinueExecute = 'ContinueExecute',
+  StopExecute = 'StopExecute',
+  ReturnResult = 'ReturnResult',
 }

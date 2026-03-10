@@ -4,4 +4,4 @@ import { CellIndex, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 
 export type Link = { readonly cell: CellIndex; readonly tile: TileId };
 
-export type CachedAnchorLettersComputer = { find(coords: AnchorCoordinates): ReadonlySet<Letter> };
+export type CachedAnchorLettersComputer = { execute(coords: AnchorCoordinates): ReadonlySet<Letter> };

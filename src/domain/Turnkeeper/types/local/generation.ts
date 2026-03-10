@@ -1,12 +1,18 @@
 import { Axis, Letter } from '@/domain/enums.ts';
-import { GenerationDirection, GenerationTask, GenerationTaskResult } from '@/domain/Turnkeeper/enums.ts';
+import { GenerationDirection, GenerationTask, TaskCommandType } from '@/domain/Turnkeeper/enums.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import { Entry } from '@/domain/Dictionary/types/shared.ts';
 import { TileCollection, TileId } from '@/domain/Inventory/types/shared.ts';
-import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { AnchorCoordinates, CellIndex } from '@/domain/Layout/types/shared.ts';
+import { GameContext } from '@/domain/types.ts';
+import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
 
-export type State = { tiles: TileCollection; placement: Placement };
-export type Computeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
+export type Arguments = {
+  context: GameContext;
+  lettersComputer: CachedAnchorLettersComputer;
+  playerTileCollection: TileCollection;
+  coords: AnchorCoordinates;
+};
 
 export type Traversal = { index: number; direction: GenerationDirection; entry: Entry };
 export type Candidate = { index: number; cell: CellIndex; connectedTile?: TileId };
@@ -25,7 +31,12 @@ export type DoResolveTask = {
 export type UndoResolveTask = { type: GenerationTask.UndoResolve; traversal: Traversal; resolution: Resolution };
 export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | DoResolveTask | UndoResolveTask;
 
-export type ContinueResult = { type: GenerationTaskResult.Continue; tasks: Array<Task> };
-export type SuccessResult = { type: GenerationTaskResult.Success; placement: Placement };
-export type FailResult = { type: GenerationTaskResult.Fail };
-export type TaskResult = ContinueResult | SuccessResult | FailResult;
+export type ContinueTaskCommand = { type: TaskCommandType.ContinueExecute; newTasks: Array<Task> };
+export type ReturnTaskCommand = { type: TaskCommandType.ReturnResult; result: Result };
+export type StopTaskCommand = { type: TaskCommandType.StopExecute };
+export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
+
+export type DispatcherState = { tiles: TileCollection; placement: Placement };
+export type DispatcherComputeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
+
+export type Result = Placement;

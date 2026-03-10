@@ -3,6 +3,7 @@ import PlacementBuilder from '@/domain/Turnkeeper/construction/PlacementBuilder.
 import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.ts';
 import { ValidationErrors, ValidationStatus } from '@/domain/Turnkeeper/enums.ts';
 import {
+  Arguments,
   ComputedValue,
   PendingResult,
   InvalidResult,
@@ -19,8 +20,8 @@ import {
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class InitialPlacementValidator {
-  static execute(input: PipelineInput): PipelineOutput {
-    return this.Pipeline.start(input)
+  static execute(args: Arguments): PipelineOutput {
+    return this.Pipeline.start(args)
       .continue(state => this.computeAndValidateSequences(state))
       .continue(state => this.computeAndValidatePlacements(state))
       .continue(state => this.computeAndValidateWords(state))
@@ -31,8 +32,8 @@ export default class InitialPlacementValidator {
   private static Pipeline = class Pipeline<State extends PipelineInput> {
     private constructor(private throughput: PipelineThroughput<State>) {}
 
-    static start(input: PipelineInput): Pipeline<PipelineInput> {
-      return new Pipeline({ status: ValidationStatus.Pending, state: input });
+    static start(args: Arguments): Pipeline<PipelineInput> {
+      return new Pipeline({ status: ValidationStatus.Pending, state: args });
     }
 
     static pass<State extends PipelineInput, NewValue extends ComputedValue>(
