@@ -67,7 +67,7 @@ export default class Layout {
   }
 
   getAxisCells(coords: AnchorCoordinates): ReadonlyArray<CellIndex> {
-    const { axis, cellIndex } = coords;
+    const { axis, cell: cellIndex } = coords;
     this.validateCellIndex(cellIndex);
     return Array.from({ length: Layout.cellsPerAxis }, (_, i) =>
       axis === Axis.X

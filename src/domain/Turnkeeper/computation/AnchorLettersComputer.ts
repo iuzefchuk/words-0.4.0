@@ -23,7 +23,7 @@ export default class AnchorLettersComputer {
 
   execute(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const axisCells = this.layout.getAxisCells(coords);
-    const cellAxisPosition = axisCells.indexOf(coords.cellIndex);
+    const cellAxisPosition = axisCells.indexOf(coords.cell);
     const prefix = this.getPrefix(axisCells, cellAxisPosition);
     const suffix = this.getSuffix(axisCells, cellAxisPosition);
     if (!prefix && !suffix) return this.dictionary.allLetters;

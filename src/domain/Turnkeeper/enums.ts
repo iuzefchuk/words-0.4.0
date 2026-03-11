@@ -30,8 +30,8 @@ export enum GenerationTask {
   ValidateTraversal = 'ValidateTraversal',
   CalculateCandidate = 'CalculateCandidate',
   ResolveCandidate = 'ResolveCandidate',
-  ApplyChanges = 'ApplyChanges',
-  ReverseChanges = 'ReverseChanges',
+  ApplyResolution = 'ApplyResolution',
+  ReverseResolution = 'ReverseResolution',
 }
 
 export enum GenerationCommandType {

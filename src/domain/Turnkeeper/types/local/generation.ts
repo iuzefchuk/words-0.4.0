@@ -1,4 +1,4 @@
-import { Axis, Letter } from '@/domain/enums.ts';
+import { Axis } from '@/domain/enums.ts';
 import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/Turnkeeper/enums.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import { NodeId } from '@/domain/Dictionary/types/shared.ts';
@@ -14,22 +14,42 @@ export type Arguments = {
   coords: AnchorCoordinates;
 };
 
-export type Traversal = { index: number; direction: GenerationDirection; node: NodeId };
-export type Candidate = { index: number; cell: CellIndex; connectedTile?: TileId };
-export type Changes = { letter: Letter; tile: TileId };
+export type Traversal = { position: number; direction: GenerationDirection; node: NodeId };
+export type Candidate = { position: number; cell: CellIndex; resolution?: Resolution };
+export type Resolution = { tile: TileId };
+export type ResolutionComputeds = { letterTiles: Array<TileId> };
 
-export type EvaluateTask = { type: GenerationTask.EvaluateTraversal; traversal: Traversal };
-export type ValidateTask = { type: GenerationTask.ValidateTraversal; traversal: Traversal };
-export type CalculateTask = { type: GenerationTask.CalculateCandidate; traversal: Traversal };
-export type ResolveTask = { type: GenerationTask.ResolveCandidate; traversal: Traversal; candidate: Candidate };
-export type ApplyChangesTask = {
-  type: GenerationTask.ApplyChanges;
+export type EvaluateTask = {
+  type: GenerationTask.EvaluateTraversal;
+  traversal: Traversal;
+};
+export type ValidateTask = {
+  type: GenerationTask.ValidateTraversal;
+  traversal: Traversal;
+};
+export type CalculateTask = {
+  type: GenerationTask.CalculateCandidate;
+  traversal: Traversal;
+};
+export type ResolveTask = {
+  type: GenerationTask.ResolveCandidate;
   traversal: Traversal;
   candidate: Candidate;
-  resolution: Changes;
 };
-export type ReverseChangesTask = { type: GenerationTask.ReverseChanges; traversal: Traversal; resolution: Changes };
-export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | ApplyChangesTask | ReverseChangesTask;
+export type ApplyTask = {
+  type: GenerationTask.ApplyResolution;
+  traversal: Traversal;
+  candidate: Candidate;
+  resolution: Resolution;
+  resolutionComputeds: ResolutionComputeds;
+};
+export type ReverseTask = {
+  type: GenerationTask.ReverseResolution;
+  traversal: Traversal;
+  resolution: Resolution;
+  resolutionComputeds: ResolutionComputeds;
+};
+export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | ApplyTask | ReverseTask;
 
 export type ContinueTaskCommand = { type: GenerationCommandType.ContinueExecute; newTasks: Array<Task> };
 export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: Result };

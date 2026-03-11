@@ -12,7 +12,7 @@ export default class AxisCalculator {
 
   execute(cellSequence: ReadonlyArray<CellIndex>): Axis {
     const normalizedSequence =
-      cellSequence.length === 1 ? this.createCellSequenceFromAdjacents({ cellIndex: cellSequence[0] }) : cellSequence;
+      cellSequence.length === 1 ? this.createCellSequenceFromAdjacents(cellSequence[0]) : cellSequence;
     if (normalizedSequence.length === 0) return AxisCalculator.defaultAxis;
     const [firstIndex] = normalizedSequence;
     const firstColumn = this.layout.getColumnIndex(firstIndex);
@@ -20,10 +20,10 @@ export default class AxisCalculator {
     return isVertical ? Axis.Y : Axis.X;
   }
 
-  private createCellSequenceFromAdjacents({ cellIndex }: { cellIndex: CellIndex }): ReadonlyArray<CellIndex> {
+  private createCellSequenceFromAdjacents(cell: CellIndex): ReadonlyArray<CellIndex> {
     const connectedAdjacents = this.layout
-      .findAdjacentCells(cellIndex)
+      .findAdjacentCells(cell)
       .filter(cell => this.turnkeeper.isCellConnected(cell));
-    return connectedAdjacents.length === 0 ? [] : [connectedAdjacents[0], cellIndex];
+    return connectedAdjacents.length === 0 ? [] : [connectedAdjacents[0], cell];
   }
 }

@@ -1,7 +1,7 @@
 import { GameContext } from '@/domain/types.ts';
 import Dictionary from '@/domain/Dictionary/index.ts';
 import Inventory from '@/domain/Inventory/index.ts';
-import { TileCollection, TileId } from '@/domain/Inventory/types/shared.ts';
+import { TileCollection } from '@/domain/Inventory/types/shared.ts';
 import { Layout } from '@/domain/Layout/types/shared.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
 import {
@@ -12,22 +12,24 @@ import {
 } from '@/domain/Turnkeeper/enums.ts';
 import {
   Arguments,
-  DispatcherState,
-  DispatcherComputeds,
   Traversal,
   Candidate,
+  Resolution,
+  ResolutionComputeds,
   EvaluateTask,
   ValidateTask,
   CalculateTask,
   ResolveTask,
-  ApplyChangesTask,
-  ReverseChangesTask,
+  ApplyTask,
+  ReverseTask,
   Task,
-  Result,
   ContinueTaskCommand,
   ReturnTaskCommand,
   StopTaskCommand,
   TaskCommand,
+  DispatcherState,
+  DispatcherComputeds,
+  Result,
 } from '@/domain/Turnkeeper/types/local/generation.ts';
 import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
 import { Placement, Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
@@ -40,7 +42,7 @@ export default class PlacementGenerator {
     const firstTask: EvaluateTask = {
       type: GenerationTask.EvaluateTraversal,
       traversal: {
-        index: dispatcher.computeds.axisCells.indexOf(coords.cellIndex),
+        position: dispatcher.computeds.axisCells.indexOf(coords.cell),
         direction: GenerationDirection.Left,
         node: dictionary.firstNode,
       },
@@ -50,7 +52,7 @@ export default class PlacementGenerator {
   }
 
   private static TaskCommandResolver = class TaskCommandResolver {
-    private constructor(private readonly tasks: Array<Task>) {}
+    private constructor(private readonly stack: Array<Task>) {}
 
     static create(firstTask: Task): TaskCommandResolver {
       const tasks = [firstTask];
@@ -58,33 +60,33 @@ export default class PlacementGenerator {
     }
 
     *execute(dispatcher: (task: Task) => TaskCommand): Generator<Result> {
-      while (this.tasks.length > 0) {
-        const task = this.pop();
+      while (this.stack.length > 0) {
+        const task = this.popFromStack();
         const command = dispatcher(task);
-        if (command.type === GenerationCommandType.ContinueExecute) this.push(command.newTasks);
+        if (command.type === GenerationCommandType.ContinueExecute) this.pushToStack(command.newTasks);
         if (command.type === GenerationCommandType.ReturnResult) yield command.result;
       }
     }
 
-    private push(tasks: Array<Task>): void {
-      for (let i = tasks.length - 1; i >= 0; i--) this.tasks.push(tasks[i]);
+    private pushToStack(tasks: Array<Task>): void {
+      for (let i = tasks.length - 1; i >= 0; i--) this.stack.push(tasks[i]);
     }
 
-    private pop(): Task {
-      const lastTask = this.tasks.pop();
+    private popFromStack(): Task {
+      const lastTask = this.stack.pop();
       if (!lastTask) throw new Error('Task has to exist');
       return lastTask;
     }
 
-    static continue(newTasks: Array<Task>): ContinueTaskCommand {
+    static continueExecute(newTasks: Array<Task>): ContinueTaskCommand {
       return { type: GenerationCommandType.ContinueExecute, newTasks };
     }
 
-    static stop(): StopTaskCommand {
+    static stopExecute(): StopTaskCommand {
       return { type: GenerationCommandType.StopExecute };
     }
 
-    static return(result: Result): ReturnTaskCommand {
+    static returnResult(result: Result): ReturnTaskCommand {
       return { type: GenerationCommandType.ReturnResult, result };
     }
   };
@@ -135,124 +137,141 @@ export default class PlacementGenerator {
           return this.calculateCandidate(task);
         case GenerationTask.ResolveCandidate:
           return this.resolveCandidate(task);
-        case GenerationTask.ApplyChanges:
-          return this.applyChanges(task);
-        case GenerationTask.ReverseChanges:
-          return this.reverseChanges(task);
+        case GenerationTask.ApplyResolution:
+          return this.applyResolution(task);
+        case GenerationTask.ReverseResolution:
+          return this.reverseResolution(task);
       }
     }
 
-    private evaluateTraversal(task: EvaluateTask): TaskCommand {
+    private emitContinue(newTasks: Array<Task> = []): ContinueTaskCommand {
+      return PlacementGenerator.TaskCommandResolver.continueExecute(newTasks);
+    }
+
+    private emitStop(): StopTaskCommand {
+      return PlacementGenerator.TaskCommandResolver.stopExecute();
+    }
+
+    private emitReturn(result: Result): ReturnTaskCommand {
+      return PlacementGenerator.TaskCommandResolver.returnResult(result);
+    }
+
+    private evaluateTraversal(task: EvaluateTask): ReturnTaskCommand | ContinueTaskCommand {
       const { traversal } = task;
       const placementIsUsable = this.placement.length > 0 && this.dictionary.isNodePlayable(traversal.node);
       if (traversal.direction === GenerationDirection.Right && placementIsUsable) {
         const validationResult = new TurnValidator(this.context).execute(this.placement);
         if (validationResult.status === ValidationStatus.Valid) {
-          return PlacementGenerator.TaskCommandResolver.return(this.placement);
+          return this.emitReturn(this.placement);
         }
       }
-      const tasks: Array<Task> = [];
+      const nextTasks: Array<Task> = [];
       if (traversal.direction === GenerationDirection.Left) {
-        tasks.push({
+        const oppositeDirectionEvaluationTask: EvaluateTask = {
           type: GenerationTask.EvaluateTraversal,
           traversal: { ...traversal, direction: GenerationDirection.Right },
-        });
+        };
+        nextTasks.push(oppositeDirectionEvaluationTask);
       }
-      tasks.push({ ...task, type: GenerationTask.ValidateTraversal });
-      return PlacementGenerator.TaskCommandResolver.continue(tasks);
+      nextTasks.push({ ...task, type: GenerationTask.ValidateTraversal });
+      return this.emitContinue(nextTasks);
     }
 
-    private validateTraversal(task: ValidateTask): TaskCommand {
+    private validateTraversal(task: ValidateTask): StopTaskCommand | ContinueTaskCommand {
       const { traversal } = task;
       const isEdge =
         traversal.direction === GenerationDirection.Left
-          ? this.layout.isCellPositionOnLeftEdge(traversal.index)
-          : this.layout.isCellPositionOnRightEdge(traversal.index);
-      if (isEdge) return PlacementGenerator.TaskCommandResolver.stop();
-      return PlacementGenerator.TaskCommandResolver.continue([{ ...task, type: GenerationTask.CalculateCandidate }]);
+          ? this.layout.isCellPositionOnLeftEdge(traversal.position)
+          : this.layout.isCellPositionOnRightEdge(traversal.position);
+      if (isEdge) return this.emitStop();
+      return this.emitContinue([{ ...task, type: GenerationTask.CalculateCandidate }]);
     }
 
-    private calculateCandidate(task: CalculateTask): TaskCommand {
+    private calculateCandidate(task: CalculateTask): ContinueTaskCommand {
       const { traversal } = task;
-      const targetIndex = traversal.index + traversal.direction;
-      const cell = this.computeds.axisCells[targetIndex];
+      const position = traversal.position + traversal.direction;
+      const cell = this.computeds.axisCells[position];
       const tile = this.turnkeeper.findTileByCell(cell);
-      return PlacementGenerator.TaskCommandResolver.continue([
-        {
-          ...task,
-          type: GenerationTask.ResolveCandidate,
-          candidate: { index: targetIndex, cell, connectedTile: tile },
-        },
-      ]);
+      const resolution: Resolution | undefined = tile ? { tile } : undefined;
+      const candidate: Candidate = { position, cell, resolution };
+      return this.emitContinue([{ ...task, type: GenerationTask.ResolveCandidate, candidate }]);
     }
 
-    private resolveCandidate(task: ResolveTask): TaskCommand {
+    private resolveCandidate(task: ResolveTask): StopTaskCommand | ContinueTaskCommand {
       const { traversal, candidate } = task;
-      if (candidate.connectedTile) return this.followConnectedTile(traversal, candidate, candidate.connectedTile);
-      return this.branchOverLetters(traversal, candidate);
+      return candidate.resolution
+        ? this.createTraversalFromCandidate(traversal, candidate)
+        : this.calculateAndExploreResolution(traversal, candidate);
     }
 
-    private followConnectedTile(traversal: Traversal, candidate: Candidate, connectedTile: TileId): TaskCommand {
-      const letter = this.inventory.getTileLetter(connectedTile);
-      const nextNode = this.dictionary.getNode({ word: letter, startNode: traversal.node });
-      if (!nextNode) return PlacementGenerator.TaskCommandResolver.stop();
-      return PlacementGenerator.TaskCommandResolver.continue([
-        {
-          type: GenerationTask.EvaluateTraversal,
-          traversal: { ...traversal, index: candidate.index, node: nextNode },
-        },
-      ]);
-    }
-
-    private branchOverLetters(traversal: Traversal, candidate: Candidate): TaskCommand {
-      const generator = this.dictionary.createNextNodeGenerator({ startNode: traversal.node });
-      const anchorLetters = this.lettersComputer.execute({
-        axis: this.computeds.oppositeAxis,
-        cellIndex: candidate.cell,
+    private createTraversalFromCandidate(
+      traversal: Traversal,
+      candidate: Candidate,
+    ): StopTaskCommand | ContinueTaskCommand {
+      const { position, resolution } = candidate;
+      if (!resolution) throw new Error('Resolution has to exist');
+      const nextNode = this.dictionary.getNode({
+        word: this.inventory.getTileLetter(resolution.tile),
+        startNode: traversal.node,
       });
-      const branchTasks: Array<Task> = [];
+      if (!nextNode) return this.emitStop();
+      const traversalFromCandidate: Traversal = { ...traversal, position, node: nextNode };
+      return this.emitContinue([{ type: GenerationTask.EvaluateTraversal, traversal: traversalFromCandidate }]);
+    }
+
+    private calculateAndExploreResolution(
+      traversal: Traversal,
+      candidate: Candidate,
+    ): StopTaskCommand | ContinueTaskCommand {
+      const { position, cell } = candidate;
+      const generator = this.dictionary.createNextNodeGenerator({ startNode: traversal.node });
+      const anchorLetters = this.lettersComputer.execute({ axis: this.computeds.oppositeAxis, cell });
+      const newTasks: Array<Task> = [];
       for (const [possibleNextLetter, nodeWithPossibleNextLetter] of generator) {
         const letterTiles = this.tiles.get(possibleNextLetter);
-        if (!anchorLetters.has(possibleNextLetter) || !letterTiles || letterTiles.length === 0) {
-          continue;
-        }
-        const tile = letterTiles[letterTiles.length - 1];
-        branchTasks.push(
-          {
-            type: GenerationTask.ApplyChanges,
-            traversal,
-            candidate,
-            resolution: { letter: possibleNextLetter, tile },
-          },
-          {
-            type: GenerationTask.EvaluateTraversal,
-            traversal: { ...traversal, index: candidate.index, node: nodeWithPossibleNextLetter },
-          },
-          {
-            type: GenerationTask.ReverseChanges,
-            traversal,
-            resolution: { letter: possibleNextLetter, tile },
-          },
-        );
+        if (!anchorLetters.has(possibleNextLetter)) continue;
+        if (!letterTiles) continue;
+        const tile = letterTiles.at(-1);
+        if (!tile) continue;
+        const resolution: Resolution = { tile };
+        const resolutionComputeds: ResolutionComputeds = { letterTiles };
+        const applyTask: ApplyTask = {
+          type: GenerationTask.ApplyResolution,
+          traversal,
+          candidate,
+          resolution,
+          resolutionComputeds,
+        };
+        const evaluateTask: EvaluateTask = {
+          type: GenerationTask.EvaluateTraversal,
+          traversal: { ...traversal, position, node: nodeWithPossibleNextLetter },
+        };
+        const reverseTask: ReverseTask = {
+          type: GenerationTask.ReverseResolution,
+          traversal,
+          resolution,
+          resolutionComputeds,
+        };
+        newTasks.push(applyTask, evaluateTask, reverseTask);
       }
-      if (branchTasks.length === 0) return PlacementGenerator.TaskCommandResolver.stop();
-      return PlacementGenerator.TaskCommandResolver.continue(branchTasks);
+      return newTasks.length === 0 ? this.emitStop() : this.emitContinue(newTasks);
     }
 
-    private applyChanges(task: ApplyChangesTask): TaskCommand {
-      const { candidate, resolution } = task;
-      const letterTiles = this.tiles.get(resolution.letter)!;
-      const tileIndex = letterTiles.indexOf(resolution.tile);
-      if (tileIndex !== -1) letterTiles.splice(tileIndex, 1);
-      this.placement.push({ cell: candidate.cell, tile: resolution.tile });
-      return PlacementGenerator.TaskCommandResolver.continue([]);
+    private applyResolution(task: ApplyTask): ContinueTaskCommand {
+      const { cell } = task.candidate;
+      const { tile } = task.resolution;
+      const { letterTiles } = task.resolutionComputeds;
+      letterTiles.splice(letterTiles.indexOf(tile), 1);
+      this.placement.push({ cell, tile });
+      return this.emitContinue();
     }
 
-    private reverseChanges(task: ReverseChangesTask): TaskCommand {
-      const { letter, tile } = task.resolution;
-      this.tiles.get(letter)!.push(tile);
+    private reverseResolution(task: ReverseTask): ContinueTaskCommand {
+      const { tile } = task.resolution;
+      const { letterTiles } = task.resolutionComputeds;
+      letterTiles.push(tile);
       this.placement.pop();
-      return PlacementGenerator.TaskCommandResolver.continue([]);
+      return this.emitContinue();
     }
   };
 }

@@ -83,7 +83,7 @@ export default class InitialPlacementValidator {
     const primaryAxis = axisCalculator.execute(state.sequences.cell);
     const placementBuilder = new PlacementBuilder(layout, turnkeeper);
     const primaryPlacement = placementBuilder.execute({
-      coords: { axis: primaryAxis, cellIndex: state.sequences.cell[0] },
+      coords: { axis: primaryAxis, cell: state.sequences.cell[0] },
       tileSequence,
     });
     const isPlacementUsable = (placement: Placement): boolean => placement.length > 1;
@@ -91,7 +91,7 @@ export default class InitialPlacementValidator {
     const placements: Array<Placement> = [primaryPlacement];
     for (const cell of state.sequences.cell) {
       const placement = placementBuilder.execute({
-        coords: { axis: layout.getOppositeAxis(primaryAxis), cellIndex: cell },
+        coords: { axis: layout.getOppositeAxis(primaryAxis), cell },
         tileSequence,
       });
       if (isPlacementUsable(placement)) placements.push(placement);
