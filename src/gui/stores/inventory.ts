@@ -41,7 +41,7 @@ export const useStoreInventory = defineStore('inventory', () => {
 
   function handleClickRackCell(idx: number): void {
     if (!selectedTile.value) return;
-    if (selectedTileIsConnected.value) storeGame.disconnectTileFromCell(selectedTile.value);
+    if (selectedTileIsConnected.value) storeGame.removeTile(selectedTile.value);
     switchTiles(selectedTile.value, inventoryList.value[idx]);
     deselectTile();
   }
@@ -54,8 +54,8 @@ export const useStoreInventory = defineStore('inventory', () => {
     if (!isTileSelected(tile)) {
       const selectedTileConnectedCell = storeGame.findCellConnectedToTile(selectedTile.value);
       if (selectedTileConnectedCell) {
-        storeGame.disconnectTileFromCell(selectedTile.value);
-        storeGame.connectTileToCell({ tile, cell: selectedTileConnectedCell });
+        storeGame.removeTile(selectedTile.value);
+        storeGame.placeTile({ tile, cell: selectedTileConnectedCell });
       }
       switchTiles(selectedTile.value, tile);
     }
@@ -67,10 +67,10 @@ export const useStoreInventory = defineStore('inventory', () => {
     const tile = storeGame.findTileConnectedToCell(cell);
     if (tile) return;
     if (selectedTileIsConnected.value) {
-      storeGame.disconnectTileFromCell(selectedTile.value);
-      storeGame.connectTileToCell({ tile: selectedTile.value, cell });
+      storeGame.removeTile(selectedTile.value);
+      storeGame.placeTile({ tile: selectedTile.value, cell });
     } else {
-      storeGame.connectTileToCell({ cell, tile: selectedTile.value });
+      storeGame.placeTile({ cell, tile: selectedTile.value });
     }
     deselectTile();
   }
@@ -86,13 +86,13 @@ export const useStoreInventory = defineStore('inventory', () => {
     if (connectedCell === undefined) return;
     const selectedTileConnectedCell = storeGame.findCellConnectedToTile(selectedTile.value);
     if (selectedTileConnectedCell) {
-      storeGame.disconnectTileFromCell(selectedTile.value);
-      storeGame.disconnectTileFromCell(tile);
-      storeGame.connectTileToCell({ tile, cell: selectedTileConnectedCell });
-      storeGame.connectTileToCell({ tile: selectedTile.value, cell: connectedCell });
+      storeGame.removeTile(selectedTile.value);
+      storeGame.removeTile(tile);
+      storeGame.placeTile({ tile, cell: selectedTileConnectedCell });
+      storeGame.placeTile({ tile: selectedTile.value, cell: connectedCell });
     } else {
-      storeGame.disconnectTileFromCell(tile);
-      storeGame.connectTileToCell({ tile: selectedTile.value, cell: connectedCell });
+      storeGame.removeTile(tile);
+      storeGame.placeTile({ tile: selectedTile.value, cell: connectedCell });
       switchTiles(selectedTile.value, tile);
     }
     deselectTile();

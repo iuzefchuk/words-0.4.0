@@ -2,14 +2,13 @@ import { Bonus, Axis } from '@/domain/enums.ts';
 import { BONUS_CELL_INDEXES } from '@/domain/Layout/constants.ts';
 import { CellIndex, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 
-// TODO
 export default class Layout {
   private static readonly cellsPerAxis = 15;
-  private static readonly _cells: ReadonlyArray<CellIndex> = Array.from(
+  private static readonly cellsByIndex: ReadonlyArray<CellIndex> = Array.from(
     { length: Layout.cellsPerAxis ** 2 },
     (_, i) => i,
   );
-  private static readonly bonusCellMap: ReadonlyMap<CellIndex, Bonus> = new Map(
+  private static readonly bonusByCell: ReadonlyMap<CellIndex, Bonus> = new Map(
     Object.values(Bonus).flatMap(bonus => BONUS_CELL_INDEXES[bonus].map(cellIndex => [cellIndex, bonus] as const)),
   );
 
@@ -18,7 +17,7 @@ export default class Layout {
   }
 
   get cells(): ReadonlyArray<CellIndex> {
-    return Layout._cells;
+    return Layout.cellsByIndex;
   }
 
   isCellPositionOnLeftEdge(cellPosition: number): boolean {
@@ -36,7 +35,7 @@ export default class Layout {
 
   getBonusForCell(cellIndex: CellIndex): Bonus | null {
     this.validateCellIndex(cellIndex);
-    return Layout.bonusCellMap.get(cellIndex) ?? null;
+    return Layout.bonusByCell.get(cellIndex) ?? null;
   }
 
   getLetterMultiplier(cellIndex: CellIndex): number {
@@ -55,7 +54,7 @@ export default class Layout {
     return 1;
   }
 
-  findAdjacentCells(cellIndex: CellIndex): ReadonlyArray<CellIndex> {
+  getAdjacentCells(cellIndex: CellIndex): ReadonlyArray<CellIndex> {
     this.validateCellIndex(cellIndex);
     const result: Array<CellIndex> = [];
     const row = this.getRowIndex(cellIndex);
@@ -95,6 +94,6 @@ export default class Layout {
   }
 
   private validateCellIndex(cellIndex: CellIndex): void {
-    if (cellIndex < 0 || cellIndex >= Layout._cells.length) throw new Error('Cell index out of bounds');
+    if (cellIndex < 0 || cellIndex >= Layout.cellsByIndex.length) throw new Error('Cell index out of bounds');
   }
 }

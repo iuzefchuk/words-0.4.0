@@ -11,7 +11,7 @@ export default class AnchorCellFinder {
         const isConnected = turnkeeper.isCellConnected(cell);
         if (isConnected) return false;
         const hasUsedAdjacentCells = layout
-          .findAdjacentCells(cell)
+          .getAdjacentCells(cell)
           .some((adjacentCell: CellIndex) => turnkeeper.isCellConnected(adjacentCell));
         return isCenter || hasUsedAdjacentCells;
       }),

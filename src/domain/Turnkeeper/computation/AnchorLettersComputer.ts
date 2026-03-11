@@ -25,7 +25,7 @@ export default class AnchorLettersComputer {
     return this.context.turnkeeper;
   }
 
-  findFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
+  getFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const { axis, cell } = coords;
     const axisCache = this.cache.get(axis);
     if (!axisCache) throw new Error('Axis cache has to exist');

@@ -55,8 +55,8 @@ export default class GameDomain {
     return this.turnkeeper.currentTurnScore;
   }
 
-  get currentTurnIsSavable() {
-    return this.turnkeeper.currentTurnIsSavable;
+  get currentTurnIsValid() {
+    return this.turnkeeper.currentTurnIsValid;
   }
 
   get currentPlayerIsUser(): boolean {
@@ -110,48 +110,46 @@ export default class GameDomain {
   }
 
   shuffleUserTiles(): void {
-    this.checkMutability();
+    this.ensureMutability();
     this.inventory.shuffleTilesFor(Player.User);
   }
 
-  connectTileToCell({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
-    this.checkMutability();
-    this.turnkeeper.connectTileToCell({ cell, tile });
+  placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
+    this.ensureMutability();
+    this.turnkeeper.placeTile({ cell, tile });
   }
 
-  disconnectTileFromCell(tile: TileId): void {
-    this.checkMutability();
-    this.turnkeeper.disconnectTileFromCell({ tile });
+  removeTile(tile: TileId): void {
+    this.ensureMutability();
+    this.turnkeeper.removeTile({ tile });
   }
 
   validateTurn(): void {
-    this.checkMutability();
+    this.ensureMutability();
     this.turnkeeper.validateCurrentTurn(this.context);
   }
 
   resetTurn(): void {
-    this.checkMutability();
+    this.ensureMutability();
     this.turnkeeper.resetCurrentTurn();
   }
 
   saveTurn(): void {
-    this.checkMutability();
+    this.ensureMutability();
     const { currentPlayer, currentTurnTileSequence } = this.turnkeeper;
     if (!currentTurnTileSequence) throw new Error('Current turn tile sequence does not exist');
     this.turnkeeper.saveCurrentTurn();
-    this.removeTiles({ player: currentPlayer, tiles: currentTurnTileSequence });
+    this.discardTiles({ player: currentPlayer, tiles: currentTurnTileSequence });
     this.inventory.replenishTilesFor(currentPlayer);
-    this.turnkeeper.startTurnForNextPlayer();
   }
 
   passTurn(): void {
-    this.checkMutability();
+    this.ensureMutability();
     this.turnkeeper.passCurrentTurn();
-    this.turnkeeper.startTurnForNextPlayer();
   }
 
   resignGame(): void {
-    this.checkMutability();
+    this.ensureMutability();
     this.turnkeeper.resignCurrentTurn();
     this.finishGame();
   }
@@ -165,11 +163,11 @@ export default class GameDomain {
     this.isMutable = false;
   }
 
-  private removeTiles({ player, tiles }: { player: Player; tiles: ReadonlyArray<TileId> }): void {
-    tiles.forEach((tile: TileId) => this.inventory.removeTile({ player, tileId: tile }));
+  private discardTiles({ player, tiles }: { player: Player; tiles: ReadonlyArray<TileId> }): void {
+    tiles.forEach((tile: TileId) => this.inventory.discardTile({ player, tileId: tile }));
   }
 
-  private checkMutability(): void {
+  private ensureMutability(): void {
     if (!this.isMutable) throw new Error('Game is immutable');
   }
 }

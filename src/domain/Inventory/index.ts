@@ -3,33 +3,32 @@ import { Player, Letter } from '@/domain/enums.ts';
 import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/Inventory/constants.ts';
 import { TileId, TileCollection } from '@/domain/Inventory/types/shared.ts';
 
-// TODO
 export default class Inventory {
-  private static readonly tilesPerRack = 7;
+  private static readonly rackCapacity = 7;
 
   private constructor(
-    private unusedBag: Array<Tile>,
+    private drawPool: Array<Tile>,
     private racks: Map<Player, Rack>,
-    private discardedBag: Array<Tile>,
-    private readonly tileIndex: Map<TileId, Tile>,
+    private discardPool: Array<Tile>,
+    private readonly tileById: Map<TileId, Tile>,
   ) {
     this.initializeRacks();
   }
 
   static create({ players }: { players: Array<Player> }): Inventory {
-    const unusedBag = shuffleArrayWithFisherYates(
-      Object.values(Letter).flatMap(type =>
-        Array.from({ length: LETTER_DISTRIBUTION[type] }, () => Tile.create({ letter: type })),
+    const drawPool = shuffleArrayWithFisherYates(
+      Object.values(Letter).flatMap(letter =>
+        Array.from({ length: LETTER_DISTRIBUTION[letter] }, () => Tile.create({ letter })),
       ),
     );
-    const racks = new Map(players.map(player => [player, Rack.create({ maxLimit: this.tilesPerRack })]));
-    const discardedBag: Array<Tile> = [];
-    const tileIndex = new Map<TileId, Tile>(unusedBag.map(tile => [tile.id, tile]));
-    return new Inventory(unusedBag, racks, discardedBag, tileIndex);
+    const racks = new Map(players.map(player => [player, Rack.create({ maxLimit: this.rackCapacity })]));
+    const discardPool: Array<Tile> = [];
+    const tileById = new Map<TileId, Tile>(drawPool.map(tile => [tile.id, tile]));
+    return new Inventory(drawPool, racks, discardPool, tileById);
   }
 
   get unusedTilesCount(): number {
-    return this.unusedBag.length;
+    return this.drawPool.length;
   }
 
   getTilesFor(player: Player): ReadonlyArray<TileId> {
@@ -41,15 +40,15 @@ export default class Inventory {
   }
 
   areTilesEqual(firstTile: TileId, secondTile: TileId): boolean {
-    return this.findTileById(firstTile).equals(this.findTileById(secondTile));
+    return this.getTileById(firstTile).equals(this.getTileById(secondTile));
   }
 
   getTilePoints(tileId: TileId): number {
-    return this.findTileById(tileId).points;
+    return this.getTileById(tileId).points;
   }
 
   getTileLetter(tileId: TileId): Letter {
-    return this.findTileById(tileId).letter;
+    return this.getTileById(tileId).letter;
   }
 
   replenishTilesFor(player: Player): void {
@@ -57,9 +56,9 @@ export default class Inventory {
     this.replenishRack(rack);
   }
 
-  removeTile({ player, tileId }: { player: Player; tileId: TileId }): void {
-    const removedTile = this.getRackFor(player).removeTile(tileId);
-    this.discardedBag.push(removedTile);
+  discardTile({ player, tileId }: { player: Player; tileId: TileId }): void {
+    const removedTile = this.getRackFor(player).discardTile(tileId);
+    this.discardPool.push(removedTile);
   }
 
   shuffleTilesFor(player: Player): void {
@@ -77,16 +76,16 @@ export default class Inventory {
   }
 
   private replenishRack(rack: Rack): void {
-    const replenishAmount = Math.min(Inventory.tilesPerRack - rack.tileCount, this.unusedTilesCount);
-    for (let i = 0; i < replenishAmount; i++) {
-      const tile = this.unusedBag.pop();
+    const drawCount = Math.min(Inventory.rackCapacity - rack.tileCount, this.unusedTilesCount);
+    for (let i = 0; i < drawCount; i++) {
+      const tile = this.drawPool.pop();
       if (!tile) throw new Error('No tiles left in inventory');
       rack.addTile(tile);
     }
   }
 
-  private findTileById(tileId: TileId): Tile {
-    const tile = this.tileIndex.get(tileId);
+  private getTileById(tileId: TileId): Tile {
+    const tile = this.tileById.get(tileId);
     if (!tile) throw new Error(`Can't find tile ${tileId}`);
     return tile;
   }
@@ -106,11 +105,11 @@ class Rack {
   get tileCount(): number {
     return this.tiles.length;
   }
-  
+
   get tileIds(): ReadonlyArray<TileId> {
     return this.tiles.map(tile => tile.id);
   }
-  
+
   get tileCollection(): TileCollection {
     const collection: TileCollection = new Map();
     for (const tile of this.tiles) {
@@ -129,25 +128,25 @@ class Rack {
   }
 
   addTile(tile: Tile): void {
-    this.validateTileAbsence(tile);
-    this.validateRackLimit({ newTilesLength: this.tiles.length + 1 });
+    this.ensureTileAbsence(tile);
+    this.validateMaxLimit({ newTileCount: this.tiles.length + 1 });
     this.tiles.push(tile);
   }
 
-  removeTile(tileId: TileId): Tile {
+  discardTile(tileId: TileId): Tile {
     const index = this.tiles.findIndex(tile => tile.id === tileId);
     if (index === -1) throw new Error('Tile absent');
     const [removedTile] = this.tiles.splice(index, 1);
     return removedTile;
   }
 
-  private validateRackLimit({ newTilesLength }: { newTilesLength: number }): void {
-    if (newTilesLength > this.maxLimit) throw new Error('Rack limit exceeded');
+  private validateMaxLimit({ newTileCount }: { newTileCount: number }): void {
+    if (newTileCount > this.maxLimit) throw new Error('Rack limit exceeded');
   }
 
-  private validateTileAbsence(validatedTile: Tile): void {
-    if (this.tiles.some(tile => tile.equals(validatedTile))) {
-      throw new Error(`Tile ${validatedTile} is already present`);
+  private ensureTileAbsence(tile: Tile): void {
+    if (this.tiles.some(tile => tile.equals(tile))) {
+      throw new Error(`Tile ${tile} is already present`);
     }
   }
 }

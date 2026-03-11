@@ -88,13 +88,13 @@ export default class Game {
     this.gameDomain.shuffleUserTiles();
   }
 
-  connectTileToCell({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
-    this.gameDomain.connectTileToCell({ cell, tile });
+  placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
+    this.gameDomain.placeTile({ cell, tile });
     this.gameDomain.validateTurn();
   }
 
-  disconnectTileFromCell(tile: GameTile): void {
-    this.gameDomain.disconnectTileFromCell(tile);
+  removeTile(tile: GameTile): void {
+    this.gameDomain.removeTile(tile);
     this.gameDomain.validateTurn();
   }
 
@@ -122,7 +122,7 @@ export default class Game {
       if (generatedPlacement === null) {
         this.gameDomain.passTurn();
       } else {
-        for (const link of generatedPlacement) this.gameDomain.connectTileToCell({ cell: link.cell, tile: link.tile });
+        for (const link of generatedPlacement) this.gameDomain.placeTile({ cell: link.cell, tile: link.tile });
         this.gameDomain.validateTurn();
         this.gameDomain.saveTurn();
       }

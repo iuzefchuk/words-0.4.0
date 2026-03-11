@@ -224,7 +224,7 @@ export default class PlacementGenerator {
     ): StopTaskCommand | ContinueTaskCommand {
       const { position, cell } = candidate;
       const generator = this.dictionary.createNextNodeGenerator({ startNode: traversal.node });
-      const anchorLetters = this.lettersComputer.findFor({ axis: this.computeds.oppositeAxis, cell });
+      const anchorLetters = this.lettersComputer.getFor({ axis: this.computeds.oppositeAxis, cell });
       const newTasks: Array<Task> = [];
       for (const [possibleNextLetter, nodeWithPossibleNextLetter] of generator) {
         const letterTiles = this.tiles.get(possibleNextLetter);

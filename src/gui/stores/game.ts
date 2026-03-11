@@ -32,13 +32,13 @@ export const useStoreGame = defineStore('game', () => {
     triggerRef(reactiveGameState);
   }
 
-  function connectTileToCell({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
-    game.connectTileToCell({ cell, tile });
+  function placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
+    game.placeTile({ cell, tile });
     triggerRef(reactiveGameState);
   }
 
-  function disconnectTileFromCell(tile: GameTile): void {
-    game.disconnectTileFromCell(tile);
+  function removeTile(tile: GameTile): void {
+    game.removeTile(tile);
     triggerRef(reactiveGameState);
   }
 
@@ -82,8 +82,8 @@ export const useStoreGame = defineStore('game', () => {
     isCellLastConnectionInTurn,
     wasTileUsedInLastTurn,
     shuffleUserTiles,
-    connectTileToCell,
-    disconnectTileFromCell,
+    placeTile,
+    removeTile,
     resetTurn,
     saveTurn,
     passTurn,

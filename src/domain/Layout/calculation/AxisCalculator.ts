@@ -11,7 +11,7 @@ export default class AxisCalculator {
     let normalizedSequence = cellSequence;
     if (cellSequence.length === 1) {
       const [firstCell] = cellSequence;
-      const connectedAdjacents = layout.findAdjacentCells(firstCell).filter(cell => turnkeeper.isCellConnected(cell));
+      const connectedAdjacents = layout.getAdjacentCells(firstCell).filter(cell => turnkeeper.isCellConnected(cell));
       normalizedSequence = connectedAdjacents.length === 0 ? [] : [connectedAdjacents[0], firstCell];
     }
     if (normalizedSequence.length === 0) return this.defaultAxis;
