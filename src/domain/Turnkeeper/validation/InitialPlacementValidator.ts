@@ -1,3 +1,4 @@
+import { GameContext } from '@/domain/types.ts';
 import AxisCalculator from '@/domain/Layout/calculation/AxisCalculator.ts';
 import PlacementBuilder from '@/domain/Turnkeeper/construction/PlacementBuilder.ts';
 import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.ts';
@@ -16,12 +17,13 @@ import {
   PlacementsOutput,
   WordsOutput,
   ScoreOutput,
-} from '@/domain/Turnkeeper/types/local/validation.ts';
+} from '@/domain/Turnkeeper/types/local/initialPlacementValidation.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 
 export default class InitialPlacementValidator {
-  static execute(args: Arguments): PipelineOutput {
-    return this.Pipeline.start(args)
+  static execute(context: GameContext, args: Arguments): PipelineOutput {
+    return this.Pipeline.start(context, args)
       .continue(state => this.computeAndValidateSequences(state))
       .continue(state => this.computeAndValidatePlacements(state))
       .continue(state => this.computeAndValidateWords(state))
@@ -32,8 +34,8 @@ export default class InitialPlacementValidator {
   private static Pipeline = class Pipeline<State extends PipelineInput> {
     private constructor(private throughput: PipelineThroughput<State>) {}
 
-    static start(args: Arguments): Pipeline<PipelineInput> {
-      return new Pipeline({ status: ValidationStatus.Pending, state: args });
+    static start(context: GameContext, args: Arguments): Pipeline<PipelineInput> {
+      return new Pipeline({ status: ValidationStatus.Pending, state: { context, ...args } });
     }
 
     static pass<State extends PipelineInput, NewValue extends ComputedValue>(
@@ -62,12 +64,11 @@ export default class InitialPlacementValidator {
   };
 
   private static computeAndValidateSequences(state: PipelineInput): PipelineThroughput<PipelineState<SequencesOutput>> {
-    const { layout, turnkeeper } = state.context;
     const tiles = state.initialPlacement.map(placement => placement.tile);
     if (tiles.length === 0) return this.Pipeline.fail(ValidationErrors.InvalidTilePlacement);
     const cells = state.initialPlacement.map(placement => placement.cell);
     if (cells.length === 0) return this.Pipeline.fail(ValidationErrors.InvalidCellPlacement);
-    const anchorCells = new AnchorCellFinder(layout, turnkeeper).execute();
+    const anchorCells = AnchorCellFinder.execute(state.context);
     const someCellsAreAnchor = cells.some(cell => anchorCells.has(cell));
     return someCellsAreAnchor
       ? this.Pipeline.pass(state, { sequences: { cell: cells, tile: tiles } })
@@ -77,23 +78,17 @@ export default class InitialPlacementValidator {
   private static computeAndValidatePlacements(
     state: PipelineState<SequencesOutput>,
   ): PipelineThroughput<PipelineState<PlacementsOutput>> {
-    const { layout, turnkeeper } = state.context;
+    const { layout } = state.context;
     const tileSequence = state.sequences.tile;
-    const axisCalculator = new AxisCalculator(layout, turnkeeper);
-    const primaryAxis = axisCalculator.execute(state.sequences.cell);
-    const placementBuilder = new PlacementBuilder(layout, turnkeeper);
-    const primaryPlacement = placementBuilder.execute({
-      coords: { axis: primaryAxis, cell: state.sequences.cell[0] },
-      tileSequence,
-    });
+    const primaryAxis = AxisCalculator.execute(state.context, { cellSequence: state.sequences.cell });
+    const coords = { axis: primaryAxis, cell: state.sequences.cell[0] };
+    const primaryPlacement = PlacementBuilder.execute(state.context, { coords, tileSequence });
     const isPlacementUsable = (placement: Placement): boolean => placement.length > 1;
     if (!isPlacementUsable(primaryPlacement)) return this.Pipeline.fail(ValidationErrors.InvalidTilePlacement);
     const placements: Array<Placement> = [primaryPlacement];
     for (const cell of state.sequences.cell) {
-      const placement = placementBuilder.execute({
-        coords: { axis: layout.getOppositeAxis(primaryAxis), cell },
-        tileSequence,
-      });
+      const coords: AnchorCoordinates = { axis: layout.getOppositeAxis(primaryAxis), cell };
+      const placement = PlacementBuilder.execute(state.context, { coords, tileSequence });
       if (isPlacementUsable(placement)) placements.push(placement);
     }
     return this.Pipeline.pass(state, { placements });
@@ -110,7 +105,7 @@ export default class InitialPlacementValidator {
       for (let j = 0; j < placement.length; j++) word += inventory.getTileLetter(placement[j].tile);
       words[i] = word;
     }
-    return dictionary.hasWords(words)
+    return dictionary.containsWords(words)
       ? this.Pipeline.pass(state, { words })
       : this.Pipeline.fail(ValidationErrors.WordNotInDictionary);
   }

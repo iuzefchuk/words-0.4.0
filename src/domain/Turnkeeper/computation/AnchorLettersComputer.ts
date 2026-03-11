@@ -1,11 +1,15 @@
 import { GameContext } from '@/domain/types.ts';
-import { Letter } from '@/domain/enums.ts';
+import { Axis, Letter } from '@/domain/enums.ts';
 import { Dictionary } from '@/domain/Dictionary/types/shared.ts';
 import { Inventory } from '@/domain/Inventory/types/shared.ts';
 import { AnchorCoordinates, CellIndex, Layout } from '@/domain/Layout/types/shared.ts';
 import { Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class AnchorLettersComputer {
+  private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
+    Object.values(Axis).map(axis => [axis, new Map()]),
+  );
+
   constructor(private readonly context: GameContext) {}
 
   private get layout(): Layout {
@@ -21,13 +25,25 @@ export default class AnchorLettersComputer {
     return this.context.turnkeeper;
   }
 
-  execute(coords: AnchorCoordinates): ReadonlySet<Letter> {
+  findFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
+    const { axis, cell } = coords;
+    const axisCache = this.cache.get(axis);
+    if (!axisCache) throw new Error('Axis cache has to exist');
+    const cachedResult = axisCache.get(cell);
+    if (cachedResult) return cachedResult;
+    const newResult = this.computeFor(coords);
+    axisCache.set(cell, newResult);
+    return newResult;
+  }
+
+  private computeFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const axisCells = this.layout.getAxisCells(coords);
-    const cellAxisPosition = axisCells.indexOf(coords.cell);
-    const prefix = this.getPrefix(axisCells, cellAxisPosition);
-    const suffix = this.getSuffix(axisCells, cellAxisPosition);
+    const position = axisCells.indexOf(coords.cell);
+    if (position === -1) throw new Error('Cell not found in axis cells');
+    const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
+    const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
     if (!prefix && !suffix) return this.dictionary.allLetters;
-    const prefixNode = prefix ? this.dictionary.getNode({ word: prefix }) : this.dictionary.firstNode;
+    const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.firstNode;
     if (!prefixNode) return new Set();
     const anchorLetters = new Set<Letter>();
     const generator = this.dictionary.createNextNodeGenerator({ startNode: prefixNode });
@@ -36,29 +52,24 @@ export default class AnchorLettersComputer {
         anchorLetters.add(possibleNextLetter);
         continue;
       }
-      const suffixNode = this.dictionary.getNode({ word: suffix, startNode: nodeWithPossibleNextLetter });
-      if (suffixNode && this.dictionary.isNodePlayable(suffixNode)) anchorLetters.add(possibleNextLetter);
+      const suffixNode = this.dictionary.getNode(suffix, nodeWithPossibleNextLetter);
+      if (suffixNode && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
     }
     return anchorLetters;
   }
 
-  private getPrefix(axisCells: ReadonlyArray<CellIndex>, cellAxisPosition: number): string {
-    let prefix = '';
-    for (let i = cellAxisPosition - 1; i >= 0; i--) {
+  private collectAdjacentTileLetters(
+    axisCells: ReadonlyArray<CellIndex>,
+    startPosition: number,
+    direction: -1 | 1,
+  ): string {
+    let result = '';
+    for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
       const tile = this.turnkeeper.findTileByCell(axisCells[i]);
       if (!tile) break;
-      prefix = this.inventory.getTileLetter(tile) + prefix;
+      const letter = this.inventory.getTileLetter(tile);
+      result = direction === -1 ? letter + result : result + letter;
     }
-    return prefix;
-  }
-
-  private getSuffix(axisCells: ReadonlyArray<CellIndex>, cellAxisPosition: number): string {
-    let suffix = '';
-    for (let i = cellAxisPosition + 1; i < axisCells.length; i++) {
-      const tile = this.turnkeeper.findTileByCell(axisCells[i]);
-      if (!tile) break;
-      suffix += this.inventory.getTileLetter(tile);
-    }
-    return suffix;
+    return result;
   }
 }

@@ -1,15 +1,15 @@
 import { Axis } from '@/domain/enums.ts';
+import { GameContext } from '@/domain/types.ts';
 import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/Turnkeeper/enums.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import { NodeId } from '@/domain/Dictionary/types/shared.ts';
 import { TileCollection, TileId } from '@/domain/Inventory/types/shared.ts';
 import { AnchorCoordinates, CellIndex } from '@/domain/Layout/types/shared.ts';
-import { GameContext } from '@/domain/types.ts';
-import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
+import AnchorLettersComputer from '@/domain/Turnkeeper/computation/AnchorLettersComputer.ts';
 
 export type Arguments = {
   context: GameContext;
-  lettersComputer: CachedAnchorLettersComputer;
+  lettersComputer: AnchorLettersComputer;
   playerTileCollection: TileCollection;
   coords: AnchorCoordinates;
 };

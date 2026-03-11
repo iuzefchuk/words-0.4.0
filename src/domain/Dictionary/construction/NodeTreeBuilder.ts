@@ -1,32 +1,27 @@
 import { Letter } from '@/domain/enums.ts';
-import { FrozenNode } from '@/domain/Dictionary/types/local.ts';
+import { Transition, Node, FrozenNode, NodeGenerator } from '@/domain/Dictionary/types/local.ts';
 import { NodeId } from '@/domain/Dictionary/types/shared.ts';
-
-type Node = { id: NodeId; isFinal: boolean; children: Map<Letter, Node> };
-type NodeGenerator = Generator<Node, Node>;
-type Transition = { parentNode: Node; childLetter: Letter; childNode: Node };
 
 export default class NodeTreeBuilder {
   static execute(sortedWords: ReadonlyArray<string>): FrozenNode {
-    const generator = this.nodeGenerator();
+    const generator = this.createNodeGenerator();
     const rootNode = generator.next().value;
     const minimizer = new this.TransitionToNodeMinimizer();
     let previousWord = '';
     for (const word of sortedWords) {
-      const differenceStartIndex = this.getWordsCommonPrefixLength(word, previousWord);
-      minimizer.minimizeQueue({ downTo: differenceStartIndex });
-      const initialParentNode =
-        differenceStartIndex === 0 ? rootNode : minimizer.getNodeByQueueIndex(differenceStartIndex);
-      for (const transition of this.populateNodeFromSubstring(
-        initialParentNode,
-        word.substring(differenceStartIndex),
+      const commonPrefixLength = this.getWordsCommonPrefixLength(word, previousWord);
+      minimizer.minimizeAndTruncateQueue({ downTo: commonPrefixLength });
+      const branchPoint = commonPrefixLength === 0 ? rootNode : minimizer.getNodeByQueueIndex(commonPrefixLength);
+      for (const transition of this.generateTransitionsFromSubstring(
+        branchPoint,
+        word.substring(commonPrefixLength),
         generator,
       )) {
         minimizer.addToQueue(transition);
       }
       previousWord = word;
     }
-    minimizer.minimizeQueue({ downTo: 0 });
+    minimizer.minimizeAndTruncateQueue({ downTo: 0 });
     return this.freezeNode(rootNode);
   }
 
@@ -36,12 +31,12 @@ export default class NodeTreeBuilder {
     return Object.freeze(node) as FrozenNode;
   }
 
-  private static *nodeGenerator(): NodeGenerator {
+  private static *createNodeGenerator(): NodeGenerator {
     let id: NodeId = 0;
     while (true) yield { id: id++, isFinal: false, children: new Map() };
   }
 
-  private static *populateNodeFromSubstring(
+  private static *generateTransitionsFromSubstring(
     node: Node,
     wordSubstring: string,
     generator: NodeGenerator,
@@ -76,29 +71,29 @@ export default class NodeTreeBuilder {
       return node;
     }
 
-    addToQueue(node: Transition): void {
-      this.transitionsQueue.push(node);
+    addToQueue(transition: Transition): void {
+      this.transitionsQueue.push(transition);
     }
 
-    minimizeQueue({ downTo }: { downTo: number }): void {
+    minimizeAndTruncateQueue({ downTo }: { downTo: number }): void {
       for (let i = this.transitionsQueue.length - 1; i >= downTo; i--) {
         this.minimizeTransition(this.transitionsQueue[i]);
         this.transitionsQueue.pop();
       }
     }
 
-    private minimizeTransition(node: Transition): void {
-      const { childNode, childLetter, parentNode } = node;
-      const childKey = this.createUniqueKeyForNode(childNode);
-      const cachedChildNode = this.minimizedNodeCache.get(childKey);
+    private minimizeTransition(transition: Transition): void {
+      const { childNode, childLetter, parentNode } = transition;
+      const childSignature = this.computeNodeSignature(childNode);
+      const cachedChildNode = this.minimizedNodeCache.get(childSignature);
       if (cachedChildNode) {
         parentNode.children.set(childLetter, cachedChildNode);
       } else {
-        this.minimizedNodeCache.set(childKey, childNode);
+        this.minimizedNodeCache.set(childSignature, childNode);
       }
     }
 
-    private createUniqueKeyForNode(node: Node): string {
+    private computeNodeSignature(node: Node): string {
       let key = node.isFinal ? '1' : '0';
       for (const [letter, childNode] of node.children) key += letter + childNode.id;
       return key;

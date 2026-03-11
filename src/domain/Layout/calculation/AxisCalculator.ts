@@ -1,29 +1,23 @@
 import { Axis } from '@/domain/enums.ts';
-import { Layout, CellIndex } from '@/domain/Layout/types/shared.ts';
-import { Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
+import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { GameContext } from '@/domain/types.ts';
 
 export default class AxisCalculator {
   private static readonly defaultAxis = Axis.X;
 
-  constructor(
-    private readonly layout: Layout,
-    private readonly turnkeeper: Turnkeeper,
-  ) {}
-
-  execute(cellSequence: ReadonlyArray<CellIndex>): Axis {
-    const normalizedSequence =
-      cellSequence.length === 1 ? this.createCellSequenceFromAdjacents(cellSequence[0]) : cellSequence;
-    if (normalizedSequence.length === 0) return AxisCalculator.defaultAxis;
+  static execute(context: GameContext, args: { cellSequence: ReadonlyArray<CellIndex> }): Axis {
+    const { layout, turnkeeper } = context;
+    const { cellSequence } = args;
+    let normalizedSequence = cellSequence;
+    if (cellSequence.length === 1) {
+      const [firstCell] = cellSequence;
+      const connectedAdjacents = layout.findAdjacentCells(firstCell).filter(cell => turnkeeper.isCellConnected(cell));
+      normalizedSequence = connectedAdjacents.length === 0 ? [] : [connectedAdjacents[0], firstCell];
+    }
+    if (normalizedSequence.length === 0) return this.defaultAxis;
     const [firstIndex] = normalizedSequence;
-    const firstColumn = this.layout.getColumnIndex(firstIndex);
-    const isVertical = normalizedSequence.every(cell => this.layout.getColumnIndex(cell) === firstColumn);
+    const firstColumn = layout.getColumnIndex(firstIndex);
+    const isVertical = normalizedSequence.every(cell => layout.getColumnIndex(cell) === firstColumn);
     return isVertical ? Axis.Y : Axis.X;
-  }
-
-  private createCellSequenceFromAdjacents(cell: CellIndex): ReadonlyArray<CellIndex> {
-    const connectedAdjacents = this.layout
-      .findAdjacentCells(cell)
-      .filter(cell => this.turnkeeper.isCellConnected(cell));
-    return connectedAdjacents.length === 0 ? [] : [connectedAdjacents[0], cell];
   }
 }

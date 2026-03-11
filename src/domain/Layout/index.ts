@@ -2,6 +2,7 @@ import { Bonus, Axis } from '@/domain/enums.ts';
 import { BONUS_CELL_INDEXES } from '@/domain/Layout/constants.ts';
 import { CellIndex, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 
+// TODO
 export default class Layout {
   private static readonly cellsPerAxis = 15;
   private static readonly _cells: ReadonlyArray<CellIndex> = Array.from(

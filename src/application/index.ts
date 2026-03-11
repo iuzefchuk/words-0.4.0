@@ -5,10 +5,6 @@ import { Bonus, Letter, Player } from '@/domain/enums.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
 
-export const GAME_BONUSES = Bonus;
-
-export const GAME_LETTERS = Letter;
-
 export type GameCell = CellIndex;
 
 export type GameTile = TileId;
@@ -25,6 +21,9 @@ export type GameState = {
 };
 
 export default class Game {
+  static bonuses = Bonus;
+  static letters = Letter;
+
   private constructor(private gameDomain: GameDomain) {}
 
   static start(): Game {

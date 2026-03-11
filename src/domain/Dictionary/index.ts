@@ -6,68 +6,63 @@ import NodeTreeBuilder from '@/domain/Dictionary/construction/NodeTreeBuilder.ts
 
 export default class Dictionary {
   private constructor(
-    private readonly nodeTree: FrozenNode,
+    private readonly rootNode: FrozenNode,
     private readonly nodeIndex: ReadonlyMap<NodeId, FrozenNode>,
     public readonly allLetters: ReadonlySet<Letter>,
   ) {}
 
-  private get rootNode(): FrozenNode {
-    return this.nodeTree;
+  static create(): Dictionary {
+    const rootNode = NodeTreeBuilder.execute(SORTED_WORDS);
+    const nodeIndex = new Map<NodeId, FrozenNode>();
+    const allLetters = new Set<Letter>();
+    this.traverseNode(nodeIndex, allLetters, rootNode);
+    return new Dictionary(rootNode, nodeIndex, allLetters);
+  }
+
+  private static traverseNode(nodeIndex: Map<NodeId, FrozenNode>, allLetters: Set<Letter>, node: FrozenNode): void {
+    nodeIndex.set(node.id, node);
+    for (const [childLetter, childNode] of node.children) {
+      allLetters.add(childLetter);
+      this.traverseNode(nodeIndex, allLetters, childNode);
+    }
   }
 
   get firstNode(): NodeId {
     return this.rootNode.id;
   }
 
-  static create(): Dictionary {
-    const nodeTree = NodeTreeBuilder.execute(SORTED_WORDS);
-    const nodeIndex = new Map<NodeId, FrozenNode>();
-    const allLetters = new Set<Letter>();
-    this.traverseNode(nodeIndex, allLetters, nodeTree);
-    return new Dictionary(nodeTree, nodeIndex, allLetters);
+  containsWords(words: ReadonlyArray<string>): boolean {
+    return words.every(word => this.containsWord(word));
   }
 
-  private static traverseNode(nodeIndex: Map<NodeId, FrozenNode>, allLetters: Set<Letter>, node: FrozenNode): void {
-    nodeIndex.set(node.id, node);
-    for (const [childLetter, childNode] of node.children) {
-      if (!allLetters.has(childLetter)) allLetters.add(childLetter);
-      this.traverseNode(nodeIndex, allLetters, childNode);
-    }
-  }
-
-  hasWords(words: ReadonlyArray<string>): boolean {
-    return words.every(word => this.hasWord(word));
-  }
-
-  hasWord(word: string): boolean {
+  containsWord(word: string): boolean {
     const node = this.findNodeForWord(word);
     return node?.isFinal || false;
   }
 
-  getNode({ word, startNode = this.firstNode }: { word: string; startNode?: NodeId }): NodeId | null {
+  getNode(word: string, startNode: NodeId = this.firstNode): NodeId | null {
     const node = this.findNodeForWord(word, startNode);
     return node ? node.id : null;
   }
 
   createNextNodeGenerator({ startNode }: { startNode: NodeId }): NextNodeGenerator {
-    const parentNode = this.findNodeById(startNode);
+    const node = this.findNodeById(startNode);
     function* generator(node: FrozenNode): Generator<[Letter, NodeId]> {
       for (const [possibleNextLetter, nodeForPossibleNextLetter] of node.children) {
         yield [possibleNextLetter, nodeForPossibleNextLetter.id] as [Letter, NodeId];
       }
     }
-    return generator(parentNode);
+    return generator(node);
   }
 
-  isNodePlayable(node: NodeId): boolean {
+  isNodeFinal(node: NodeId): boolean {
     return this.findNodeById(node).isFinal;
   }
 
-  private findNodeForWord(word: string, parentNodeId: NodeId = this.rootNode.id): FrozenNode | null {
-    let currentNode = this.findNodeById(parentNodeId);
+  private findNodeForWord(word: string, startNodeId: NodeId = this.rootNode.id): FrozenNode | null {
+    let currentNode = this.findNodeById(startNodeId);
     for (let i = 0; i < word.length; i++) {
       const letter = word[i] as Letter;
-      if (!currentNode) return null;
       const nextNode = currentNode.children.get(letter);
       if (!nextNode) return null;
       currentNode = nextNode;

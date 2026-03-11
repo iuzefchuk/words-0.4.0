@@ -1,21 +1,20 @@
-import { Player, Axis, Letter } from '@/domain/enums.ts';
+import { Player, Axis } from '@/domain/enums.ts';
 import { GameContext } from '@/domain/types.ts';
-import { AnchorCoordinates, CellIndex } from '@/domain/Layout/types/shared.ts';
-import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
+import { AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import AnchorLettersComputer from '@/domain/Turnkeeper/computation/AnchorLettersComputer.ts';
 import AnchorCellFinder from '@/domain/Turnkeeper/search/AnchorCellFinder.ts';
 import PlacementGenerator from '@/domain/Turnkeeper/generation/PlacementGenerator.ts';
 
 export default class InitialPlacementGenerator {
-  static *execute(context: GameContext, player: Player): Generator<Placement> {
-    const { layout, inventory, turnkeeper } = context;
+  static *execute(context: GameContext, args: { player: Player }): Generator<Placement> {
+    const { inventory } = context;
+    const { player } = args;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
-    const anchorCells = new AnchorCellFinder(layout, turnkeeper).execute();
+    const anchorCells = AnchorCellFinder.execute(context);
     if (anchorCells.size === 0) return;
-    const computer = new AnchorLettersComputer(context);
-    const lettersComputer = new InitialPlacementGenerator.CachedAnchorLettersComputer(computer);
+    const lettersComputer = new AnchorLettersComputer(context);
     for (const cell of anchorCells) {
       for (const axis of Object.values(Axis)) {
         const coords: AnchorCoordinates = { axis, cell };
@@ -24,23 +23,4 @@ export default class InitialPlacementGenerator {
       }
     }
   }
-
-  static CachedAnchorLettersComputer = class implements CachedAnchorLettersComputer {
-    private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
-      Object.values(Axis).map(axis => [axis, new Map()]),
-    );
-
-    constructor(private readonly computer: AnchorLettersComputer) {}
-
-    execute(coords: AnchorCoordinates): ReadonlySet<Letter> {
-      const { axis, cell } = coords;
-      const axisCache = this.cache.get(axis);
-      if (!axisCache) throw new Error('Axis cache has to exist');
-      const cachedResult = axisCache.get(cell);
-      if (cachedResult) return cachedResult;
-      const newResult = this.computer.execute(coords);
-      axisCache.set(cell, newResult);
-      return newResult;
-    }
-  };
 }

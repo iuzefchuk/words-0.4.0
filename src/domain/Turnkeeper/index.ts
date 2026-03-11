@@ -6,8 +6,12 @@ import { TileId } from '@/domain/Inventory/types/shared.ts';
 import { CellIndex } from '@/domain/Layout/types/shared.ts';
 import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 import { Link } from '@/domain/Turnkeeper/types/local/index.ts';
-import { Result as ValidationResult, UnvalidatedResult } from '@/domain/Turnkeeper/types/local/validation.ts';
+import {
+  Result as ValidationResult,
+  UnvalidatedResult,
+} from '@/domain/Turnkeeper/types/local/initialPlacementValidation.ts';
 
+// TODO
 export default class Turnkeeper {
   private static readonly finalMoves = [PlayerMove.Won, PlayerMove.Tied];
 
@@ -27,21 +31,27 @@ export default class Turnkeeper {
   get currentPlayer(): Player {
     return this.history.currentPlayer;
   }
+
   get currentTurnCellSequence(): ReadonlyArray<CellIndex> | undefined {
     return this.history.currentTurnCellSequence;
   }
+
   get currentTurnTileSequence(): ReadonlyArray<TileId> | undefined {
     return this.history.currentTurnTileSequence;
   }
+
   get currentTurnScore(): number | undefined {
     return this.history.currentTurn.score;
   }
+
   get currentTurnIsSavable(): boolean {
     return this.history.currentTurn.isValid;
   }
+
   get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined {
     return this.history.previousTurnTileSequence;
   }
+
   get historyIsEmpty(): boolean {
     return this.history.isEmpty;
   }
@@ -139,24 +149,30 @@ class History {
   get isEmpty(): boolean {
     return this.turns.length === 0;
   }
+
   get currentPlayer(): Player {
     return this.currentTurn.player;
   }
+
   get nextPlayer(): Player {
     if (this.turns.length === 0) return History.startingPlayer;
     return this.currentPlayer === Player.User ? Player.Opponent : Player.User;
   }
+
   get currentTurn(): Turn {
     const last = this.turns.at(-1);
     if (!last) throw new Error('No current turn exists');
     return last;
   }
+
   get currentTurnCellSequence(): ReadonlyArray<CellIndex> | undefined {
     return this.currentTurn.cellSequence;
   }
+
   get currentTurnTileSequence(): ReadonlyArray<TileId> | undefined {
     return this.currentTurn.tileSequence;
   }
+
   get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined {
     return this.turns.at(-2)?.tileSequence;
   }
@@ -217,27 +233,33 @@ class Turn {
   get cellSequence(): ReadonlyArray<CellIndex> | undefined {
     return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.sequences.cell : undefined;
   }
+  
   get tileSequence(): ReadonlyArray<TileId> | undefined {
     return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.sequences.tile : undefined;
   }
+
   get error(): string | undefined {
     return this.validationResult.status === ValidationStatus.Invalid ? this.validationResult.error : undefined;
   }
+
   get score(): number | undefined {
     return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.score : undefined;
   }
+
   get words(): ReadonlyArray<string> | undefined {
     return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.words : undefined;
   }
+
   get isValid(): boolean {
     return this.validationResult.status === ValidationStatus.Valid;
   }
+
   get links(): ReadonlyArray<{ cell: CellIndex; tile: TileId }> {
     return this.initialPlacement;
   }
 
   validate(context: GameContext): void {
-    this.validationResult = new TurnValidator(context).execute(this.initialPlacement);
+    this.validationResult = TurnValidator.execute(context, this.initialPlacement);
   }
 
   connectTileToCell({ cell, tile }: { cell: CellIndex; tile: TileId }): void {

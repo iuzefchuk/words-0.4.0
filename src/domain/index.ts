@@ -137,7 +137,7 @@ export default class GameDomain {
   saveTurn(): void {
     this.checkMutability();
     const { currentPlayer, currentTurnTileSequence } = this.turnkeeper;
-    if (!currentTurnTileSequence) throw new Error('Current turn must be computed before save');
+    if (!currentTurnTileSequence) throw new Error('Current turn tile sequence does not exist');
     this.turnkeeper.saveCurrentTurn();
     this.removeTiles({ player: currentPlayer, tiles: currentTurnTileSequence });
     this.inventory.replenishTilesFor(currentPlayer);
@@ -157,8 +157,7 @@ export default class GameDomain {
   }
 
   generatePlacement({ player }: { player: Player }): Placement | null {
-    const generator = new TurnGenerator(this.context);
-    for (const placement of generator.execute(player)) return placement;
+    for (const placement of TurnGenerator.execute(this.context, player)) return placement;
     return null;
   }
 

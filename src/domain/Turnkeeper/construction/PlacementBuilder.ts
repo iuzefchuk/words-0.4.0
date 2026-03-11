@@ -1,37 +1,38 @@
+import { GameContext } from '@/domain/types.ts';
 import { TileId } from '@/domain/Inventory/types/shared.ts';
-import { Layout, AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
-import { Turnkeeper, Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
+import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
 
 export default class PlacementBuilder {
-  constructor(
-    private readonly layout: Layout,
-    private readonly turnkeeper: Turnkeeper,
-  ) {}
-
-  execute({ coords, tileSequence }: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> }): Placement {
+  static execute(
+    context: GameContext,
+    args: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> },
+  ): Placement {
+    const { layout, turnkeeper } = context;
+    const { coords, tileSequence } = args;
     if (tileSequence.length === 0) throw new Error('Tile sequence can`t be empty');
-    const axisCells = this.layout.getAxisCells(coords);
-    const tileSet = new Set(tileSequence);
-    const placement: Placement = [];
-    let segmentHasTile = false;
-    let usedTilesCount = 0;
+    const axisCells = layout.getAxisCells(coords);
+    const tilesToPlace = new Set(tileSequence);
+    let placement: Placement = [];
+    let segmentContainsTile = false;
+    let matchedTilesCount = 0;
     for (const cell of axisCells) {
-      const tile = this.turnkeeper.findTileByCell(cell);
+      const tile = turnkeeper.findTileByCell(cell);
       if (!tile) {
         if (placement.length === 0) continue;
-        if (segmentHasTile) break;
-        placement.length = 0;
-        segmentHasTile = false;
-        usedTilesCount = 0;
-      } else {
-        placement.push({ cell, tile });
-        if (tileSet.has(tile)) {
-          segmentHasTile = true;
-          usedTilesCount++;
-        }
+        if (segmentContainsTile) break;
+        placement = [];
+        segmentContainsTile = false;
+        matchedTilesCount = 0;
+        continue;
+      }
+      placement.push({ cell, tile });
+      if (tilesToPlace.has(tile)) {
+        segmentContainsTile = true;
+        matchedTilesCount++;
       }
     }
-    const allTilesWereUsed = usedTilesCount === tileSequence.length;
-    return segmentHasTile && allTilesWereUsed ? placement : [];
+    const isValid = segmentContainsTile && matchedTilesCount === tileSequence.length;
+    return isValid ? placement : [];
   }
 }

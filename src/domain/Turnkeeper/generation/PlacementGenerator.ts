@@ -30,9 +30,9 @@ import {
   DispatcherState,
   DispatcherComputeds,
   Result,
-} from '@/domain/Turnkeeper/types/local/generation.ts';
-import { CachedAnchorLettersComputer } from '@/domain/Turnkeeper/types/local/index.ts';
+} from '@/domain/Turnkeeper/types/local/placementGeneration.ts';
 import { Placement, Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
+import AnchorLettersComputer from '@/domain/Turnkeeper/computation/AnchorLettersComputer.ts';
 
 export default class PlacementGenerator {
   static *execute(args: Arguments): Generator<Result> {
@@ -94,7 +94,7 @@ export default class PlacementGenerator {
   private static TaskDispatcher = class TaskDispatcher {
     private constructor(
       private readonly context: GameContext,
-      private readonly lettersComputer: CachedAnchorLettersComputer,
+      private readonly lettersComputer: AnchorLettersComputer,
       private state: DispatcherState,
       public computeds: DispatcherComputeds,
     ) {}
@@ -111,9 +111,11 @@ export default class PlacementGenerator {
     private get turnkeeper(): Turnkeeper {
       return this.context.turnkeeper;
     }
+
     private get placement(): Placement {
       return this.state.placement;
     }
+
     private get tiles(): TileCollection {
       return this.state.tiles;
     }
@@ -158,9 +160,9 @@ export default class PlacementGenerator {
 
     private evaluateTraversal(task: EvaluateTask): ReturnTaskCommand | ContinueTaskCommand {
       const { traversal } = task;
-      const placementIsUsable = this.placement.length > 0 && this.dictionary.isNodePlayable(traversal.node);
+      const placementIsUsable = this.placement.length > 0 && this.dictionary.isNodeFinal(traversal.node);
       if (traversal.direction === GenerationDirection.Right && placementIsUsable) {
-        const validationResult = new TurnValidator(this.context).execute(this.placement);
+        const validationResult = TurnValidator.execute(this.context, this.placement);
         if (validationResult.status === ValidationStatus.Valid) {
           return this.emitReturn(this.placement);
         }
@@ -210,10 +212,7 @@ export default class PlacementGenerator {
     ): StopTaskCommand | ContinueTaskCommand {
       const { position, resolution } = candidate;
       if (!resolution) throw new Error('Resolution has to exist');
-      const nextNode = this.dictionary.getNode({
-        word: this.inventory.getTileLetter(resolution.tile),
-        startNode: traversal.node,
-      });
+      const nextNode = this.dictionary.getNode(this.inventory.getTileLetter(resolution.tile), traversal.node);
       if (!nextNode) return this.emitStop();
       const traversalFromCandidate: Traversal = { ...traversal, position, node: nextNode };
       return this.emitContinue([{ type: GenerationTask.EvaluateTraversal, traversal: traversalFromCandidate }]);
@@ -225,7 +224,7 @@ export default class PlacementGenerator {
     ): StopTaskCommand | ContinueTaskCommand {
       const { position, cell } = candidate;
       const generator = this.dictionary.createNextNodeGenerator({ startNode: traversal.node });
-      const anchorLetters = this.lettersComputer.execute({ axis: this.computeds.oppositeAxis, cell });
+      const anchorLetters = this.lettersComputer.findFor({ axis: this.computeds.oppositeAxis, cell });
       const newTasks: Array<Task> = [];
       for (const [possibleNextLetter, nodeWithPossibleNextLetter] of generator) {
         const letterTiles = this.tiles.get(possibleNextLetter);

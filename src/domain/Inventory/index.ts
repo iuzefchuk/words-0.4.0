@@ -3,6 +3,7 @@ import { Player, Letter } from '@/domain/enums.ts';
 import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/Inventory/constants.ts';
 import { TileId, TileCollection } from '@/domain/Inventory/types/shared.ts';
 
+// TODO
 export default class Inventory {
   private static readonly tilesPerRack = 7;
 
@@ -105,9 +106,11 @@ class Rack {
   get tileCount(): number {
     return this.tiles.length;
   }
+  
   get tileIds(): ReadonlyArray<TileId> {
     return this.tiles.map(tile => tile.id);
   }
+  
   get tileCollection(): TileCollection {
     const collection: TileCollection = new Map();
     for (const tile of this.tiles) {
