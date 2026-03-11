@@ -5,9 +5,9 @@ import Inventory from '@/domain/Inventory/index.ts';
 import Layout from '@/domain/Layout/index.ts';
 import Turnkeeper from '@/domain/Turnkeeper/index.ts';
 import TurnGenerator from '@/domain/Turnkeeper/TurnGenerator.ts';
-import { TileId } from '@/domain/Inventory/types/shared.ts';
-import { CellIndex } from '@/domain/Layout/types/shared.ts';
-import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
+import { CellIndex } from '@/domain/Layout/types.ts';
+import { Placement } from '@/domain/Turnkeeper/types.ts';
 
 export default class GameDomain {
   private static readonly layout = Layout.create();

@@ -1,7 +1,7 @@
 import { shuffleArrayWithFisherYates } from '@/shared/helpers.ts';
 import { Player, Letter } from '@/domain/enums.ts';
 import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/Inventory/constants.ts';
-import { TileId, TileCollection } from '@/domain/Inventory/types/shared.ts';
+import { TileId, TileCollection } from '@/domain/Inventory/types.ts';
 
 export default class Inventory {
   private static readonly rackCapacity = 7;
@@ -145,7 +145,7 @@ class Rack {
   }
 
   private ensureTileAbsence(tile: Tile): void {
-    if (this.tiles.some(tile => tile.equals(tile))) {
+    if (this.tiles.some(tileInArray => tile.equals(tileInArray))) {
       throw new Error(`Tile ${tile} is already present`);
     }
   }

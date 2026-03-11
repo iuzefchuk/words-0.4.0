@@ -1,5 +1,5 @@
 import { GameContext } from '@/domain/types.ts';
-import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { CellIndex } from '@/domain/Layout/types.ts';
 
 export default class AnchorCellFinder {
   static execute(context: GameContext): ReadonlySet<CellIndex> {

@@ -1,8 +1,7 @@
 import { Letter } from '@/domain/enums.ts';
 import { SORTED_WORDS } from '@/domain/Dictionary/constants.ts';
-import { FrozenNode } from '@/domain/Dictionary/types/local.ts';
-import { NodeId, NextNodeGenerator } from '@/domain/Dictionary/types/shared.ts';
-import NodeTreeBuilder from '@/domain/Dictionary/construction/NodeTreeBuilder.ts';
+import { FrozenNode, NodeId, NextNodeGenerator } from '@/domain/Dictionary/types.ts';
+import NodeTreeBuilder from '@/domain/Dictionary/NodeTreeBuilder.ts';
 
 export default class Dictionary {
   private constructor(

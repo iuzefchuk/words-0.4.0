@@ -1,7 +1,7 @@
 import { GameContext } from '@/domain/types.ts';
-import { TileId } from '@/domain/Inventory/types/shared.ts';
-import { AnchorCoordinates } from '@/domain/Layout/types/shared.ts';
-import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
+import { AnchorCoordinates } from '@/domain/Layout/types.ts';
+import { Placement } from '@/domain/Turnkeeper/types.ts';
 
 export default class PlacementBuilder {
   static execute(

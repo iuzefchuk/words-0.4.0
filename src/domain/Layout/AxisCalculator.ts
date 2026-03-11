@@ -1,5 +1,5 @@
 import { Axis } from '@/domain/enums.ts';
-import { CellIndex } from '@/domain/Layout/types/shared.ts';
+import { CellIndex } from '@/domain/Layout/types.ts';
 import { GameContext } from '@/domain/types.ts';
 
 export default class AxisCalculator {

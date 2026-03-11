@@ -2,14 +2,9 @@ import { Player } from '@/domain/enums.ts';
 import { GameContext } from '@/domain/types.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
 import { PlayerAction, ValidationStatus } from '@/domain/Turnkeeper/enums.ts';
-import { TileId } from '@/domain/Inventory/types/shared.ts';
-import { CellIndex } from '@/domain/Layout/types/shared.ts';
-import { Placement } from '@/domain/Turnkeeper/types/shared.ts';
-import { Link } from '@/domain/Turnkeeper/types/local/index.ts';
-import {
-  Result as ValidationResult,
-  UnvalidatedResult,
-} from '@/domain/Turnkeeper/types/local/initialPlacementValidation.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
+import { CellIndex } from '@/domain/Layout/types.ts';
+import { Placement, Link, ValidationResult, UnvalidatedResult } from '@/domain/Turnkeeper/types.ts';
 
 export default class Turnkeeper {
   private static readonly finalActions = [PlayerAction.Won, PlayerAction.Tied];
@@ -139,8 +134,8 @@ class History {
 
   private constructor(
     private turns: Array<Turn>,
-    private readonly cellByTile: Map<CellIndex, TileId>,
-    private readonly tileByCell: Map<TileId, CellIndex>,
+    private readonly tileByCell: Map<CellIndex, TileId>,
+    private readonly cellByTile: Map<TileId, CellIndex>,
   ) {}
 
   static create(): History {
@@ -183,32 +178,32 @@ class History {
   }
 
   findTileByCell(cell: CellIndex): TileId | undefined {
-    return this.cellByTile.get(cell);
+    return this.tileByCell.get(cell);
   }
 
   findCellByTile(tile: TileId): CellIndex | undefined {
-    return this.tileByCell.get(tile);
+    return this.cellByTile.get(tile);
   }
 
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
     this.currentTurn.placeTile({ cell, tile });
-    this.cellByTile.set(cell, tile);
-    this.tileByCell.set(tile, cell);
+    this.tileByCell.set(cell, tile);
+    this.cellByTile.set(tile, cell);
   }
 
   removeTile({ tile }: { tile: TileId }): void {
-    const cell = this.tileByCell.get(tile);
+    const cell = this.cellByTile.get(tile);
     this.currentTurn.removeTile({ tile });
     if (cell !== undefined) {
-      this.cellByTile.delete(cell);
-      this.tileByCell.delete(tile);
+      this.tileByCell.delete(cell);
+      this.cellByTile.delete(tile);
     }
   }
 
   resetCurrentTurn(): void {
     for (const { cell, tile } of this.currentTurn.links) {
-      this.cellByTile.delete(cell);
-      this.tileByCell.delete(tile);
+      this.tileByCell.delete(cell);
+      this.cellByTile.delete(tile);
     }
     this.currentTurn.reset();
   }

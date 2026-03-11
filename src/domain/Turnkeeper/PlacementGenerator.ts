@@ -1,8 +1,8 @@
 import { GameContext } from '@/domain/types.ts';
 import Dictionary from '@/domain/Dictionary/index.ts';
 import Inventory from '@/domain/Inventory/index.ts';
-import { TileCollection } from '@/domain/Inventory/types/shared.ts';
-import { Layout } from '@/domain/Layout/types/shared.ts';
+import { TileCollection } from '@/domain/Inventory/types.ts';
+import { Layout } from '@/domain/Layout/types.ts';
 import TurnValidator from '@/domain/Turnkeeper/TurnValidator.ts';
 import {
   GenerationDirection,
@@ -11,7 +11,7 @@ import {
   ValidationStatus,
 } from '@/domain/Turnkeeper/enums.ts';
 import {
-  Arguments,
+  GeneratorArguments,
   Traversal,
   Candidate,
   Resolution,
@@ -29,13 +29,14 @@ import {
   TaskCommand,
   DispatcherState,
   DispatcherComputeds,
-  Result,
-} from '@/domain/Turnkeeper/types/local/placementGeneration.ts';
-import { Placement, Turnkeeper } from '@/domain/Turnkeeper/types/shared.ts';
-import AnchorLettersComputer from '@/domain/Turnkeeper/computation/AnchorLettersComputer.ts';
+  GenerationResult,
+  Placement,
+  Turnkeeper,
+} from '@/domain/Turnkeeper/types.ts';
+import AnchorLettersComputer from '@/domain/Turnkeeper/AnchorLettersComputer.ts';
 
 export default class PlacementGenerator {
-  static *execute(args: Arguments): Generator<Result> {
+  static *execute(args: GeneratorArguments): Generator<GenerationResult> {
     const { context, coords } = args;
     const { dictionary } = context;
     const dispatcher = PlacementGenerator.TaskDispatcher.create(args);
@@ -59,7 +60,7 @@ export default class PlacementGenerator {
       return new TaskCommandResolver(tasks);
     }
 
-    *execute(dispatcher: (task: Task) => TaskCommand): Generator<Result> {
+    *execute(dispatcher: (task: Task) => TaskCommand): Generator<GenerationResult> {
       while (this.stack.length > 0) {
         const task = this.popFromStack();
         const command = dispatcher(task);
@@ -86,7 +87,7 @@ export default class PlacementGenerator {
       return { type: GenerationCommandType.StopExecute };
     }
 
-    static returnResult(result: Result): ReturnTaskCommand {
+    static returnResult(result: GenerationResult): ReturnTaskCommand {
       return { type: GenerationCommandType.ReturnResult, result };
     }
   };
@@ -120,7 +121,7 @@ export default class PlacementGenerator {
       return this.state.tiles;
     }
 
-    static create({ context, lettersComputer, playerTileCollection, coords }: Arguments): TaskDispatcher {
+    static create({ context, lettersComputer, playerTileCollection, coords }: GeneratorArguments): TaskDispatcher {
       const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: [] };
       const computeds: DispatcherComputeds = {
         axisCells: context.layout.getAxisCells(coords),
@@ -154,7 +155,7 @@ export default class PlacementGenerator {
       return PlacementGenerator.TaskCommandResolver.stopExecute();
     }
 
-    private emitReturn(result: Result): ReturnTaskCommand {
+    private emitReturn(result: GenerationResult): ReturnTaskCommand {
       return PlacementGenerator.TaskCommandResolver.returnResult(result);
     }
 
