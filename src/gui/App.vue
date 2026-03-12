@@ -8,7 +8,6 @@ import Game from '@/gui/components/Game/Game.vue';
 
 <style lang="scss">
 @use '@/gui/assets/css/adjustments.scss';
-@use '@/gui/assets/css/animations.scss';
 @use '@/gui/assets/css/colors.scss';
 @use '@/gui/assets/css/transitions.scss';
 @use '@/gui/assets/css/variables.scss';

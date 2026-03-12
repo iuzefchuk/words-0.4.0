@@ -1,28 +1,12 @@
-import { TIME } from '@/shared/consts.ts';
+import { TIME } from '@/shared/constants.ts';
 import { wait } from '@/shared/helpers.ts';
 import GameDomain from '@/domain/index.ts';
 import { Bonus, Letter, Player } from '@/domain/enums.ts';
-import { CellIndex } from '@/domain/Board/types.ts';
-import { TileId } from '@/domain/Inventory/types.ts';
-
-export type GameCell = CellIndex;
-
-export type GameTile = TileId;
-
-export type GameState = {
-  isFinished: boolean;
-  tilesRemaining: number;
-  userTiles: ReadonlyArray<GameTile>;
-  currentTurnScore?: number;
-  userScore: number;
-  opponentScore: number;
-  currentPlayerIsUser: boolean;
-  userPassWillBeResign: boolean;
-};
+import { GameCell, GameTile, GameState } from '@/application/types.ts';
 
 export default class Game {
-  static bonuses = Bonus;
-  static letters = Letter;
+  readonly bonuses = Bonus;
+  readonly letters = Letter;
 
   private constructor(private gameDomain: GameDomain) {}
 

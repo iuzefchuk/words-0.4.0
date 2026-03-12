@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { useStoreGame } from '@/gui/stores/game.ts';
-import { useStoreInventory } from '@/gui/stores/inventory.ts';
+import { useStoreGame } from '@/gui/stores/GameStore';
+import { useStoreInventory } from '@/gui/stores/Inventory';
 import { storeToRefs } from 'pinia';
 
 const storeGame = useStoreGame();

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed, watch, inject } from 'vue';
 import { useCounter } from '@/gui/composables/counter.ts';
-import { GAME_LETTERS } from '@/application/index.ts';
 import GameTile from './GameTile.vue';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
 
@@ -10,7 +9,7 @@ const { isActive } = defineProps({
   isActive: { type: Boolean, required: true },
 });
 const emit = defineEmits(['derendered']);
-const DUMMY_LETTERS = [GAME_LETTERS.W, GAME_LETTERS.O, GAME_LETTERS.R, GAME_LETTERS.D, GAME_LETTERS.S];
+const DUMMY_LETTERS = [letters.W, letters.O, letters.R, letters.D, letters.S];
 const { counter, restartCounter, stopCounter } = useCounter(transitionDurationMs);
 const isRendered = ref(false);
 const onlyFirstTileIsElevated = computed(() =>

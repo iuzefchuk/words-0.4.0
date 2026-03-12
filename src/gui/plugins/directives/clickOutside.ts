@@ -1,31 +1,25 @@
-import type { ObjectDirective } from 'vue';
+import { DirectiveBinding } from 'vue';
+import { Directive } from '@/gui/plugins/directives/index.ts';
 
-type ClickOutsideHtmlElement = HTMLElement & {
-  _clickOutside: (event: Event) => void;
-};
+type ClickOutsideHtmlElement = HTMLElement & { _clickOutside: (event: Event) => void };
+type BindingValue = { callback: () => void };
 
-type BindingValue = {
-  callback: () => void;
-};
-
-const directive: ObjectDirective<ClickOutsideHtmlElement, BindingValue> = {
-  beforeMount(el, binding) {
+export default class ClickOutside extends Directive<ClickOutsideHtmlElement, BindingValue> {
+  beforeMount(element: ClickOutsideHtmlElement, binding: DirectiveBinding<BindingValue>): void {
     const { callback } = binding.value || {};
-    el._clickOutside = (event: Event): void => {
+    element._clickOutside = (event: Event): void => {
       const target = event.target as Node;
-      if (el !== target && !el.contains(target)) callback();
+      if (element !== target && !element.contains(target)) callback();
     };
     window.requestAnimationFrame(() => {
-      document.addEventListener('click', el._clickOutside);
-      document.addEventListener('touchstart', el._clickOutside);
+      document.addEventListener('click', element._clickOutside);
+      document.addEventListener('touchstart', element._clickOutside);
     });
-  },
+  }
 
-  unmounted(el) {
-    document.removeEventListener('click', el._clickOutside);
-    document.removeEventListener('touchstart', el._clickOutside);
-    el._clickOutside = () => {};
-  },
-};
-
-export default directive;
+  unmounted(element: ClickOutsideHtmlElement): void {
+    document.removeEventListener('click', element._clickOutside);
+    document.removeEventListener('touchstart', element._clickOutside);
+    element._clickOutside = () => {};
+  }
+}

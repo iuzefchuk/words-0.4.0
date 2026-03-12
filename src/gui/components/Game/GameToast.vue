@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useStoreToast } from '@/gui/stores/toast.ts';
+import { useStoreToast } from '@/gui/stores/ToastStore';
 
 const storeToast = useStoreToast();
 const {
@@ -16,7 +16,7 @@ const {
           v-for="{ html, timestamp } in toastList"
           :key="timestamp"
           class="toast__item"
-          @click="removeToast(timestamp as string)"
+          @click="removeToast(timestamp)"
         >
           <p v-html="html" />
         </li>

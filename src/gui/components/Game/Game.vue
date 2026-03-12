@@ -5,7 +5,7 @@ import GameEndscreen from '@/gui/components/Game/GameEndscreen.vue';
 import GameLoader from '@/gui/components/Game/GameLoader.vue';
 import GameToast from '@/gui/components/Game/GameToast.vue';
 import { onMounted, ref, inject } from 'vue';
-import { useStoreGame } from '@/gui/stores/game.ts';
+import { useStoreGame } from '@/gui/stores/GameStore';
 import { storeToRefs } from 'pinia';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
 

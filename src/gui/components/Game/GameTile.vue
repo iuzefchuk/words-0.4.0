@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PropType, watch, ref, inject } from 'vue';
-import { getLetterSvgHtml } from '@/gui/helpers.ts';
+import { watch, ref, inject } from 'vue';
+import { getLetterSvgHtml } from '@/gui/mappings';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
 
 const transitionDurationMs = inject(transitionDurationMsKey);

@@ -16,3 +16,13 @@ export function shuffleArrayWithFisherYates<T>(array: Array<T>): Array<T> {
   }
   return array;
 }
+
+export function setPromise(resolveCondition = () => true, intervalMs = 150): Promise<boolean> {
+  return new Promise(resolve => {
+    const promiseInterval = setInterval(() => {
+      if (!resolveCondition()) return;
+      clearInterval(promiseInterval);
+      resolve(true);
+    }, intervalMs);
+  });
+}

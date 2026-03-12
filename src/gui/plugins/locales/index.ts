@@ -1,55 +1,59 @@
-import { App } from 'vue';
+import { App, ref, watch, Ref } from 'vue';
 import { LocaleFile, LocaleType, NumberSeparatorType } from '@/gui/plugins/locales/enums.ts';
-import { NUMBER_SEPARATOR_TYPE_FOR_LOCALE } from '@/gui/plugins/locales/consts.ts';
-import { ref, watch } from 'vue';
+import { NUMBER_SEPARATOR_TYPE_FOR_LOCALE } from '@/gui/plugins/locales/constants.ts';
+import { LocaleFileContent, LocaleNumberGetter, LocaleTextGetter } from '@/gui/plugins/locales/types.js';
 
-export default {
-  async install(app: App) {
-    const localeType = ref(document.documentElement.getAttribute('lang') as LocaleType);
+export default class LocalesPlugin {
+  static readonly pathToContent = '@/gui/plugins/locales';
 
-    const fileContent = ref<LocaleFileContent | null>(null);
+  private constructor(
+    private type: Ref<LocaleType>,
+    private content: Ref<LocaleFileContent>,
+  ) {}
 
-    async function importAllFileContent() {
-      fileContent.value = Object.assign(
-        {},
-        ...(await Promise.all(
-          Object.values(LocaleFile).map(async entity => {
-            const module = await import(`@/gui/plugins/locales/${localeType.value}/${entity}.tson`);
-            return { [entity]: module };
-          }),
-        )),
-      );
-    }
+  static create(): LocalesPlugin {
+    const type = ref(document.documentElement.getAttribute('lang') as LocaleType);
+    const content = ref({} as LocaleFileContent);
+    return new LocalesPlugin(type, content);
+  }
 
-    function setGlobals() {
-      window.localeType = app.config.globalProperties.localeType = localeType;
-      window.t = app.config.globalProperties.t = getLocalizedText;
-      window.n = app.config.globalProperties.n = getLocalizedNumber;
-    }
+  async install(app: App): Promise<void> {
+    await this.fetchContent();
+    watch(this.type, () => this.fetchContent());
+    this.setGlobals(app);
+  }
 
-    const getLocalizedText: LocaleProps['t'] = (string, props) => {
-      const [entity, key] = string.split('.');
-      if (!fileContent.value) return string;
-      let localizedText = fileContent.value[entity]?.[key];
-      if (!localizedText) return string;
-      if (props) {
-        for (const [key, value] of Object.entries(props)) {
-          localizedText = localizedText.replaceAll(`{${key}}`, String(value));
-        }
+  private async fetchContent() {
+    await Promise.all(
+      Object.values(LocaleFile).map(async file => {
+        this.content.value[file] = await import(`${LocalesPlugin.pathToContent}/${this.type.value}/${file}.json`);
+      }),
+    );
+  }
+
+  private setGlobals(app: App): void {
+    const globals = app.config.globalProperties;
+    window.localeType = globals.localeType = this.type;
+    window.t = globals.t = this.getLocalizedText.bind(this);
+    window.n = globals.n = this.getLocalizedNumber.bind(this);
+  }
+
+  private getLocalizedText: LocaleTextGetter = (string: string, props?: object) => {
+    const [file, key] = string.split('.');
+    if (!this.content.value) throw new Error('Locales didn`t fetch content');
+    let localizedText = this.content.value[file as LocaleFile]?.[key];
+    if (!localizedText) throw new Error('Locales file or key are incorrect');
+    if (props) {
+      for (const [key, value] of Object.entries(props)) {
+        localizedText = localizedText.replaceAll(`{${key}}`, String(value));
       }
-      return localizedText;
-    };
+    }
+    return localizedText;
+  };
 
-    const getLocalizedNumber: LocaleProps['n'] = number => {
-      return new Intl.NumberFormat(NUMBER_SEPARATOR_TYPE_FOR_LOCALE[localeType.value] || NumberSeparatorType.Comma, {
-        maximumFractionDigits: 2,
-      }).format(Number(number));
-    };
-
-    await importAllFileContent();
-
-    watch(localeType, () => importAllFileContent());
-
-    setGlobals();
-  },
-};
+  private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
+    return new Intl.NumberFormat(NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma, {
+      maximumFractionDigits: 2,
+    }).format(Number(number));
+  };
+}

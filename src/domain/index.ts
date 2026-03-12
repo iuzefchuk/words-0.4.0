@@ -1,14 +1,14 @@
 import { Player, Bonus, Letter } from '@/domain/enums.ts';
 import { GameContext, Placement } from '@/domain/types.ts';
-import Board from '@/domain/Board/index.ts';
-import Dictionary from '@/domain/Dictionary/index.ts';
-import Layout from '@/domain/Board/Layout.ts';
-import Inventory from '@/domain/Inventory/index.ts';
-import Turnkeeper from '@/domain/Turn/index.ts';
-import TurnValidator from '@/domain/Validation/index.ts';
-import TurnGenerator from '@/domain/Generation/index.ts';
-import { TileId } from '@/domain/Inventory/types.ts';
-import { CellIndex } from '@/domain/Board/types.ts';
+import Board from '@/domain/model/Board/index.ts';
+import Dictionary from '@/domain/reference/Dictionary/index.ts';
+import Layout from '@/domain/reference/Layout/index.ts';
+import Inventory from '@/domain/model/Inventory/index.ts';
+import Turnkeeper from '@/domain/model/Turn/index.ts';
+import TurnValidator from '@/domain/model/Turn/Validation/index.ts';
+import TurnGenerator from '@/domain/services/Generation/index.ts';
+import { TileId } from '@/domain/model/Inventory/types.ts';
+import { CellIndex } from '@/domain/reference/Layout/types.ts';
 
 export default class GameDomain {
   private static readonly layout = Layout.create();

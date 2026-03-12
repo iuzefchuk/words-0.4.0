@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import GameTile from '@/gui/components/Game/GameTile.vue';
-import { GameCell, GAME_BONUSES } from '@/application/index.ts';
+import { GameCell } from '@/application/types.ts';
 import { PropType, computed } from 'vue';
-import { useStoreGame } from '@/gui/stores/game.ts';
-import { useStoreInventory } from '@/gui/stores/inventory.ts';
-import { getBonusName } from '@/gui/helpers.ts';
+import { useStoreGame } from '@/gui/stores/GameStore';
+import { useStoreInventory } from '@/gui/stores/Inventory';
+import { getBonusName } from '@/gui/mappings';
 
 const { cell } = defineProps({
   cell: { type: Object as PropType<GameCell>, required: true },
@@ -28,17 +28,17 @@ const tileLetter = computed(() => {
 <template>
   <li
     :class="{ cell: true, 'cell--center': storeGame.isCellInCenterOfLayout(cell), 'cell--has-tile': tile }"
-    @click="storeInventory.handleClickLayoutCell(cell)"
+    @click="storeInventory.handleClickBoardCell(cell)"
   >
     <Transition name="fade" appear>
       <svg
         v-if="bonus"
         :class="{
           cell__bonus: true,
-          'cell__bonus--dw': bonus === GAME_BONUSES.DoubleWord,
-          'cell__bonus--tw': bonus === GAME_BONUSES.TripleWord,
-          'cell__bonus--dl': bonus === GAME_BONUSES.DoubleLetter,
-          'cell__bonus--tl': bonus === GAME_BONUSES.TripleLetter,
+          'cell__bonus--dw': bonus === bonuses.DoubleWord,
+          'cell__bonus--tw': bonus === bonuses.TripleWord,
+          'cell__bonus--dl': bonus === bonuses.DoubleLetter,
+          'cell__bonus--tl': bonus === bonuses.TripleLetter,
         }"
         class="cell__bonus"
         viewBox="0 0 40 40"
@@ -56,7 +56,7 @@ const tileLetter = computed(() => {
         :is-inverted="storeInventory.isTileSelected(tile)"
         :is-highlighted="storeGame.wasTileUsedInLastTurn(tile)"
         :is-elevated="storeInventory.isTileInInventory(tile)"
-        @click.stop="storeInventory.handleClickLayoutTile(tile)"
+        @click.stop="storeInventory.handleClickBoardTile(tile)"
       />
     </Transition>
     <slot />

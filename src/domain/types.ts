@@ -1,10 +1,10 @@
 import { ValidationStatus, ValidationErrors } from '@/domain/enums.ts';
-import { Board } from '@/domain/Board/types.ts';
-import { Dictionary } from '@/domain/Dictionary/types.ts';
-import { Inventory } from '@/domain/Inventory/types.ts';
-import { Turnkeeper } from '@/domain/Turn/types.ts';
-import { CellIndex } from '@/domain/Board/types.ts';
-import { TileId } from '@/domain/Inventory/types.ts';
+import { Board } from '@/domain/model/Board/types.ts';
+import { Dictionary } from '@/domain/reference/Dictionary/types.ts';
+import { Inventory } from '@/domain/model/Inventory/types.ts';
+import { Turnkeeper } from '@/domain/model/Turn/types.ts';
+import { CellIndex } from '@/domain/reference/Layout/types.ts';
+import { TileId } from '@/domain/model/Inventory/types.ts';
 
 export type GameContext = {
   board: Board;
