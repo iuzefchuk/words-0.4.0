@@ -1,13 +1,14 @@
 import { Player, Bonus, Letter } from '@/domain/enums.ts';
 import { GameContext, Placement } from '@/domain/types.ts';
-import Dictionary from '@/domain/foundation/Dictionary/index.ts';
-import Inventory from '@/domain/state/Inventory/index.ts';
-import Layout from '@/domain/foundation/Layout/index.ts';
-import Turnkeeper from '@/domain/state/Turnkeeper/index.ts';
-import TurnValidator from '@/domain/rules/Validation/index.ts';
-import TurnGenerator from '@/domain/rules/Generation/index.ts';
-import { TileId } from '@/domain/state/Inventory/types.ts';
-import { CellIndex } from '@/domain/foundation/Layout/types.ts';
+import Board from '@/domain/Board/index.ts';
+import Dictionary from '@/domain/Dictionary/index.ts';
+import Layout from '@/domain/Board/Layout.ts';
+import Inventory from '@/domain/Inventory/index.ts';
+import Turnkeeper from '@/domain/Turn/index.ts';
+import TurnValidator from '@/domain/Validation/index.ts';
+import TurnGenerator from '@/domain/Generation/index.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
+import { CellIndex } from '@/domain/Board/types.ts';
 
 export default class GameDomain {
   private static readonly layout = Layout.create();
@@ -15,20 +16,22 @@ export default class GameDomain {
   private isMutable: boolean = true;
 
   private constructor(
+    private board: Board,
     private inventory: Inventory,
     private turnkeeper: Turnkeeper,
   ) {}
 
   static create(): GameDomain {
     const players = Object.values(Player);
+    const board = Board.create(GameDomain.layout);
     const inventory = Inventory.create({ players });
-    const turnkeeper = Turnkeeper.create({ players });
-    return new GameDomain(inventory, turnkeeper);
+    const turnkeeper = Turnkeeper.create({ players, board });
+    return new GameDomain(board, inventory, turnkeeper);
   }
 
   private get context(): GameContext {
     return {
-      layout: GameDomain.layout,
+      board: this.board,
       dictionary: GameDomain.dictionary,
       inventory: this.inventory,
       turnkeeper: this.turnkeeper,
@@ -40,7 +43,7 @@ export default class GameDomain {
   }
 
   get layoutCells(): ReadonlyArray<CellIndex> {
-    return GameDomain.layout.cells;
+    return this.board.cells;
   }
 
   get tilesRemaining(): number {
@@ -68,11 +71,11 @@ export default class GameDomain {
   }
 
   isCellInCenterOfLayout(cell: CellIndex): boolean {
-    return GameDomain.layout.isCellCenter(cell);
+    return this.board.isCellCenter(cell);
   }
 
   getCellBonus(cell: CellIndex): Bonus | null {
-    return GameDomain.layout.getBonusForCell(cell);
+    return this.board.getBonusForCell(cell);
   }
 
   getScoreFor(player: Player): number {
@@ -80,15 +83,15 @@ export default class GameDomain {
   }
 
   findTileByCell(cell: CellIndex): TileId | undefined {
-    return this.turnkeeper.findTileByCell(cell);
+    return this.board.findTileByCell(cell);
   }
 
   findCellByTile(tile: TileId): CellIndex | undefined {
-    return this.turnkeeper.findCellByTile(tile);
+    return this.board.findCellByTile(tile);
   }
 
   isTileConnected(tile: TileId): boolean {
-    return this.turnkeeper.isTileConnected(tile);
+    return this.board.isTileConnected(tile);
   }
 
   areTilesSame(firstTile: TileId, secondTile: TileId): boolean {

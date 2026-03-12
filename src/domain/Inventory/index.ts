@@ -1,7 +1,7 @@
 import { shuffleArrayWithFisherYates } from '@/shared/helpers.ts';
 import { Player, Letter } from '@/domain/enums.ts';
-import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/state/Inventory/constants.ts';
-import { TileId, TileCollection } from '@/domain/state/Inventory/types.ts';
+import { LETTER_DISTRIBUTION, LETTER_POINTS } from '@/domain/Inventory/constants.ts';
+import { TileId, TileCollection } from '@/domain/Inventory/types.ts';
 
 export default class Inventory {
   private static readonly rackCapacity = 7;

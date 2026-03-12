@@ -1,5 +1,5 @@
 import { Bonus } from '@/domain/enums.ts';
-import { CellIndex } from '@/domain/foundation/Layout/types.ts';
+import { CellIndex } from '@/domain/Board/types.ts';
 
 export const BONUS_CELL_INDEXES: Record<Bonus, ReadonlyArray<CellIndex>> = {
   [Bonus.DoubleLetter]: [

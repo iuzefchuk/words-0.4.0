@@ -1,16 +1,15 @@
 import { Player, Axis } from '@/domain/enums.ts';
 import { GameContext, Placement } from '@/domain/types.ts';
-import { AnchorCoordinates } from '@/domain/foundation/Layout/types.ts';
-import AnchorLettersComputer from '@/domain/rules/Generation/AnchorLettersComputer.ts';
-import AnchorCellFinder from '@/domain/rules/AnchorCellFinder.ts';
-import PlacementGenerator from '@/domain/rules/Generation/PlacementGenerator.ts';
+import { AnchorCoordinates } from '@/domain/Board/types.ts';
+import AnchorLettersComputer from '@/domain/Generation/AnchorLettersComputer.ts';
+import PlacementGenerator from '@/domain/Generation/PlacementGenerator.ts';
 
 export default class TurnGenerator {
   static *execute(context: GameContext, player: Player): Generator<Placement> {
-    const { inventory } = context;
+    const { inventory, board, turnkeeper } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
-    const anchorCells = AnchorCellFinder.execute(context);
+    const anchorCells = board.getAnchorCells(turnkeeper.historyIsEmpty);
     if (anchorCells.size === 0) return;
     const lettersComputer = new AnchorLettersComputer(context);
     for (const cell of anchorCells) {

@@ -1,13 +1,13 @@
 import { ValidationStatus, ValidationErrors } from '@/domain/enums.ts';
-import { Layout } from '@/domain/foundation/Layout/types.ts';
-import { Dictionary } from '@/domain/foundation/Dictionary/types.ts';
-import { Inventory } from '@/domain/state/Inventory/types.ts';
-import { Turnkeeper } from '@/domain/state/Turnkeeper/types.ts';
-import { CellIndex } from '@/domain/foundation/Layout/types.ts';
-import { TileId } from '@/domain/state/Inventory/types.ts';
+import { Board } from '@/domain/Board/types.ts';
+import { Dictionary } from '@/domain/Dictionary/types.ts';
+import { Inventory } from '@/domain/Inventory/types.ts';
+import { Turnkeeper } from '@/domain/Turn/types.ts';
+import { CellIndex } from '@/domain/Board/types.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
 
 export type GameContext = {
-  layout: Layout;
+  board: Board;
   dictionary: Dictionary;
   inventory: Inventory;
   turnkeeper: Turnkeeper;

@@ -1,11 +1,11 @@
 import { GameContext, Placement } from '@/domain/types.ts';
 import { ValidationStatus } from '@/domain/enums.ts';
-import Dictionary from '@/domain/foundation/Dictionary/index.ts';
-import Inventory from '@/domain/state/Inventory/index.ts';
-import { TileCollection } from '@/domain/state/Inventory/types.ts';
-import { Layout } from '@/domain/foundation/Layout/types.ts';
-import TurnValidator from '@/domain/rules/Validation/index.ts';
-import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/rules/Generation/enums.ts';
+import { Board } from '@/domain/Board/types.ts';
+import Dictionary from '@/domain/Dictionary/index.ts';
+import Inventory from '@/domain/Inventory/index.ts';
+import { TileCollection } from '@/domain/Inventory/types.ts';
+import TurnValidator from '@/domain/Validation/index.ts';
+import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/Generation/enums.ts';
 import {
   GeneratorArguments,
   Traversal,
@@ -26,9 +26,8 @@ import {
   DispatcherState,
   DispatcherComputeds,
   GenerationResult,
-} from '@/domain/rules/Generation/types.ts';
-import { Turnkeeper } from '@/domain/state/Turnkeeper/types.ts';
-import AnchorLettersComputer from '@/domain/rules/Generation/AnchorLettersComputer.ts';
+} from '@/domain/Generation/types.ts';
+import AnchorLettersComputer from '@/domain/Generation/AnchorLettersComputer.ts';
 
 export default class PlacementGenerator {
   static *execute(args: GeneratorArguments): Generator<GenerationResult> {
@@ -95,17 +94,14 @@ export default class PlacementGenerator {
       public computeds: DispatcherComputeds,
     ) {}
 
-    private get layout(): Layout {
-      return this.context.layout;
+    private get board(): Board {
+      return this.context.board;
     }
     private get dictionary(): Dictionary {
       return this.context.dictionary;
     }
     private get inventory(): Inventory {
       return this.context.inventory;
-    }
-    private get turnkeeper(): Turnkeeper {
-      return this.context.turnkeeper;
     }
 
     private get placement(): Placement {
@@ -119,8 +115,8 @@ export default class PlacementGenerator {
     static create({ context, lettersComputer, playerTileCollection, coords }: GeneratorArguments): TaskDispatcher {
       const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: [] };
       const computeds: DispatcherComputeds = {
-        axisCells: context.layout.getAxisCells(coords),
-        oppositeAxis: context.layout.getOppositeAxis(coords.axis),
+        axisCells: context.board.getAxisCells(coords),
+        oppositeAxis: context.board.getOppositeAxis(coords.axis),
       };
       return new TaskDispatcher(context, lettersComputer, state, computeds);
     }
@@ -179,8 +175,8 @@ export default class PlacementGenerator {
       const { traversal } = task;
       const isEdge =
         traversal.direction === GenerationDirection.Left
-          ? this.layout.isCellPositionOnLeftEdge(traversal.position)
-          : this.layout.isCellPositionOnRightEdge(traversal.position);
+          ? this.board.isCellPositionOnLeftEdge(traversal.position)
+          : this.board.isCellPositionOnRightEdge(traversal.position);
       if (isEdge) return this.emitStop();
       return this.emitContinue([{ ...task, type: GenerationTask.CalculateCandidate }]);
     }
@@ -189,7 +185,7 @@ export default class PlacementGenerator {
       const { traversal } = task;
       const position = traversal.position + traversal.direction;
       const cell = this.computeds.axisCells[position];
-      const tile = this.turnkeeper.findTileByCell(cell);
+      const tile = this.board.findTileByCell(cell);
       const resolution: Resolution | undefined = tile ? { tile } : undefined;
       const candidate: Candidate = { position, cell, resolution };
       return this.emitContinue([{ ...task, type: GenerationTask.ResolveCandidate, candidate }]);

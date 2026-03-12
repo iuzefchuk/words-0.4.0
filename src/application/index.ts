@@ -2,8 +2,8 @@ import { TIME } from '@/shared/consts.ts';
 import { wait } from '@/shared/helpers.ts';
 import GameDomain from '@/domain/index.ts';
 import { Bonus, Letter, Player } from '@/domain/enums.ts';
-import { CellIndex } from '@/domain/foundation/Layout/types.ts';
-import { TileId } from '@/domain/state/Inventory/types.ts';
+import { CellIndex } from '@/domain/Board/types.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
 
 export type GameCell = CellIndex;
 

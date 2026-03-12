@@ -1,5 +1,5 @@
 import { Letter } from '@/domain/enums.ts';
-import { Transition, Node, FrozenNode, NodeGenerator, NodeId } from '@/domain/foundation/Dictionary/types.ts';
+import { Transition, Node, FrozenNode, NodeGenerator, NodeId } from '@/domain/Dictionary/types.ts';
 
 export default class NodeTreeBuilder {
   private currentId: NodeId = 0;

@@ -1,10 +1,10 @@
 import { Axis } from '@/domain/enums.ts';
 import { GameContext, Placement } from '@/domain/types.ts';
-import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/rules/Generation/enums.ts';
-import { NodeId } from '@/domain/foundation/Dictionary/types.ts';
-import { TileCollection, TileId } from '@/domain/state/Inventory/types.ts';
-import { AnchorCoordinates, CellIndex } from '@/domain/foundation/Layout/types.ts';
-import AnchorLettersComputer from '@/domain/rules/Generation/AnchorLettersComputer.ts';
+import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/Generation/enums.ts';
+import { NodeId } from '@/domain/Dictionary/types.ts';
+import { TileCollection, TileId } from '@/domain/Inventory/types.ts';
+import { AnchorCoordinates, CellIndex } from '@/domain/Board/types.ts';
+import AnchorLettersComputer from '@/domain/Generation/AnchorLettersComputer.ts';
 
 export type GeneratorArguments = {
   context: GameContext;

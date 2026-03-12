@@ -1,22 +1,22 @@
 import { GameContext, Placement } from '@/domain/types.ts';
-import { TileId } from '@/domain/state/Inventory/types.ts';
-import { AnchorCoordinates } from '@/domain/foundation/Layout/types.ts';
+import { TileId } from '@/domain/Inventory/types.ts';
+import { AnchorCoordinates } from '@/domain/Board/types.ts';
 
 export default class PlacementBuilder {
   static execute(
     context: GameContext,
     args: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> },
   ): Placement {
-    const { layout, turnkeeper } = context;
+    const { board } = context;
     const { coords, tileSequence } = args;
     if (tileSequence.length === 0) throw new Error('Tile sequence can`t be empty');
-    const axisCells = layout.getAxisCells(coords);
+    const axisCells = board.getAxisCells(coords);
     const tilesToPlace = new Set(tileSequence);
     let placement: Placement = [];
     let segmentContainsTile = false;
     let matchedTilesCount = 0;
     for (const cell of axisCells) {
-      const tile = turnkeeper.findTileByCell(cell);
+      const tile = board.findTileByCell(cell);
       if (!tile) {
         if (placement.length === 0) continue;
         if (segmentContainsTile) break;

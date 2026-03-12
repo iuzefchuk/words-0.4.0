@@ -1,9 +1,9 @@
 import { GameContext } from '@/domain/types.ts';
 import { Axis, Letter } from '@/domain/enums.ts';
-import { Dictionary } from '@/domain/foundation/Dictionary/types.ts';
-import { Inventory } from '@/domain/state/Inventory/types.ts';
-import { AnchorCoordinates, CellIndex, Layout } from '@/domain/foundation/Layout/types.ts';
-import { Turnkeeper } from '@/domain/state/Turnkeeper/types.ts';
+import { Board } from '@/domain/Board/types.ts';
+import { Dictionary } from '@/domain/Dictionary/types.ts';
+import { Inventory } from '@/domain/Inventory/types.ts';
+import { AnchorCoordinates, CellIndex } from '@/domain/Board/types.ts';
 
 export default class AnchorLettersComputer {
   private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
@@ -12,17 +12,14 @@ export default class AnchorLettersComputer {
 
   constructor(private readonly context: GameContext) {}
 
-  private get layout(): Layout {
-    return this.context.layout;
+  private get board(): Board {
+    return this.context.board;
   }
   private get dictionary(): Dictionary {
     return this.context.dictionary;
   }
   private get inventory(): Inventory {
     return this.context.inventory;
-  }
-  private get turnkeeper(): Turnkeeper {
-    return this.context.turnkeeper;
   }
 
   getFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
@@ -37,7 +34,7 @@ export default class AnchorLettersComputer {
   }
 
   private computeFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
-    const axisCells = this.layout.getAxisCells(coords);
+    const axisCells = this.board.getAxisCells(coords);
     const position = axisCells.indexOf(coords.cell);
     if (position === -1) throw new Error('Cell not found in axis cells');
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
@@ -65,7 +62,7 @@ export default class AnchorLettersComputer {
   ): string {
     let result = '';
     for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
-      const tile = this.turnkeeper.findTileByCell(axisCells[i]);
+      const tile = this.board.findTileByCell(axisCells[i]);
       if (!tile) break;
       const letter = this.inventory.getTileLetter(tile);
       result = direction === -1 ? letter + result : result + letter;

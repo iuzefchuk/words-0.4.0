@@ -1,5 +1,5 @@
 import { Letter } from '@/domain/enums.ts';
-import InventoryClass from '@/domain/state/Inventory/index.ts';
+import InventoryClass from '@/domain/Inventory/index.ts';
 
 export type Inventory = InventoryClass;
 

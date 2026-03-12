@@ -1,6 +1,6 @@
 import { Bonus, Axis } from '@/domain/enums.ts';
-import { BONUS_CELL_INDEXES } from '@/domain/foundation/Layout/constants.ts';
-import { CellIndex, AnchorCoordinates } from '@/domain/foundation/Layout/types.ts';
+import { BONUS_CELL_INDEXES } from '@/domain/Board/constants.ts';
+import { CellIndex, AnchorCoordinates } from '@/domain/Board/types.ts';
 
 export default class Layout {
   private static readonly cellsPerAxis = 15;

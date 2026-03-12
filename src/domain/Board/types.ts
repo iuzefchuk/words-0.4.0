@@ -1,7 +1,7 @@
 import { Axis } from '@/domain/enums.ts';
-import LayoutClass from '@/domain/foundation/Layout/index.ts';
+import BoardClass from '@/domain/Board/index.ts';
 
-export type Layout = LayoutClass;
+export type Board = BoardClass;
 
 export type CellIndex = number;
 
