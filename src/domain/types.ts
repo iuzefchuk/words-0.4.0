@@ -5,6 +5,7 @@ import { Inventory } from '@/domain/model/Inventory/types.ts';
 import { Turnkeeper } from '@/domain/model/Turn/types.ts';
 import { CellIndex } from '@/domain/reference/Layout/types.ts';
 import { TileId } from '@/domain/model/Inventory/types.ts';
+import Placement from '@/domain/model/Placement.ts';
 
 export type GameContext = {
   board: Board;
@@ -13,9 +14,8 @@ export type GameContext = {
   turnkeeper: Turnkeeper;
 };
 
-export type Link = { readonly cell: CellIndex; readonly tile: TileId };
-
-export type Placement = Array<Link>;
+export { default as Placement } from '@/domain/model/Placement.ts';
+export type { Link } from '@/domain/model/Placement.ts';
 
 // Validation result types (shared between state and rules layers)
 

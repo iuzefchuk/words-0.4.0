@@ -113,7 +113,7 @@ export default class PlacementGenerator {
     }
 
     static create({ context, lettersComputer, playerTileCollection, coords }: GeneratorArguments): TaskDispatcher {
-      const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: [] };
+      const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: Placement.create() };
       const computeds: DispatcherComputeds = {
         axisCells: context.board.getAxisCells(coords),
         oppositeAxis: context.board.getOppositeAxis(coords.axis),

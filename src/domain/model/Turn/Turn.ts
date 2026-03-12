@@ -1,7 +1,7 @@
 import { Player, ValidationStatus } from '@/domain/enums.ts';
 import { CellIndex } from '@/domain/reference/Layout/types.ts';
 import { TileId } from '@/domain/model/Inventory/types.ts';
-import { Placement, Link, ValidationResult, UnvalidatedResult } from '@/domain/types.ts';
+import { Placement, ValidationResult, UnvalidatedResult } from '@/domain/types.ts';
 
 export default class Turn {
   private constructor(
@@ -11,7 +11,7 @@ export default class Turn {
   ) {}
 
   static create({ player }: { player: Player }): Turn {
-    const initialPlacement: Placement = [];
+    const initialPlacement = Placement.create();
     const validationResult: UnvalidatedResult = { status: ValidationStatus.Unvalidated };
     return new Turn(player, initialPlacement, validationResult);
   }
@@ -45,7 +45,7 @@ export default class Turn {
   }
 
   get links(): ReadonlyArray<{ cell: CellIndex; tile: TileId }> {
-    return this.initialPlacement;
+    return [...this.initialPlacement];
   }
 
   setValidation(result: ValidationResult): void {
@@ -53,24 +53,15 @@ export default class Turn {
   }
 
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
-    this.validateCellAndTileAbsence(cell, tile);
-    this.initialPlacement.push({ cell, tile } as Link);
-    this.initialPlacement.sort((a, b) => a.cell - b.cell);
+    this.initialPlacement.placeTile({ cell, tile });
   }
 
   removeTile({ tile }: { tile: TileId }): void {
-    const index = this.initialPlacement.findIndex(link => link.tile === tile);
-    if (index === -1) throw new Error(`Tile ${tile} not found`);
-    this.initialPlacement.splice(index, 1);
+    this.initialPlacement.removeTile({ tile });
   }
 
   reset(): void {
-    this.initialPlacement.length = 0;
+    this.initialPlacement.reset();
     this.validationResult = { status: ValidationStatus.Unvalidated };
-  }
-
-  private validateCellAndTileAbsence(cell: CellIndex, tile: TileId): void {
-    if (this.initialPlacement.some(link => link.cell === cell)) throw new Error(`Cell ${cell} already connected`);
-    if (this.initialPlacement.some(link => link.tile === tile)) throw new Error(`Tile ${tile} already connected`);
   }
 }

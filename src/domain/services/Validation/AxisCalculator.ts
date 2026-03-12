@@ -1,12 +1,11 @@
 import { Axis } from '@/domain/enums.ts';
 import { CellIndex } from '@/domain/reference/Layout/types.ts';
-import { GameContext } from '@/domain/types.ts';
+import { Board } from '@/domain/model/Board/types.ts';
 
 export default class AxisCalculator {
   private static readonly defaultAxis = Axis.X;
 
-  static execute(context: GameContext, args: { cellSequence: ReadonlyArray<CellIndex> }): Axis {
-    const { board } = context;
+  static execute(board: Board, args: { cellSequence: ReadonlyArray<CellIndex> }): Axis {
     const { cellSequence } = args;
     let normalizedSequence = cellSequence;
     if (cellSequence.length === 1) {

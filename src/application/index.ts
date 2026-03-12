@@ -1,114 +1,163 @@
 import { TIME } from '@/shared/constants.ts';
 import { wait } from '@/shared/helpers.ts';
-import GameDomain from '@/domain/index.ts';
-import { Bonus, Letter, Player } from '@/domain/enums.ts';
+import { Player, Bonus, Letter } from '@/domain/enums.ts';
+import { GameContext, Placement } from '@/domain/types.ts';
+import Board from '@/domain/model/Board/index.ts';
+import Dictionary from '@/domain/reference/Dictionary/index.ts';
+import Layout from '@/domain/reference/Layout/index.ts';
+import Inventory from '@/domain/model/Inventory/index.ts';
+import Turnkeeper from '@/domain/model/Turn/index.ts';
+import TurnValidator from '@/domain/services/Validation/index.ts';
+import TurnGenerator from '@/domain/services/Generation/index.ts';
+import TurnCompletion from '@/domain/services/TurnCompletion/index.ts';
 import { GameCell, GameTile, GameState } from '@/application/types.ts';
 
 export default class Game {
+  private static readonly layout = Layout.create();
+  private static readonly dictionary = Dictionary.create();
+
   readonly bonuses = Bonus;
   readonly letters = Letter;
 
-  private constructor(private gameDomain: GameDomain) {}
+  private isMutable: boolean = true;
+
+  private constructor(
+    private board: Board,
+    private inventory: Inventory,
+    private turnkeeper: Turnkeeper,
+  ) {}
 
   static start(): Game {
-    const gameDomain = GameDomain.create();
-    return new Game(gameDomain);
+    const players = Object.values(Player);
+    const board = Board.create(Game.layout);
+    const inventory = Inventory.create({ players });
+    const turnkeeper = Turnkeeper.create({ players, board });
+    return new Game(board, inventory, turnkeeper);
+  }
+
+  private get context(): GameContext {
+    return {
+      board: this.board,
+      dictionary: Game.dictionary,
+      inventory: this.inventory,
+      turnkeeper: this.turnkeeper,
+    };
   }
 
   get layoutCells(): ReadonlyArray<GameCell> {
-    return this.gameDomain.layoutCells;
+    return this.board.cells;
   }
 
   get state(): GameState {
     return {
-      isFinished: this.gameDomain.isFinished,
-      tilesRemaining: this.gameDomain.tilesRemaining,
-      userTiles: this.gameDomain.userTiles,
-      currentTurnScore: this.gameDomain.currentTurnScore,
-      userScore: this.gameDomain.getScoreFor(Player.User),
-      opponentScore: this.gameDomain.getScoreFor(Player.Opponent),
-      currentPlayerIsUser: this.gameDomain.currentPlayerIsUser,
-      userPassWillBeResign: this.gameDomain.userPassWillBeResign,
+      isFinished: !this.isMutable,
+      tilesRemaining: this.inventory.unusedTilesCount,
+      userTiles: this.inventory.getTilesFor(Player.User),
+      currentTurnScore: this.turnkeeper.currentTurnScore,
+      userScore: this.turnkeeper.getScoreFor(Player.User),
+      opponentScore: this.turnkeeper.getScoreFor(Player.Opponent),
+      currentPlayerIsUser: this.turnkeeper.currentPlayer === Player.User,
+      userPassWillBeResign: this.turnkeeper.hasPlayerPassed(Player.User),
     };
   }
 
   isCellInCenterOfLayout(cell: GameCell): boolean {
-    return this.gameDomain.isCellInCenterOfLayout(cell);
+    return this.board.isCellCenter(cell);
   }
 
   getCellBonus(cell: GameCell): string | null {
-    return this.gameDomain.getCellBonus(cell);
+    return this.board.getBonusForCell(cell);
   }
 
   findTileByCell(cell: GameCell): GameTile | undefined {
-    return this.gameDomain.findTileByCell(cell);
+    return this.board.findTileByCell(cell);
   }
 
   findCellByTile(tile: GameTile): GameCell | undefined {
-    return this.gameDomain.findCellByTile(tile);
+    return this.board.findCellByTile(tile);
   }
 
   isTileConnected(tile: GameTile): boolean {
-    return this.gameDomain.isTileConnected(tile);
+    return this.board.isTileConnected(tile);
   }
 
   areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {
-    return this.gameDomain.areTilesSame(firstTile, secondTile);
+    return this.inventory.areTilesEqual(firstTile, secondTile);
   }
 
   getTileLetter(tile: GameTile): string {
-    return this.gameDomain.getTileLetter(tile);
+    return this.inventory.getTileLetter(tile);
   }
 
   isCellLastConnectionInTurn(cell: GameCell): boolean {
-    return this.gameDomain.isCellLastConnectionInTurn(cell);
+    return this.turnkeeper.currentTurnCellSequence?.at(-1) === cell;
   }
 
   wasTileUsedInPreviousTurn(tile: GameTile): boolean {
-    return this.gameDomain.wasTileUsedInPreviousTurn(tile);
+    const { previousTurnTileSequence } = this.turnkeeper;
+    if (!previousTurnTileSequence) return false;
+    return previousTurnTileSequence.includes(tile);
   }
 
   shuffleUserTiles(): void {
-    this.gameDomain.shuffleUserTiles();
+    this.ensureMutability();
+    this.inventory.shuffleTilesFor(Player.User);
   }
 
   placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
-    this.gameDomain.placeTile({ cell, tile });
-    this.gameDomain.validateTurn();
+    this.ensureMutability();
+    this.turnkeeper.placeTile({ cell, tile });
+    this.validateTurn();
   }
 
   removeTile(tile: GameTile): void {
-    this.gameDomain.removeTile(tile);
-    this.gameDomain.validateTurn();
+    this.ensureMutability();
+    this.turnkeeper.removeTile({ tile });
+    this.validateTurn();
   }
 
   resetTurn(): void {
-    this.gameDomain.resetTurn();
+    this.ensureMutability();
+    this.turnkeeper.resetCurrentTurn();
   }
 
   async saveTurn(): Promise<void> {
-    this.gameDomain.saveTurn();
-    if (!this.gameDomain.currentPlayerIsUser) await this.processOpponentTurn();
+    this.ensureMutability();
+    TurnCompletion.execute(this.context, this.turnkeeper.currentPlayer);
+    if (this.turnkeeper.currentPlayer !== Player.User) await this.processOpponentTurn();
   }
 
   async passTurn(): Promise<void> {
-    this.gameDomain.passTurn();
-    if (!this.gameDomain.currentPlayerIsUser) await this.processOpponentTurn();
+    this.ensureMutability();
+    this.turnkeeper.passCurrentTurn();
+    if (this.turnkeeper.currentPlayer !== Player.User) await this.processOpponentTurn();
   }
 
   resignGame(): void {
-    this.gameDomain.resignGame();
+    this.ensureMutability();
+    this.turnkeeper.resignCurrentTurn();
+    this.isMutable = false;
+  }
+
+  private validateTurn(): void {
+    const result = TurnValidator.execute(this.context, this.turnkeeper.currentTurnPlacement);
+    this.turnkeeper.setCurrentTurnValidation(result);
+  }
+
+  private generatePlacement(player: Player): Placement | null {
+    for (const placement of TurnGenerator.execute(this.context, player)) return placement;
+    return null;
   }
 
   private async processOpponentTurn(): Promise<void> {
     await this.setMinimumExecutionTime(() => {
-      const generatedPlacement = this.gameDomain.generatePlacement({ player: Player.Opponent });
+      const generatedPlacement = this.generatePlacement(Player.Opponent);
       if (generatedPlacement === null) {
-        this.gameDomain.passTurn();
+        this.turnkeeper.passCurrentTurn();
       } else {
-        for (const link of generatedPlacement) this.gameDomain.placeTile({ cell: link.cell, tile: link.tile });
-        this.gameDomain.validateTurn();
-        this.gameDomain.saveTurn();
+        for (const link of generatedPlacement) this.turnkeeper.placeTile({ cell: link.cell, tile: link.tile });
+        this.validateTurn();
+        TurnCompletion.execute(this.context, this.turnkeeper.currentPlayer);
       }
     });
   }
@@ -123,5 +172,9 @@ export default class Game {
     const delay = delayTimeMs - elapsed;
     if (delay > 0) await wait(delay);
     return result;
+  }
+
+  private ensureMutability(): void {
+    if (!this.isMutable) throw new Error('Game is immutable');
   }
 }

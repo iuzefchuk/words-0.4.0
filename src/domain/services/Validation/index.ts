@@ -60,9 +60,9 @@ export default class TurnValidator {
   };
 
   private static computeAndValidateSequences(state: PipelineInput): PipelineThroughput<PipelineState<SequencesOutput>> {
-    const tiles = state.initialPlacement.map(placement => placement.tile);
+    const tiles = state.initialPlacement.tileSequence;
     if (tiles.length === 0) return this.Pipeline.fail(ValidationErrors.InvalidTilePlacement);
-    const cells = state.initialPlacement.map(placement => placement.cell);
+    const cells = state.initialPlacement.cellSequence;
     if (cells.length === 0) return this.Pipeline.fail(ValidationErrors.InvalidCellPlacement);
     const { board, turnkeeper } = state.context;
     const anchorCells = board.getAnchorCells(turnkeeper.historyIsEmpty);
@@ -77,15 +77,15 @@ export default class TurnValidator {
   ): PipelineThroughput<PipelineState<PlacementsOutput>> {
     const { board } = state.context;
     const tileSequence = state.sequences.tile;
-    const primaryAxis = AxisCalculator.execute(state.context, { cellSequence: state.sequences.cell });
+    const primaryAxis = AxisCalculator.execute(board, { cellSequence: state.sequences.cell });
     const coords = { axis: primaryAxis, cell: state.sequences.cell[0] };
-    const primaryPlacement = PlacementBuilder.execute(state.context, { coords, tileSequence });
+    const primaryPlacement = PlacementBuilder.execute(board, { coords, tileSequence });
     const isPlacementUsable = (placement: Placement): boolean => placement.length > 1;
     if (!isPlacementUsable(primaryPlacement)) return this.Pipeline.fail(ValidationErrors.InvalidTilePlacement);
     const placements: Array<Placement> = [primaryPlacement];
     for (const cell of state.sequences.cell) {
       const coords: AnchorCoordinates = { axis: board.getOppositeAxis(primaryAxis), cell };
-      const placement = PlacementBuilder.execute(state.context, { coords, tileSequence });
+      const placement = PlacementBuilder.execute(board, { coords, tileSequence });
       if (isPlacementUsable(placement)) placements.push(placement);
     }
     return this.Pipeline.pass(state, { placements });
@@ -99,7 +99,7 @@ export default class TurnValidator {
     for (let i = 0; i < state.placements.length; i++) {
       const placement = state.placements[i];
       let word = '';
-      for (let j = 0; j < placement.length; j++) word += inventory.getTileLetter(placement[j].tile);
+      for (const { tile } of placement) word += inventory.getTileLetter(tile);
       words[i] = word;
     }
     return dictionary.containsWords(words)

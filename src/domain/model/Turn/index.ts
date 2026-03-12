@@ -5,20 +5,18 @@ import { CellIndex } from '@/domain/reference/Layout/types.ts';
 import { Placement, ValidationResult } from '@/domain/types.ts';
 import { Board } from '@/domain/model/Board/types.ts';
 import History from '@/domain/model/Turn/History.ts';
+import ActionTracker from '@/domain/model/Turn/ActionTracker.ts';
 
 export default class Turnkeeper {
-  private static readonly finalActions = [PlayerAction.Won, PlayerAction.Tied];
-  private isMutable: boolean = true;
-
   private constructor(
     private readonly history: History,
-    private lastActions: Map<Player, PlayerAction>,
+    private readonly actionTracker: ActionTracker,
   ) {}
 
   static create({ players, board }: { players: Array<Player>; board: Board }): Turnkeeper {
     const history = History.create(board);
-    const lastActions = new Map(players.map(player => [player, PlayerAction.Joined]));
-    const manager = new Turnkeeper(history, lastActions);
+    const actionTracker = ActionTracker.create(players);
+    const manager = new Turnkeeper(history, actionTracker);
     manager.startTurnForNextPlayer();
     return manager;
   }
@@ -60,59 +58,42 @@ export default class Turnkeeper {
   }
 
   hasPlayerPassed(player: Player): boolean {
-    return this.lastActions.get(player) === PlayerAction.PlayedByPass;
+    return this.actionTracker.hasPlayerPassed(player);
   }
 
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
-    this.ensureMutability();
     this.history.placeTile({ cell, tile });
   }
 
   removeTile({ tile }: { tile: TileId }): void {
-    this.ensureMutability();
     this.history.removeTile({ tile });
   }
 
   setCurrentTurnValidation(result: ValidationResult): void {
-    this.ensureMutability();
     this.history.currentTurn.setValidation(result);
   }
 
   resetCurrentTurn(): void {
-    this.ensureMutability();
     this.history.resetCurrentTurn();
   }
 
   saveCurrentTurn(): void {
-    this.ensureMutability();
     if (!this.currentTurnIsValid) throw new Error('Turn is not valid');
-    this.recordPlayerAction(this.history.currentPlayer, PlayerAction.PlayedBySave);
+    this.actionTracker.record(this.history.currentPlayer, PlayerAction.PlayedBySave);
     this.startTurnForNextPlayer();
   }
 
   passCurrentTurn(): void {
-    this.ensureMutability();
-    this.recordPlayerAction(this.history.currentPlayer, PlayerAction.PlayedByPass);
+    this.actionTracker.record(this.history.currentPlayer, PlayerAction.PlayedByPass);
     this.startTurnForNextPlayer();
   }
 
   resignCurrentTurn(): void {
-    this.ensureMutability();
     const winner = this.history.nextPlayer;
-    this.recordPlayerAction(winner, PlayerAction.Won);
-    this.isMutable = false;
+    this.actionTracker.record(winner, PlayerAction.Won);
   }
 
   private startTurnForNextPlayer(): void {
-    this.ensureMutability();
     this.history.createNewTurnFor(this.history.nextPlayer);
-  }
-
-  private ensureMutability(): void {
-    if (!this.isMutable) throw new Error('Turns are immutable');
-  }
-
-  private recordPlayerAction(player: Player, move: PlayerAction): void {
-    this.lastActions.set(player, move);
   }
 }

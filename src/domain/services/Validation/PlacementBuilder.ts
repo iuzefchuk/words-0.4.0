@@ -1,37 +1,38 @@
-import { GameContext, Placement } from '@/domain/types.ts';
+import { Placement } from '@/domain/types.ts';
+import { Link } from '@/domain/model/Placement.ts';
 import { TileId } from '@/domain/model/Inventory/types.ts';
 import { AnchorCoordinates } from '@/domain/reference/Layout/types.ts';
+import { Board } from '@/domain/model/Board/types.ts';
 
 export default class PlacementBuilder {
   static execute(
-    context: GameContext,
+    board: Board,
     args: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> },
   ): Placement {
-    const { board } = context;
     const { coords, tileSequence } = args;
     if (tileSequence.length === 0) throw new Error('Tile sequence can`t be empty');
     const axisCells = board.getAxisCells(coords);
     const tilesToPlace = new Set(tileSequence);
-    let placement: Placement = [];
+    let links: Array<Link> = [];
     let segmentContainsTile = false;
     let matchedTilesCount = 0;
     for (const cell of axisCells) {
       const tile = board.findTileByCell(cell);
       if (!tile) {
-        if (placement.length === 0) continue;
+        if (links.length === 0) continue;
         if (segmentContainsTile) break;
-        placement = [];
+        links = [];
         segmentContainsTile = false;
         matchedTilesCount = 0;
         continue;
       }
-      placement.push({ cell, tile });
+      links.push({ cell, tile });
       if (tilesToPlace.has(tile)) {
         segmentContainsTile = true;
         matchedTilesCount++;
       }
     }
     const isValid = segmentContainsTile && matchedTilesCount === tileSequence.length;
-    return isValid ? placement : [];
+    return isValid ? Placement.from(links) : Placement.create();
   }
 }

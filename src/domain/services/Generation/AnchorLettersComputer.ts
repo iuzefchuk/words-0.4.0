@@ -5,12 +5,14 @@ import { Dictionary } from '@/domain/reference/Dictionary/types.ts';
 import { Inventory } from '@/domain/model/Inventory/types.ts';
 import { AnchorCoordinates, CellIndex } from '@/domain/reference/Layout/types.ts';
 
+type AnchorLettersContext = Pick<GameContext, 'board' | 'dictionary' | 'inventory'>;
+
 export default class AnchorLettersComputer {
   private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
     Object.values(Axis).map(axis => [axis, new Map()]),
   );
 
-  constructor(private readonly context: GameContext) {}
+  constructor(private readonly context: AnchorLettersContext) {}
 
   private get board(): Board {
     return this.context.board;
