@@ -4,14 +4,16 @@ import { shallowRef, ref, computed, triggerRef } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 
 export default class InventoryStore {
-  static readonly instance = defineStore('inventory', () => {
-    const gameStore = GameStore.instance;
-    const store = new InventoryStore(gameStore);
+  static readonly getInstance = defineStore('inventory', () => {
+    const storeGame = GameStore.getInstance();
+    const store = new InventoryStore(storeGame);
     return {
       tiles: store.tilesRef,
       selectedTile: store.selectedTileRef,
       inventoryIsFull: computed(() => store.inventoryIsFull),
       init: (userTiles: ReadonlyArray<GameTile>) => store.init(userTiles),
+      isTileSelected: store.isTileSelected.bind(store),
+      isTileVisible: store.isTileVisible.bind(store),
       handleClickRackCell: store.handleClickRackCell.bind(store),
       handleClickRackTile: store.handleClickRackTile.bind(store),
       handleClickBoardCell: store.handleClickBoardCell.bind(store),
@@ -20,7 +22,7 @@ export default class InventoryStore {
   });
 
   private constructor(
-    private gameStore: ReturnType<typeof GameStore.instance>,
+    private gameStore: ReturnType<typeof GameStore.getInstance>,
     private tilesRef = shallowRef<Array<GameTile>>([]),
     private selectedTileRef = ref<GameTile | null>(null),
   ) {}
@@ -70,9 +72,9 @@ export default class InventoryStore {
     return this.selectedTile !== null && this.gameStore.areTilesSame(this.selectedTile, tile);
   }
 
-  // private isTileVisible(tile: GameTile): boolean {
-  //   return this.isTileInInventory(tile) && !this.gameStore.isTileConnected(tile);
-  // }
+  private isTileVisible(tile: GameTile): boolean {
+    return this.isTileInInventory(tile) && !this.gameStore.isTileConnected(tile);
+  }
 
   private switchTiles(firstTile: GameTile, secondTile: GameTile): void {
     const firstIdx = this.getTileIdx(firstTile);

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { useStoreGame } from '@/gui/stores/GameStore';
+import GameStore from '@/gui/stores/GameStore.ts';
+const storeGame = GameStore.getInstance();
 
-const storeGame = useStoreGame();
+// TODO
 </script>
 
 <template>

@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import { useStoreGame } from '@/gui/stores/GameStore';
-import { useStoreInventory } from '@/gui/stores/Inventory';
+import GameStore from '@/gui/stores/GameStore.ts';
+import InventoryStore from '@/gui/stores/InventoryStore.ts';
 import { storeToRefs } from 'pinia';
-
-const storeGame = useStoreGame();
-const storeInventory = useStoreInventory();
+const storeGame = GameStore.getInstance();
+const storeInventory = InventoryStore.getInstance();
 const { tilesRemaining } = storeToRefs(storeGame);
-const { inventoryList } = storeToRefs(storeInventory);
+const { tiles } = storeToRefs(storeInventory);
 </script>
 
 <template>
@@ -16,7 +15,7 @@ const { inventoryList } = storeToRefs(storeInventory);
       <span class="inventory__count-item">{{ t('game.unassigned_count') }}</span>
     </li>
     <li
-      v-for="(tile, idx) in inventoryList"
+      v-for="(tile, idx) in tiles"
       :key="idx"
       class="inventory__cell"
       @click="storeInventory.handleClickRackCell(idx)"

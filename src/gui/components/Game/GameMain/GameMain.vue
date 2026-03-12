@@ -3,7 +3,6 @@ import GameMainHeader from '@/gui/components/Game/GameMain/GameMainHeader.vue';
 import GameMainBoard from '@/gui/components/Game/GameMain/GameMainBoard/GameMainBoard.vue';
 import GameMainFooter from '@/gui/components/Game/GameMain/GameMainFooter/GameMainFooter.vue';
 import { ref } from 'vue';
-
 const isBlurred = ref(false);
 </script>
 

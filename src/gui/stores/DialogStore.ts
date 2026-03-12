@@ -25,7 +25,7 @@ export type DialogResult = {
 };
 
 export default class DialogStore {
-  static readonly instance = defineStore('dialog', () => {
+  static readonly getInstance = defineStore('dialog', () => {
     const store = new DialogStore();
     return {
       title: store.titleRef,
@@ -34,8 +34,8 @@ export default class DialogStore {
       confirmText: store.confirmTextRef,
       cancelIsHidden: store.cancelIsHiddenRef,
       confirmIsHidden: store.confirmIsHiddenRef,
-      trigger: store.trigger.bind(this),
-      resolve: store.resolve.bind(this),
+      trigger: store.trigger.bind(store),
+      resolve: store.resolve.bind(store),
     };
   });
 

@@ -2,23 +2,24 @@
 import GameTile from '@/gui/components/Game/GameTile.vue';
 import { GameCell } from '@/application/types.ts';
 import { PropType, computed } from 'vue';
-import { useStoreGame } from '@/gui/stores/GameStore';
-import { useStoreInventory } from '@/gui/stores/Inventory';
-import { getBonusName } from '@/gui/mappings';
+import { useStoreGame } from '@/gui/stores/GameStore.ts';
+import { useStoreInventory } from '@/gui/stores/InventoryStore.ts';
+import { getBonusName } from '@/gui/mappings.ts';
 
-const { cell } = defineProps({
+// TODO
+const props = defineProps({
   cell: { type: Object as PropType<GameCell>, required: true },
 });
 const storeGame = useStoreGame();
 const storeInventory = useStoreInventory();
 const bonus = computed(() => {
-  return storeGame.getCellBonus(cell);
+  return storeGame.getCellBonus(props.cell);
 });
 const bonusName = computed(() => {
   return bonus.value ? getBonusName(bonus.value) : '';
 });
 const tile = computed(() => {
-  return storeGame.findTileConnectedToCell(cell);
+  return storeGame.findTileConnectedToCell(props.cell);
 });
 const tileLetter = computed(() => {
   return tile.value ? storeGame.getTileLetter(tile.value) : '';

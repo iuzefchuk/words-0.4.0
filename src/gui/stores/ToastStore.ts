@@ -8,7 +8,7 @@ export default class ToastStore {
   private static readonly timeoutMs = 2500;
   private static readonly maxLimit = 10;
 
-  static readonly instance = defineStore('toast', () => {
+  static readonly getInstance = defineStore('toast', () => {
     const store = new ToastStore();
     return {
       messages: store.messagesRef,
@@ -27,7 +27,7 @@ export default class ToastStore {
     return this.messages.length >= ToastStore.maxLimit;
   }
 
-  private async addMessage(html: string): Promise<void> {
+  async addMessage(html: string): Promise<void> {
     const message: Message = { html, timestamp: crypto.randomUUID() };
     if (this.maxLimitIsReached) this.messages.shift();
     this.messages.push(message);
@@ -35,7 +35,7 @@ export default class ToastStore {
     this.removeMessage(message.timestamp);
   }
 
-  private removeMessage(timestamp: string): void {
+  removeMessage(timestamp: string): void {
     const index = this.messages.findIndex(toast => toast.timestamp === timestamp);
     if (index !== -1) this.messages.splice(index, 1);
   }

@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-import { useStoreDialog } from '@/gui/stores/DialogStore';
-import { useStoreGame } from '@/gui/stores/GameStore';
-import { useStoreInventory } from '@/gui/stores/Inventory';
-import { useStoreToast } from '@/gui/stores/ToastStore';
+import DialogStore from '@/gui/stores/DialogStore.ts';
+import GameStore from '@/gui/stores/GameStore.ts';
+import InventoryStore from '@/gui/stores/InventoryStore.ts';
+import ToastStore from '@/gui/stores/ToastStore.ts';
 import { storeToRefs } from 'pinia';
 
-const storeDialog = useStoreDialog();
-const storeGame = useStoreGame();
-const storeInventory = useStoreInventory();
-const storeToast = useStoreToast();
+// TODO
+const storeDialog = DialogStore.getInstance();
+const storeGame = GameStore.getInstance();
+const storeInventory = InventoryStore.getInstance();
+const storeToast = ToastStore.getInstance();
 const { actionsAreDisabled } = storeToRefs(storeGame);
 const { isInventoryFull } = storeToRefs(storeInventory);
 const { willUserPassBeResign, shuffleUserTiles, passTurn, resignGame } = storeGame;

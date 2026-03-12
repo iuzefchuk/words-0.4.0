@@ -1,45 +1,67 @@
 import Game from '@/application/index.ts';
-import { GameCell, GameTile } from '@/application/types.ts';
+import { GameCell, GameState, GameTile } from '@/application/types.ts';
 import { defineStore } from 'pinia';
-import { computed, shallowRef, triggerRef } from 'vue';
+import { computed, Ref, shallowRef, triggerRef } from 'vue';
 
 export default class GameStore {
-  static readonly instance = defineStore('game', () => {
+  static readonly getInstance = defineStore('game', () => {
     const game = Game.start();
-    const stateRef = shallowRef(game.state);
-    const state = stateRef.value;
-    function runSetter(action: () => void): void {
-      action();
-      triggerRef(stateRef);
-    }
+    const state = new this.ReactiveState(game);
     return {
       bonuses: game.bonuses,
       letters: game.letters,
       layoutCells: game.layoutCells,
-      gameIsFinished: computed(() => state.isFinished),
-      tilesRemaining: computed(() => state.tilesRemaining),
-      userTiles: computed(() => state.userTiles),
-      unsavedTurnScore: computed(() => state.currentTurnScore),
-      userScore: computed(() => state.userScore),
-      opponentScore: computed(() => state.opponentScore),
-      currentPlayerIsUser: computed(() => state.currentPlayerIsUser),
-      userPassWillBeResign: computed(() => state.userPassWillBeResign),
-      isCellInCenterOfLayout: (cell: GameCell) => game.isCellInCenterOfLayout(cell),
-      getCellBonus: (cell: GameCell) => game.getCellBonus(cell),
-      findTileConnectedToCell: (cell: GameCell) => game.findTileByCell(cell),
-      findCellConnectedToTile: (tile: GameTile) => game.findCellByTile(tile),
-      isTileConnected: (tile: GameTile) => game.isTileConnected(tile),
-      areTilesSame: (firstTile: GameTile, secondTile: GameTile) => game.areTilesSame(firstTile, secondTile),
-      getTileLetter: (tile: GameTile) => game.getTileLetter(tile),
-      isCellLastConnectionInTurn: (cell: GameCell) => game.isCellLastConnectionInTurn(cell),
-      wasTileUsedInLastTurn: (tile: GameTile) => game.wasTileUsedInPreviousTurn(tile),
-      shuffleUserTiles: runSetter(() => game.shuffleUserTiles()),
-      placeTile: (args: { cell: GameCell; tile: GameTile }) => runSetter(() => game.placeTile(args)),
-      removeTile: (tile: GameTile) => runSetter(() => game.removeTile(tile)),
-      resetTurn: runSetter(game.resetTurn),
-      saveTurn: runSetter(game.saveTurn),
-      passTurn: runSetter(game.passTurn),
-      resignGame: runSetter(game.resignGame),
+      gameIsFinished: state.isFinished,
+      tilesRemaining: state.tilesRemaining,
+      userTiles: state.userTiles,
+      unsavedTurnScore: state.currentTurnScore,
+      userScore: state.userScore,
+      opponentScore: state.opponentScore,
+      currentPlayerIsUser: state.currentPlayerIsUser,
+      userPassWillBeResign: state.userPassWillBeResign,
+      isCellInCenterOfLayout: game.isCellInCenterOfLayout,
+      getCellBonus: game.getCellBonus,
+      findTileConnectedToCell: game.findTileByCell,
+      findCellConnectedToTile: game.findCellByTile,
+      isTileConnected: game.isTileConnected,
+      areTilesSame: game.areTilesSame,
+      getTileLetter: game.getTileLetter,
+      isCellLastConnectionInTurn: game.isCellLastConnectionInTurn,
+      wasTileUsedInLastTurn: game.wasTileUsedInPreviousTurn,
+      shuffleUserTiles: state.updateAfterCallback(() => game.shuffleUserTiles()),
+      placeTile: (args: { cell: GameCell; tile: GameTile }) => state.updateAfterCallback(() => game.placeTile(args)),
+      removeTile: (tile: GameTile) => state.updateAfterCallback(() => game.removeTile(tile)),
+      resetTurn: () => state.updateAfterCallback(() => game.resetTurn()),
+      saveTurn: () => state.updateAfterCallback(() => game.saveTurn()),
+      passTurn: () => state.updateAfterCallback(() => game.passTurn()),
+      resignGame: () => state.updateAfterCallback(() => game.resignGame()),
     };
   });
+
+  private static ReactiveState = class {
+    readonly isFinished = computed(() => this.state.isFinished);
+    readonly tilesRemaining = computed(() => this.state.tilesRemaining);
+    readonly userTiles = computed(() => this.state.userTiles);
+    readonly currentTurnScore = computed(() => this.state.currentTurnScore);
+    readonly userScore = computed(() => this.state.userScore);
+    readonly opponentScore = computed(() => this.state.opponentScore);
+    readonly currentPlayerIsUser = computed(() => this.state.currentPlayerIsUser);
+    readonly userPassWillBeResign = computed(() => this.state.userPassWillBeResign);
+
+    private readonly stateRef: Ref<GameState>;
+
+    constructor(private readonly game: Game) {
+      this.stateRef = shallowRef(this.game.state);
+    }
+
+    private get state(): GameState {
+      return this.stateRef.value;
+    }
+
+    updateAfterCallback<T>(callback: () => T): T {
+      const result = callback();
+      triggerRef(this.stateRef);
+      return result;
+    }
+  };
 }

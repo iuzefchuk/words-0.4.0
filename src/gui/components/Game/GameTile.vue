@@ -1,19 +1,17 @@
 <script lang="ts" setup>
 import { watch, ref, inject } from 'vue';
-import { getLetterSvgHtml } from '@/gui/mappings';
+import { getLetterSvgHtml } from '@/gui/mappings.ts';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-
 const transitionDurationMs = inject(transitionDurationMsKey);
-const { letter, isInverted, isHighlighted, isElevated } = defineProps({
+const props = defineProps({
   letter: { type: String, required: true },
   isInverted: { type: Boolean, default: false },
   isHighlighted: { type: Boolean, default: false },
   isElevated: { type: Boolean, default: false },
 });
 const transitionIsDisabled = ref(false);
-
 watch(
-  () => letter,
+  () => props.letter,
   newValue => {
     if (newValue) transitionIsDisabled.value = true; // TODO test
     setTimeout(() => {
@@ -21,6 +19,7 @@ watch(
     }, transitionDurationMs);
   },
 );
+// TODO test
 </script>
 
 <template>

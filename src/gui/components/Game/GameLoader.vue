@@ -3,9 +3,9 @@ import { ref, computed, watch, inject } from 'vue';
 import { useCounter } from '@/gui/composables/counter.ts';
 import GameTile from './GameTile.vue';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-
+// TODO
 const transitionDurationMs = inject(transitionDurationMsKey, 0);
-const { isActive } = defineProps({
+const props = defineProps({
   isActive: { type: Boolean, required: true },
 });
 const emit = defineEmits(['derendered']);
@@ -31,7 +31,7 @@ function deinitRenderWithCounter(): void {
 
 function onIncrementCounter(): void {
   if (counter.value <= 1) return;
-  if (!isActive && onlyFirstTileIsElevated.value) deinitRenderWithCounter();
+  if (!props.isActive && onlyFirstTileIsElevated.value) deinitRenderWithCounter();
 }
 
 function isTileElevated(idx: number): boolean {
@@ -39,7 +39,7 @@ function isTileElevated(idx: number): boolean {
 }
 
 watch(
-  () => isActive,
+  () => props.isActive,
   newValue => {
     if (newValue) initRenderWithCounter();
   },

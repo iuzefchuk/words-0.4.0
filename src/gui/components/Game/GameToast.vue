@@ -1,22 +1,20 @@
 <script lang="ts" setup>
-import { useStoreToast } from '@/gui/stores/ToastStore';
-
-const storeToast = useStoreToast();
-const {
-  state: { toastList },
-  removeToast,
-} = storeToast;
+import ToastStore from '@/gui/stores/ToastStore.ts';
+import { storeToRefs } from 'pinia';
+const storeToast = ToastStore.getInstance();
+const { messages } = storeToRefs(storeToast);
+const { removeMessage } = storeToast;
 </script>
 
 <template>
   <Transition name="fade">
-    <div v-if="toastList.length > 0" class="toast">
+    <div v-if="messages.length > 0" class="toast">
       <TransitionGroup class="toast__list game__width-content" tag="ul" name="fade-down" appear>
         <li
-          v-for="{ html, timestamp } in toastList"
+          v-for="{ html, timestamp } in messages"
           :key="timestamp"
           class="toast__item"
-          @click="removeToast(timestamp)"
+          @click="removeMessage(timestamp)"
         >
           <p v-html="html" />
         </li>

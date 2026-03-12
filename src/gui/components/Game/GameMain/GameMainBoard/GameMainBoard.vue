@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import GameMainBoardCell from '@/gui/components/Game/GameMain/GameMainBoard/GameMainBoardCell.vue';
 import GameMainBoardTooltip from '@/gui/components/Game/GameMain/GameMainBoard/GameMainBoardTooltip.vue';
-import { useStoreGame } from '@/gui/stores/GameStore';
-
-const storeGame = useStoreGame();
+import GameStore from '@/gui/stores/GameStore.ts';
+const storeGame = GameStore.getInstance();
 </script>
 
 <template>
