@@ -40,8 +40,8 @@ export type GameState = {
 export default class Game {
   private static readonly dictionary = Dictionary.create();
 
-  readonly bonuses = Bonus;
-  readonly letters = Letter;
+  static readonly bonuses = Bonus;
+  static readonly letters = Letter;
 
   private isMutable: boolean = true;
 

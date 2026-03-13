@@ -27,7 +27,7 @@ export default class ToastStore {
     return this.messages.length >= ToastStore.maxLimit;
   }
 
-  async addMessage(html: string): Promise<void> {
+  private async addMessage(html: string): Promise<void> {
     const message: Message = { html, timestamp: crypto.randomUUID() };
     if (this.maxLimitIsReached) this.messages.shift();
     this.messages.push(message);
@@ -35,7 +35,7 @@ export default class ToastStore {
     this.removeMessage(message.timestamp);
   }
 
-  removeMessage(timestamp: string): void {
+  private removeMessage(timestamp: string): void {
     const index = this.messages.findIndex(toast => toast.timestamp === timestamp);
     if (index !== -1) this.messages.splice(index, 1);
   }

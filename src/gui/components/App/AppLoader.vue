@@ -1,58 +1,19 @@
 <script lang="ts" setup>
-import { ref, computed, watch, inject } from 'vue';
-import { useCounter } from '@/gui/composables/counter.ts';
-import AppItem from '@/gui/components/shared/AppItem.vue';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-// TODO
-const transitionDurationMs = inject(transitionDurationMsKey, 0);
-const props = defineProps({
-  isActive: { type: Boolean, required: true },
-});
+import AppTile from '@/gui/components/shared/AppTile.vue';
+import LoaderController from '@/gui/controllers/LoaderController.ts';
+const props = defineProps({ isActive: { type: Boolean, required: true } });
 const emit = defineEmits(['derendered']);
-const DUMMY_LETTERS = [letters.W, letters.O, letters.R, letters.D, letters.S];
-const { counter, restartCounter, stopCounter } = useCounter(transitionDurationMs);
-const isRendered = ref(false);
-const onlyFirstTileIsElevated = computed(() =>
-  DUMMY_LETTERS.every((letter, idx) => (idx === 0 ? isTileElevated(idx) : !isTileElevated(idx))),
-);
-const remainingCounterValue = computed(() => counter.value % (DUMMY_LETTERS.length + 1));
-const allTilesAreHighlighted = computed(() => counter.value > 0 && remainingCounterValue.value === 0);
-
-function initRenderWithCounter(): void {
-  isRendered.value = true;
-  restartCounter(onIncrementCounter);
-}
-
-function deinitRenderWithCounter(): void {
-  isRendered.value = false;
-  stopCounter();
-  emit('derendered');
-}
-
-function onIncrementCounter(): void {
-  if (counter.value <= 1) return;
-  if (!props.isActive && onlyFirstTileIsElevated.value) deinitRenderWithCounter();
-}
-
-function isTileElevated(idx: number): boolean {
-  return idx < remainingCounterValue.value;
-}
-
-watch(
-  () => props.isActive,
-  newValue => {
-    if (newValue) initRenderWithCounter();
-  },
-  { immediate: true },
-);
+const controller = new LoaderController(props, emit);
+const { isRendered, INTRO_LETTERS, allTilesAreHighlighted } = controller;
+const isTileElevated = controller.isTileElevated.bind(controller);
 </script>
 
 <template>
   <Transition name="fade">
     <div v-if="isRendered" class="loader">
       <div class="loader__logo">
-        <AppItem
-          v-for="(letter, idx) in DUMMY_LETTERS"
+        <AppTile
+          v-for="(letter, idx) in INTRO_LETTERS"
           :key="idx"
           class="loader__tile"
           :letter="letter"

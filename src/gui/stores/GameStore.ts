@@ -1,15 +1,14 @@
-import Game from '@/application/index.ts';
-import { GameCell, GameState, GameTile } from '@/application/types.ts';
+import Game, { GameCell, GameState, GameTile } from '@/application/Game.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef, triggerRef } from 'vue';
 
 export default class GameStore {
   static readonly getInstance = defineStore('game', () => {
     const game = Game.start();
-    const state = new this.ReactiveState(game);
+    const state = new GameStore.ReactiveState(game);
     return {
-      bonuses: game.bonuses,
-      letters: game.letters,
+      bonuses: Game.bonuses,
+      letters: Game.letters,
       layoutCells: game.layoutCells,
       gameIsFinished: state.isFinished,
       tilesRemaining: state.tilesRemaining,
@@ -30,7 +29,7 @@ export default class GameStore {
       wasTileUsedInLastTurn: game.wasTileUsedInPreviousTurn,
       shuffleUserTiles: state.updateAfterCallback(() => game.shuffleUserTiles()),
       placeTile: (args: { cell: GameCell; tile: GameTile }) => state.updateAfterCallback(() => game.placeTile(args)),
-      removeTile: (tile: GameTile) => state.updateAfterCallback(() => game.removeTile(tile)),
+      undoPlaceTile: (tile: GameTile) => state.updateAfterCallback(() => game.undoPlaceTile(tile)),
       resetTurn: () => state.updateAfterCallback(() => game.resetTurn()),
       saveTurn: () => state.updateAfterCallback(() => game.saveTurn()),
       passTurn: () => state.updateAfterCallback(() => game.passTurn()),

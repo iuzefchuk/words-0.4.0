@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import App from '@/gui/components/App/index.vue';
+import App from '@/gui/components/App/App.vue';
 import directives from '@/gui/plugins/directives/index.ts';
 import provides from '@/gui/plugins/provides/index.ts';
 import LocalesPlugin from '@/gui/plugins/locales/index.ts';
@@ -10,8 +10,8 @@ class Application {
 
   async start(): Promise<void> {
     try {
-      this.installPlugins();
       await this.installAsyncPlugins();
+      this.installPlugins();
       this.mount();
     } catch (error) {
       console.error(error);

@@ -1,5 +1,5 @@
-import { useStoreGame } from '@/gui/stores/GameStore.ts';
-const { bonuses, letters } = useStoreGame();
+import Game from '@/application/Game.ts';
+const { bonuses, letters } = Game;
 
 export function getBonusName(cellBonus: string): string {
   return (

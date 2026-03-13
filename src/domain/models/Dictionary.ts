@@ -95,10 +95,11 @@ class DictionaryTreeBuilder {
 
   static execute(sortedWords: ReadonlyArray<string>): FrozenNode {
     const builder = new DictionaryTreeBuilder();
-    return builder.build(sortedWords);
+    const root = builder.build(sortedWords);
+    return builder.freezeTree(root);
   }
 
-  private build(sortedWords: ReadonlyArray<string>): FrozenNode {
+  private build(sortedWords: ReadonlyArray<string>): Node {
     const rootNode = this.createNode();
     const generator = this.createNodeGenerator(rootNode);
     generator.next();
@@ -106,7 +107,9 @@ class DictionaryTreeBuilder {
     for (const word of sortedWords) {
       const commonPrefixLength = this.getCommonPrefixLength(previousWord, word);
       const finishedNode = generator.next({ depth: commonPrefixLength }).value;
-      if (finishedNode) this.freezeNode(finishedNode);
+      if (finishedNode) {
+        finishedNode.isFinal = true;
+      }
       for (let i = commonPrefixLength; i < word.length; i++) {
         const childNode = this.createNode();
         const transition: Transition = {
@@ -119,8 +122,8 @@ class DictionaryTreeBuilder {
       previousWord = word;
     }
     const lastNode = generator.return(rootNode).value;
-    this.freezeNode(lastNode);
-    return rootNode as unknown as FrozenNode;
+    lastNode.isFinal = true;
+    return rootNode;
   }
 
   private *createNodeGenerator(rootNode: Node): NodeGenerator {
@@ -130,7 +133,6 @@ class DictionaryTreeBuilder {
       if (input && 'depth' in input) {
         while (stack.length > (input.depth ?? 0) + 1) {
           const finishedNode = stack.pop()!;
-          finishedNode.isFinal = true;
           yield finishedNode;
         }
       } else if (input && 'parentNode' in input) {
@@ -145,9 +147,11 @@ class DictionaryTreeBuilder {
     return { id: this.currentId++, isFinal: false, children: new Map() };
   }
 
-  private freezeNode(node: Node): void {
-    Object.freeze(node);
+  private freezeTree(node: Node): FrozenNode {
+    for (const child of node.children.values()) this.freezeTree(child);
     Object.freeze(node.children);
+    Object.freeze(node);
+    return node as FrozenNode;
   }
 
   private getCommonPrefixLength(a: string, b: string): number {

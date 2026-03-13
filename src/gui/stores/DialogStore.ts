@@ -42,8 +42,8 @@ export default class DialogStore {
   private static readonly defaultStatus = DialogStatus.None;
   private static readonly defaultTitle = '';
   private static readonly defaultHtml = '';
-  private static readonly defaultCancelText = window.t('general.cancel');
-  private static readonly defaultConfirmText = window.t('general.ok');
+  private static readonly defaultCancelText = 'general.cancel';
+  private static readonly defaultConfirmText = 'general.ok';
   private static readonly defaultCancelIsHidden = false;
   private static readonly defaultConfirmIsHidden = false;
 

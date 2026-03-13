@@ -4,8 +4,6 @@ import { NUMBER_SEPARATOR_TYPE_FOR_LOCALE } from '@/gui/plugins/locales/constant
 import { LocaleFileContent, LocaleNumberGetter, LocaleTextGetter } from '@/gui/plugins/locales/types.js';
 
 export default class LocalesPlugin {
-  static readonly pathToContent = '@/gui/plugins/locales';
-
   private constructor(
     private type: Ref<LocaleType>,
     private content: Ref<LocaleFileContent>,
@@ -26,7 +24,7 @@ export default class LocalesPlugin {
   private async fetchContent() {
     await Promise.all(
       Object.values(LocaleFile).map(async file => {
-        this.content.value[file] = await import(`${LocalesPlugin.pathToContent}/${this.type.value}/${file}.json`);
+        this.content.value[file] = await import(`./${this.type.value}/${file}.json`);
       }),
     );
   }

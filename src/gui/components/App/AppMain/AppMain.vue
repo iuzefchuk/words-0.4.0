@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import AppMainHeader from '@/gui/components/App/AppMain/AppMainHeader.vue';
-import AppMainGrid from '@/gui/components/App/AppMain/AppMainGrid/index.vue';
-import AppMainFooter from '@/gui/components/App/AppMain/AppMainFooter/index.vue';
+import AppMainGrid from '@/gui/components/App/AppMain/AppMainGrid/AppMainGrid.vue';
+import AppMainFooter from '@/gui/components/App/AppMain/AppMainFooter/AppMainFooter.vue';
 import { ref } from 'vue';
 const isBlurred = ref(false);
 </script>

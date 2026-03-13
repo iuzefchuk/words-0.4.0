@@ -1,25 +1,29 @@
 <script lang="ts" setup>
-import { useStoreDialog, DialogStatus } from '@/gui/stores/DialogStore.ts';
-// TODO
-const storeDialog = useStoreDialog();
-const { state: dialog, setDialogStatus } = storeDialog;
+import DialogStore, { DialogStatus } from '@/gui/stores/DialogStore.ts';
+import { storeToRefs } from 'pinia';
+const storeDialog = DialogStore.getInstance();
+const { title, html, cancelText, confirmText, cancelIsHidden, confirmIsHidden } = storeToRefs(storeDialog);
+const { resolve } = storeDialog;
 </script>
 
 <template>
   <Transition name="fade">
-    <div v-if="dialog.title" class="dialog">
+    <div v-if="title" class="dialog">
       <Transition tag="div" name="fade-down-up" appear>
-        <div v-on-click-outside="{ callback: () => setDialogStatus(DialogStatus.Dismissed) }" class="dialog__window">
+        <div
+          v-on-click-outside="{ callback: () => resolve({ status: DialogStatus.Dismissed }) }"
+          class="dialog__window"
+        >
           <div class="dialog__content">
-            <p class="dialog__content-title">{{ dialog.title }}</p>
-            <p v-html="dialog.html" />
+            <p class="dialog__content-title">{{ title }}</p>
+            <p v-html="html" />
           </div>
           <div class="dialog__footer">
-            <button v-if="!dialog.cancelIsHidden" @click="setDialogStatus(DialogStatus.Canceled)">
-              {{ dialog.cancelText }}
+            <button v-if="!cancelIsHidden" @click="resolve({ status: DialogStatus.Canceled })">
+              {{ cancelText }}
             </button>
-            <button v-if="!dialog.confirmIsHidden" @click="setDialogStatus(DialogStatus.Confirmed)">
-              {{ dialog.confirmText }}
+            <button v-if="!confirmIsHidden" @click="resolve({ status: DialogStatus.Confirmed })">
+              {{ confirmText }}
             </button>
           </div>
         </div>

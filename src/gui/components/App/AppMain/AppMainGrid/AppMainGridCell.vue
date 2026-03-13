@@ -1,29 +1,17 @@
 <script lang="ts" setup>
-import AppItem from '@/gui/components/shared/AppItem.vue';
-import { GameCell } from '@/application/types.ts';
+import AppTile from '@/gui/components/shared/AppTile.vue';
+import { GameCell } from '@/application/Game.ts';
 import { PropType, computed } from 'vue';
-import { useStoreGame } from '@/gui/stores/GameStore.ts';
-import { useStoreInventory } from '@/gui/stores/ItemsStore.ts';
+import GameStore from '@/gui/stores/GameStore.ts';
+import ItemsStore from '@/gui/stores/ItemsStore.ts';
 import { getBonusName } from '@/gui/mappings.ts';
-
-// TODO
-const props = defineProps({
-  cell: { type: Object as PropType<GameCell>, required: true },
-});
-const storeGame = useStoreGame();
-const storeItems = useStoreInventory();
-const bonus = computed(() => {
-  return storeGame.getCellBonus(props.cell);
-});
-const bonusName = computed(() => {
-  return bonus.value ? getBonusName(bonus.value) : '';
-});
-const tile = computed(() => {
-  return storeGame.findTileConnectedToCell(props.cell);
-});
-const tileLetter = computed(() => {
-  return tile.value ? storeGame.getTileLetter(tile.value) : '';
-});
+const props = defineProps({ cell: { type: Object as PropType<GameCell>, required: true } });
+const storeGame = GameStore.getInstance();
+const storeItems = ItemsStore.getInstance();
+const bonus = computed(() => storeGame.getCellBonus(props.cell));
+const bonusName = computed(() => (bonus.value ? getBonusName(bonus.value) : ''));
+const tile = computed(() => storeGame.findTileConnectedToCell(props.cell));
+const tileLetter = computed(() => (tile.value ? storeGame.getTileLetter(tile.value) : ''));
 </script>
 
 <template>
@@ -36,10 +24,10 @@ const tileLetter = computed(() => {
         v-if="bonus"
         :class="{
           cell__bonus: true,
-          'cell__bonus--dw': bonus === bonuses.DoubleWord,
-          'cell__bonus--tw': bonus === bonuses.TripleWord,
-          'cell__bonus--dl': bonus === bonuses.DoubleLetter,
-          'cell__bonus--tl': bonus === bonuses.TripleLetter,
+          'cell__bonus--dw': bonus === storeGame.bonuses.DoubleWord,
+          'cell__bonus--tw': bonus === storeGame.bonuses.TripleWord,
+          'cell__bonus--dl': bonus === storeGame.bonuses.DoubleLetter,
+          'cell__bonus--tl': bonus === storeGame.bonuses.TripleLetter,
         }"
         class="cell__bonus"
         viewBox="0 0 40 40"
@@ -50,7 +38,7 @@ const tileLetter = computed(() => {
       </svg>
     </Transition>
     <Transition name="fade" appear>
-      <AppItem
+      <AppTile
         v-if="tile && tileLetter"
         class="cell__tile"
         :letter="tileLetter"

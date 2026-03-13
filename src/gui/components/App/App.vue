@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import AppMain from '@/gui/components/App/AppMain/index.vue';
+import AppMain from '@/gui/components/App/AppMain/AppMain.vue';
 import AppDialog from '@/gui/components/App/AppDialog.vue';
 import AppEndscreen from '@/gui/components/App/AppEndscreen.vue';
 import AppLoader from '@/gui/components/App/AppLoader.vue';

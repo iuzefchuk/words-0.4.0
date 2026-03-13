@@ -1,8 +1,9 @@
-import { GameCell, GameTile } from '@/application/types.ts';
+import { GameCell, GameTile } from '@/application/Game.ts';
 import { defineStore } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 
+// TODO rename from inventory to items
 export default class ItemsStore {
   static readonly getInstance = defineStore('inventory', () => {
     const storeGame = GameStore.getInstance();
@@ -12,6 +13,7 @@ export default class ItemsStore {
       selectedTile: store.selectedTileRef,
       inventoryIsFull: computed(() => store.inventoryIsFull),
       init: (userTiles: ReadonlyArray<GameTile>) => store.init(userTiles),
+      isTileInInventory: store.isTileInInventory.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       isTileVisible: store.isTileVisible.bind(store),
       handleClickRackCell: store.handleClickRackCell.bind(store),
@@ -86,7 +88,7 @@ export default class ItemsStore {
 
   private handleClickRackCell(idx: number): void {
     if (!this.selectedTile) return;
-    if (this.selectedTileIsConnected) this.storeGame.removeTile(this.selectedTile);
+    if (this.selectedTileIsConnected) this.storeGame.undoPlaceTile(this.selectedTile);
     this.switchTiles(this.selectedTile, this.tiles[idx]);
     this.deselectTile();
   }
@@ -99,7 +101,7 @@ export default class ItemsStore {
     if (!this.isTileSelected(tile)) {
       const selectedCell = this.storeGame.findCellConnectedToTile(this.selectedTile);
       if (selectedCell) {
-        this.storeGame.removeTile(this.selectedTile);
+        this.storeGame.undoPlaceTile(this.selectedTile);
         this.storeGame.placeTile({ tile, cell: selectedCell });
       }
       this.switchTiles(this.selectedTile, tile);
@@ -111,7 +113,7 @@ export default class ItemsStore {
     if (!this.selectedTile) return;
     const existingTile = this.storeGame.findTileConnectedToCell(cell);
     if (existingTile) return;
-    if (this.selectedTileIsConnected) this.storeGame.removeTile(this.selectedTile);
+    if (this.selectedTileIsConnected) this.storeGame.undoPlaceTile(this.selectedTile);
     this.storeGame.placeTile({ tile: this.selectedTile, cell });
     this.deselectTile();
   }
@@ -130,12 +132,12 @@ export default class ItemsStore {
     if (!connectedCell) return;
     const selectedCell = this.storeGame.findCellConnectedToTile(this.selectedTile);
     if (selectedCell) {
-      this.storeGame.removeTile(this.selectedTile);
-      this.storeGame.removeTile(tile);
+      this.storeGame.undoPlaceTile(this.selectedTile);
+      this.storeGame.undoPlaceTile(tile);
       this.storeGame.placeTile({ tile, cell: selectedCell });
       this.storeGame.placeTile({ tile: this.selectedTile, cell: connectedCell });
     } else {
-      this.storeGame.removeTile(tile);
+      this.storeGame.undoPlaceTile(tile);
       this.storeGame.placeTile({ tile: this.selectedTile, cell: connectedCell });
       this.switchTiles(this.selectedTile, tile);
     }

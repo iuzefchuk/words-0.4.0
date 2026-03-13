@@ -13,6 +13,6 @@
   height: 100%;
   display: grid;
   place-items: center;
-  z-index: var(--z-index-level-3)
+  z-index: var(--z-index-level-3);
 }
 </style>

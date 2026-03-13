@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { watch, ref, inject } from 'vue';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-const transitionDurationMs = inject(transitionDurationMsKey);
+import { getLetterSvgHtml } from '@/gui/mappings.ts';
+import { ref } from 'vue';
+//import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
+//const transitionDurationMs = inject(transitionDurationMsKey);
 const transitionIsDisabled = ref(false);
 defineProps({
-  svgHtml: { type: String, required: true },
+  letter: { type: String, required: true },
   isInverted: { type: Boolean, default: false },
   isHighlighted: { type: Boolean, default: false },
   isElevated: { type: Boolean, default: false },
@@ -24,19 +25,19 @@ defineProps({
 <template>
   <svg
     :class="{
-      item: true,
-      'item--inverted': isInverted,
-      'item--highlighted': isHighlighted,
-      'item--elevated': isElevated,
-      'item--transition-is-disabled': transitionIsDisabled,
+      tile: true,
+      'tile--inverted': isInverted,
+      'tile--highlighted': isHighlighted,
+      'tile--elevated': isElevated,
+      'tile--transition-is-disabled': transitionIsDisabled,
     }"
     viewBox="0 0 21 21"
-    v-html="svgHtml"
+    v-html="getLetterSvgHtml(letter)"
   ></svg>
 </template>
 
 <style lang="scss">
-.item {
+.tile {
   cursor: pointer;
   fill: currentColor;
   aspect-ratio: 1 / 1;

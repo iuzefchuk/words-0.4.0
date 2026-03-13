@@ -1,53 +1,53 @@
 <script lang="ts" setup>
-import DialogStore from '@/gui/stores/DialogStore.ts';
+//import DialogStore from '@/gui/stores/DialogStore.ts';
 import GameStore from '@/gui/stores/GameStore.ts';
 import ItemsStore from '@/gui/stores/ItemsStore.ts';
-import ToastStore from '@/gui/stores/ToastStore.ts';
+//import ToastStore from '@/gui/stores/ToastStore.ts';
 import { storeToRefs } from 'pinia';
 
 // TODO
-const storeDialog = DialogStore.getInstance();
+//const storeDialog = DialogStore.getInstance();
 const storeGame = GameStore.getInstance();
 const storeItems = ItemsStore.getInstance();
-const storeToast = ToastStore.getInstance();
-const { actionsAreDisabled } = storeToRefs(storeGame);
-const { isInventoryFull } = storeToRefs(storeItems);
-const { willUserPassBeResign, shuffleUserTiles, passTurn, resignGame } = storeGame;
+//const storeToast = ToastStore.getInstance();
+const { currentPlayerIsUser } = storeToRefs(storeGame);
+const { inventoryIsFull } = storeToRefs(storeItems);
+// const { shuffleUserTiles } = storeGame;
 
 async function triggerResignDialog() {
-  return await storeDialog.triggerDialog({ html: 'resigning', title: 'u sure?' });
+  // return await storeDialog.triggerDialog({ html: 'resigning', title: 'u sure?' });
 }
 
 async function handleResign(): Promise<void> {
-  const { isConfirmed } = await triggerResignDialog();
-  if (!isConfirmed) return;
-  resignGame();
+  // const { isConfirmed } = await triggerResignDialog();
+  // if (!isConfirmed) return;
+  // resignGame();
 }
 
 async function handlePass(): Promise<void> {
-  if (willUserPassBeResign) {
-    const { isConfirmed } = await triggerResignDialog();
-    if (!isConfirmed) return;
-  } else {
-    storeToast.addToast({ html: 'you passed' });
-  }
-  passTurn();
+  // if (willUserPassBeResign) {
+  //   const { isConfirmed } = await triggerResignDialog();
+  //   if (!isConfirmed) return;
+  // } else {
+  //   storeToast.addToast({ html: 'you passed' });
+  // }
+  // passTurn();
 }
 
 function handleClear(): void {
-  storeItems.init();
-  storeGame.resetTurn();
+  // storeItems.init();
+  // storeGame.resetTurn();
 }
 
 async function handlePlay() {
-  const error = await storeGame.saveTurn({
-    afterSaveCallback: (wordList: Array<string>) => {
-      storeGame.resetTurn();
-      storeToast.addToast({ html: wordList.join(',') });
-    },
-  });
-  if (error) storeToast.addToast({ html: error });
-  storeItems.init();
+  // const error = await storeGame.saveTurn({
+  //   afterSaveCallback: (wordList: Array<string>) => {
+  //     storeGame.resetTurn();
+  //     storeToast.addToast({ html: wordList.join(',') });
+  //   },
+  // });
+  // if (error) storeToast.addToast({ html: error });
+  // storeItems.init();
 }
 </script>
 
@@ -55,27 +55,27 @@ async function handlePlay() {
   <div class="actions">
     <ul class="actions__list app__width-content">
       <li class="actions__list-item">
-        <button class="actions__btn" :disabled="actionsAreDisabled" @click="handleResign()">
+        <button class="actions__btn" :disabled="!currentPlayerIsUser" @click="handleResign()">
           {{ t('game.action_resign') }}
         </button>
       </li>
       <li class="actions__list-item">
-        <button class="actions__btn" :disabled="actionsAreDisabled" @click="handlePass()">
+        <button class="actions__btn" :disabled="!currentPlayerIsUser" @click="handlePass()">
           {{ t('game.action_pass') }}
         </button>
       </li>
-      <li v-if="isInventoryFull" class="actions__list-item">
-        <button class="actions__btn" :disabled="actionsAreDisabled" @click="shuffleUserTiles()">
+      <li v-if="inventoryIsFull" class="actions__list-item">
+        <button class="actions__btn" :disabled="!currentPlayerIsUser">
           {{ t('game.action_shuffle') }}
         </button>
       </li>
       <li v-else class="actions__list-item">
-        <button class="actions__btn" :disabled="actionsAreDisabled" @click="handleClear()">
+        <button class="actions__btn" :disabled="!currentPlayerIsUser" @click="handleClear()">
           {{ t('game.action_clear') }}
         </button>
       </li>
       <li class="actions__list-item">
-        <button class="actions__btn" :disabled="actionsAreDisabled" @click="handlePlay()">
+        <button class="actions__btn" :disabled="!currentPlayerIsUser" @click="handlePlay()">
           {{ t('game.action_play') }}
         </button>
       </li>
