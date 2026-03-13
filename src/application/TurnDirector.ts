@@ -1,22 +1,20 @@
-import { Player, PlayerAction } from '@/domain/player/types.ts';
-import { TileId } from '@/domain/tiles/types.ts';
-import { CellIndex } from '@/domain/board/types.ts';
-import { Placement, ValidationResult } from '@/domain/turn/types.ts';
-import { Board } from '@/domain/board/types.ts';
-import TurnHistory from '@/domain/turn/History.ts';
-import PlayerStatusTracker from '@/domain/player/PlayerStatusTracker.ts';
+import ActionTracker, { PlayerAction } from '@/domain/models/ActionTracker.ts';
+import { Board, CellIndex } from '@/domain/models/Board.ts';
+import { Player } from '@/domain/enums.ts';
+import { TileId } from '@/domain/models/Inventory.ts';
+import TurnHistory, { Placement, ValidationResult } from '@/domain/models/TurnHistory.ts';
 
 export default class TurnDirector {
   private constructor(
     private readonly board: Board,
     private readonly history: TurnHistory,
-    private readonly statusTracker: PlayerStatusTracker,
+    private readonly actionTracker: ActionTracker,
   ) {}
 
   static create({ players, board }: { players: Array<Player>; board: Board }): TurnDirector {
     const history = TurnHistory.create();
-    const statusTracker = PlayerStatusTracker.create(players);
-    const director = new TurnDirector(board, history, statusTracker);
+    const actionTracker = ActionTracker.create(players);
+    const director = new TurnDirector(board, history, actionTracker);
     director.startTurnForNextPlayer();
     return director;
   }
@@ -58,7 +56,7 @@ export default class TurnDirector {
   }
 
   hasPlayerPassed(player: Player): boolean {
-    return this.statusTracker.hasPlayerPassed(player);
+    return this.actionTracker.hasPlayerPassed(player);
   }
 
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
@@ -72,7 +70,7 @@ export default class TurnDirector {
   }
 
   setCurrentTurnValidation(result: ValidationResult): void {
-    this.history.currentTurn.setValidation(result);
+    this.history.currentTurn.setValidationResult(result);
   }
 
   resetCurrentTurn(): void {
@@ -84,18 +82,18 @@ export default class TurnDirector {
 
   saveCurrentTurn(): void {
     if (!this.currentTurnIsValid) throw new Error('Turn is not valid');
-    this.statusTracker.record(this.history.currentPlayer, PlayerAction.Saved);
+    this.actionTracker.record(this.history.currentPlayer, PlayerAction.Saved);
     this.startTurnForNextPlayer();
   }
 
   passCurrentTurn(): void {
-    this.statusTracker.record(this.history.currentPlayer, PlayerAction.Passed);
+    this.actionTracker.record(this.history.currentPlayer, PlayerAction.Passed);
     this.startTurnForNextPlayer();
   }
 
   resignCurrentTurn(): void {
     const winner = this.history.nextPlayer;
-    this.statusTracker.record(winner, PlayerAction.Won);
+    this.actionTracker.record(winner, PlayerAction.Won);
   }
 
   private startTurnForNextPlayer(): void {

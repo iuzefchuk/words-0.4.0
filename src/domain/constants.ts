@@ -1,5 +1,5 @@
 /* eslint-disable */
-export const SORTED_WORDS = [
+export const DICTIONARY_DATA = [
   'AA',
   'AAH',
   'AAHED',

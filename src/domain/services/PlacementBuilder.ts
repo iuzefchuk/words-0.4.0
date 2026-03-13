@@ -1,8 +1,6 @@
-import { Placement } from '@/domain/turn/types.ts';
-import { Link } from '@/domain/turn/Placement.ts';
-import { TileId } from '@/domain/tiles/types.ts';
-import { AnchorCoordinates } from '@/domain/board/types.ts';
-import { Board } from '@/domain/board/types.ts';
+import { Board, AnchorCoordinates } from '@/domain/models/Board.ts';
+import { TileId } from '@/domain/models/Inventory.ts';
+import { Placement, Link } from '@/domain/models/TurnHistory.ts';
 
 export default class PlacementBuilder {
   static execute(board: Board, args: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> }): Placement {

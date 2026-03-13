@@ -1,3 +1,8 @@
+export enum Player {
+  User = 'User',
+  Opponent = 'Opponent',
+}
+
 export enum Letter {
   A = 'A',
   B = 'B',
@@ -26,9 +31,3 @@ export enum Letter {
   Y = 'Y',
   Z = 'Z',
 }
-
-export type TileId = string;
-
-export type TileCollection = Map<Letter, Array<TileId>>;
-
-export type TilePool = import('@/domain/tiles/TilePool.ts').default;

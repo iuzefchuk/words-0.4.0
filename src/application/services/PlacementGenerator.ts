@@ -1,36 +1,104 @@
-import { Placement, ValidationStatus } from '@/domain/turn/types.ts';
-import { Board } from '@/domain/board/types.ts';
-import Dictionary from '@/domain/services/Dictionary.ts';
-import TilePool from '@/domain/tiles/TilePool.ts';
-import { TileCollection } from '@/domain/tiles/types.ts';
-import { GameContext } from '@/application/types.ts';
-import TurnValidator from '@/application/services/validation/TurnValidator.ts';
-import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/application/services/generation/enums.ts';
-import {
-  GeneratorArguments,
-  Traversal,
-  Candidate,
-  Resolution,
-  ResolutionComputeds,
-  EvaluateTask,
-  ValidateTask,
-  CalculateTask,
-  ResolveTask,
-  ApplyTask,
-  ReverseTask,
-  Task,
-  ContinueTaskCommand,
-  ReturnTaskCommand,
-  StopTaskCommand,
-  TaskCommand,
-  DispatcherState,
-  DispatcherComputeds,
-  GenerationResult,
-} from '@/application/services/generation/types.ts';
+import { AnchorCoordinates, CellIndex, Axis, Board } from '@/domain/models/Board.ts';
+import Dictionary, { NodeId } from '@/domain/models/Dictionary.ts';
+import Inventory, { TileCollection, TileId } from '@/domain/models/Inventory.ts';
 import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
+import { Placement, ValidationStatus } from '@/domain/models/TurnHistory.ts';
+import TurnValidator from '@/application/services/TurnValidator.ts';
+import { Player } from '@/domain/enums.ts';
+import { GameContext } from '@/application/Game.ts';
+
+export type GeneratorArguments = {
+  context: GameContext;
+  lettersComputer: CrossCheckComputer;
+  playerTileCollection: TileCollection;
+  coords: AnchorCoordinates;
+};
+
+export type Traversal = { position: number; direction: GenerationDirection; node: NodeId };
+export type Candidate = { position: number; cell: CellIndex; resolution?: Resolution };
+export type Resolution = { tile: TileId };
+export type ResolutionComputeds = { letterTiles: Array<TileId> };
+
+export type EvaluateTask = {
+  type: GenerationTask.EvaluateTraversal;
+  traversal: Traversal;
+};
+export type ValidateTask = {
+  type: GenerationTask.ValidateTraversal;
+  traversal: Traversal;
+};
+export type CalculateTask = {
+  type: GenerationTask.CalculateCandidate;
+  traversal: Traversal;
+};
+export type ResolveTask = {
+  type: GenerationTask.ResolveCandidate;
+  traversal: Traversal;
+  candidate: Candidate;
+};
+export type ApplyTask = {
+  type: GenerationTask.ApplyResolution;
+  traversal: Traversal;
+  candidate: Candidate;
+  resolution: Resolution;
+  resolutionComputeds: ResolutionComputeds;
+};
+export type ReverseTask = {
+  type: GenerationTask.ReverseResolution;
+  traversal: Traversal;
+  resolution: Resolution;
+  resolutionComputeds: ResolutionComputeds;
+};
+export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | ApplyTask | ReverseTask;
+
+export type ContinueTaskCommand = { type: GenerationCommandType.ContinueExecute; newTasks: Array<Task> };
+export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: GenerationResult };
+export type StopTaskCommand = { type: GenerationCommandType.StopExecute };
+export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
+
+export type DispatcherState = { tiles: TileCollection; placement: Placement };
+export type DispatcherComputeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
+
+export type GenerationResult = Placement;
+
+enum GenerationDirection {
+  Left = -1,
+  Right = 1,
+}
+
+enum GenerationTask {
+  EvaluateTraversal = 'EvaluateTraversal',
+  ValidateTraversal = 'ValidateTraversal',
+  CalculateCandidate = 'CalculateCandidate',
+  ResolveCandidate = 'ResolveCandidate',
+  ApplyResolution = 'ApplyResolution',
+  ReverseResolution = 'ReverseResolution',
+}
+
+enum GenerationCommandType {
+  ContinueExecute = 'ContinueExecute',
+  StopExecute = 'StopExecute',
+  ReturnResult = 'ReturnResult',
+}
 
 export default class PlacementGenerator {
-  static *execute(args: GeneratorArguments): Generator<GenerationResult> {
+  static *execute(context: GameContext, player: Player): Generator<Placement> {
+    const { inventory, board, dictionary, turnDirector } = context;
+    const playerTileCollection = inventory.getTileCollectionFor(player);
+    if (playerTileCollection.size === 0) return;
+    const anchorCells = board.getAnchorCells(turnDirector.historyIsEmpty);
+    if (anchorCells.size === 0) return;
+    const lettersComputer = new CrossCheckComputer(board, dictionary, inventory);
+    for (const cell of anchorCells) {
+      for (const axis of Object.values(Axis)) {
+        const coords: AnchorCoordinates = { axis, cell };
+        for (const placement of this.generate({ context, lettersComputer, playerTileCollection, coords }))
+          yield placement;
+      }
+    }
+  }
+
+  static *generate(args: GeneratorArguments): Generator<GenerationResult> {
     const { context, coords } = args;
     const { dictionary } = context;
     const dispatcher = PlacementGenerator.TaskDispatcher.create(args);
@@ -100,8 +168,8 @@ export default class PlacementGenerator {
     private get dictionary(): Dictionary {
       return this.context.dictionary;
     }
-    private get tilePool(): TilePool {
-      return this.context.tilePool;
+    private get inventory(): Inventory {
+      return this.context.inventory;
     }
 
     private get placement(): Placement {
@@ -204,7 +272,7 @@ export default class PlacementGenerator {
     ): StopTaskCommand | ContinueTaskCommand {
       const { position, resolution } = candidate;
       if (!resolution) throw new Error('Resolution has to exist');
-      const nextNode = this.dictionary.getNode(this.tilePool.getTileLetter(resolution.tile), traversal.node);
+      const nextNode = this.dictionary.getNode(this.inventory.getTileLetter(resolution.tile), traversal.node);
       if (!nextNode) return this.emitStop();
       const traversalFromCandidate: Traversal = { ...traversal, position, node: nextNode };
       return this.emitContinue([{ type: GenerationTask.EvaluateTraversal, traversal: traversalFromCandidate }]);

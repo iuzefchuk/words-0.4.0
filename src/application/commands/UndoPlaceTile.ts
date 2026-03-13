@@ -1,6 +1,6 @@
-import { TileId } from '@/domain/tiles/types.ts';
 import { GameContext } from '@/application/types.ts';
-import TurnValidator from '@/application/services/validation/TurnValidator.ts';
+import TurnValidator from '@/application/services/TurnValidator.ts';
+import { TileId } from '@/domain/models/Inventory.ts';
 
 export default class UndoPlaceTile {
   static execute(context: GameContext, { tile }: { tile: TileId }): void {

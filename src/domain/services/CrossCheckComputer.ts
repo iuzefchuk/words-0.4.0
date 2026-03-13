@@ -1,9 +1,7 @@
-import { Axis } from '@/domain/board/types.ts';
-import { Letter } from '@/domain/tiles/types.ts';
-import { Board } from '@/domain/board/types.ts';
-import { Dictionary } from '@/domain/services/types.ts';
-import { TilePool } from '@/domain/tiles/types.ts';
-import { AnchorCoordinates, CellIndex } from '@/domain/board/types.ts';
+import { Axis, CellIndex, Board, AnchorCoordinates } from '@/domain/models/Board.ts';
+import { Letter } from '@/domain/enums.ts';
+import Dictionary from '@/domain/models/Dictionary.ts';
+import Inventory from '@/domain/models/Inventory.ts';
 
 export default class CrossCheckComputer {
   private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
@@ -13,7 +11,7 @@ export default class CrossCheckComputer {
   constructor(
     private readonly board: Board,
     private readonly dictionary: Dictionary,
-    private readonly tilePool: TilePool,
+    private readonly inventory: Inventory,
   ) {}
 
   getFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
@@ -58,7 +56,7 @@ export default class CrossCheckComputer {
     for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
       const tile = this.board.findTileByCell(axisCells[i]);
       if (!tile) break;
-      const letter = this.tilePool.getTileLetter(tile);
+      const letter = this.inventory.getTileLetter(tile);
       result = direction === -1 ? letter + result : result + letter;
     }
     return result;

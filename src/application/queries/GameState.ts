@@ -1,13 +1,13 @@
-import { Player } from '@/domain/player/types.ts';
+import { Player } from '@/domain/enums.ts';
 import { GameContext, GameState } from '@/application/types.ts';
 
 export default class GameStateQuery {
   static execute(context: GameContext, isMutable: boolean): GameState {
-    const { tilePool, turnDirector } = context;
+    const { inventory, turnDirector } = context;
     return {
       isFinished: !isMutable,
-      tilesRemaining: tilePool.unusedTilesCount,
-      userTiles: tilePool.getTilesFor(Player.User),
+      tilesRemaining: inventory.unusedTilesCount,
+      userTiles: inventory.getTilesFor(Player.User),
       currentTurnScore: turnDirector.currentTurnScore,
       userScore: turnDirector.getScoreFor(Player.User),
       opponentScore: turnDirector.getScoreFor(Player.Opponent),

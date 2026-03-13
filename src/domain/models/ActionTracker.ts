@@ -1,11 +1,19 @@
-import { Player, PlayerAction } from '@/domain/player/types.ts';
+import { Player } from '@/domain/enums.ts';
 
-export default class PlayerStatusTracker {
+export enum PlayerAction {
+  Joined = 'Joined',
+  Saved = 'Saved',
+  Passed = 'Passed',
+  Won = 'Won',
+  Tied = 'Tied',
+}
+
+export default class ActionTracker {
   private constructor(private readonly lastActions: Map<Player, PlayerAction>) {}
 
-  static create(players: Array<Player>): PlayerStatusTracker {
+  static create(players: Array<Player>): ActionTracker {
     const actions = new Map(players.map(player => [player, PlayerAction.Joined]));
-    return new PlayerStatusTracker(actions);
+    return new ActionTracker(actions);
   }
 
   record(player: Player, action: PlayerAction): void {

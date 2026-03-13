@@ -1,29 +1,40 @@
-import {
-  Placement,
-  ComputedValue,
-  ValidationResult,
-  ValidResult,
-  InvalidResult,
-  ValidationErrors,
-  ValidationStatus,
-} from '@/domain/turn/types.ts';
 import { GameContext } from '@/application/types.ts';
-import AxisResolver from '@/domain/board/AxisResolver.ts';
-import PlacementBuilder from '@/domain/turn/PlacementBuilder.ts';
+import { CellIndex, AnchorCoordinates } from '@/domain/models/Board.ts';
+import { TileId } from '@/domain/models/Inventory.ts';
+import PlacementBuilder from '@/domain/services/PlacementBuilder.ts';
 import ScoreCalculator from '@/domain/services/ScoreCalculator.ts';
 import {
-  ValidatorArguments,
-  PendingResult,
-  PipelineInput,
-  PipelineState,
-  PipelineThroughput,
-  PipelineOutput,
-  SequencesOutput,
-  PlacementsOutput,
-  WordsOutput,
-  ScoreOutput,
-} from '@/application/services/validation/types.ts';
-import { AnchorCoordinates } from '@/domain/board/types.ts';
+  Placement,
+  ValidationStatus,
+  ValidationErrors,
+  ComputedValue,
+  ValidationResult,
+  InvalidResult,
+  ValidResult,
+} from '@/domain/models/TurnHistory.ts';
+
+export type ValidatorArguments = { initialPlacement: Placement };
+
+type ComputedSequences = { sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> } };
+type ComputedPlacements = { placements: ReadonlyArray<Placement> };
+type ComputedWords = { words: ReadonlyArray<string> };
+type ComputedScore = { score: number };
+
+export type PendingResult<State> = { status: ValidationStatus.Pending; state: State };
+
+export type PipelineInput = { context: GameContext } & ValidatorArguments;
+export type PipelineThroughput<State> =
+  | PendingResult<State>
+  | { status: ValidationStatus.Invalid; error: ValidationErrors };
+export type PipelineState<Output extends ComputedValue> = PipelineInput & Output;
+export type PipelineOutput =
+  | { status: ValidationStatus.Invalid; error: ValidationErrors }
+  | ({ status: ValidationStatus.Valid } & ComputedSequences & ComputedPlacements & ComputedWords & ComputedScore);
+
+export type SequencesOutput = ComputedSequences;
+export type PlacementsOutput = SequencesOutput & ComputedPlacements;
+export type WordsOutput = PlacementsOutput & ComputedWords;
+export type ScoreOutput = WordsOutput & ComputedScore;
 
 export default class TurnValidator {
   static execute(context: GameContext, initialPlacement: Placement): ValidationResult {
@@ -86,7 +97,7 @@ export default class TurnValidator {
   ): PipelineThroughput<PipelineState<PlacementsOutput>> {
     const { board } = state.context;
     const tileSequence = state.sequences.tile;
-    const primaryAxis = AxisResolver.execute(board, { cellSequence: state.sequences.cell });
+    const primaryAxis = board.calculateAxis(state.sequences.cell);
     const coords = { axis: primaryAxis, cell: state.sequences.cell[0] };
     const primaryPlacement = PlacementBuilder.execute(board, { coords, tileSequence });
     const isPlacementUsable = (placement: Placement): boolean => placement.length > 1;
@@ -103,12 +114,12 @@ export default class TurnValidator {
   private static computeAndValidateWords(
     state: PipelineState<PlacementsOutput>,
   ): PipelineThroughput<PipelineState<WordsOutput>> {
-    const { dictionary, tilePool } = state.context;
+    const { dictionary, inventory } = state.context;
     const words: Array<string> = [];
     for (let i = 0; i < state.placements.length; i++) {
       const placement = state.placements[i];
       let word = '';
-      for (const { tile } of placement) word += tilePool.getTileLetter(tile);
+      for (const { tile } of placement) word += inventory.getTileLetter(tile);
       words[i] = word;
     }
     return dictionary.containsWords(words)
@@ -119,12 +130,12 @@ export default class TurnValidator {
   private static computeAndValidateScore(
     state: PipelineState<WordsOutput>,
   ): PipelineThroughput<PipelineState<ScoreOutput>> {
-    const { board, tilePool } = state.context;
+    const { board, inventory } = state.context;
     const newCells = new Set(state.sequences.cell);
     const score = ScoreCalculator.execute(
       state.placements,
       newCells,
-      tile => tilePool.getTilePoints(tile),
+      tile => inventory.getTilePoints(tile),
       cell => board.getLetterMultiplier(cell),
       cell => board.getWordMultiplier(cell),
     );

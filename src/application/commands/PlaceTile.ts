@@ -1,7 +1,7 @@
-import { CellIndex } from '@/domain/board/types.ts';
-import { TileId } from '@/domain/tiles/types.ts';
 import { GameContext } from '@/application/types.ts';
-import TurnValidator from '@/application/services/validation/TurnValidator.ts';
+import TurnValidator from '@/application/services/TurnValidator.ts';
+import { CellIndex } from '@/domain/models/Board.ts';
+import { TileId } from '@/domain/models/Inventory.ts';
 
 export default class PlaceTile {
   static execute(context: GameContext, { cell, tile }: { cell: CellIndex; tile: TileId }): void {

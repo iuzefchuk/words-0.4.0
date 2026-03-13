@@ -1,6 +1,6 @@
-import { Placement } from '@/domain/turn/types.ts';
-import { CellIndex } from '@/domain/board/types.ts';
-import { TileId } from '@/domain/tiles/types.ts';
+import { CellIndex } from '@/domain/models/Board.ts';
+import { TileId } from '@/domain/models/Inventory.ts';
+import { Placement } from '@/domain/models/TurnHistory.ts';
 
 export default class ScoreCalculator {
   static execute(

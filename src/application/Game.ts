@@ -1,26 +1,43 @@
+import { Bonus, Board, CellIndex } from '@/domain/models/Board.ts';
+import Dictionary from '@/domain/models/Dictionary.ts';
+import { Letter, Player } from '@/domain/enums.ts';
+import Inventory, { TileId } from '@/domain/models/Inventory.ts';
+import { Placement } from '@/domain/models/TurnHistory.ts';
 import { TIME } from '@/shared/constants.ts';
 import { wait } from '@/shared/helpers.ts';
-import { Player } from '@/domain/player/types.ts';
-import { Bonus } from '@/domain/board/types.ts';
-import { Letter } from '@/domain/tiles/types.ts';
-import { Placement } from '@/domain/turn/types.ts';
-import Board from '@/domain/board/Board.ts';
-import Dictionary from '@/domain/services/Dictionary.ts';
-import Layout from '@/domain/board/Layout.ts';
-import TilePool from '@/domain/tiles/TilePool.ts';
-import TurnDirector from '@/application/TurnDirector.ts';
-import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
-import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
-import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
-import PassTurnCommand from '@/application/commands/PassTurn.ts';
-import ResignGameCommand from '@/application/commands/ResignGame.ts';
 import GameStateQuery from '@/application/queries/GameState.ts';
-import MoveGenerator from '@/application/services/generation/MoveGenerator.ts';
-import TurnValidator from '@/application/services/validation/TurnValidator.ts';
-import { GameCell, GameContext, GameState, GameTile } from '@/application/types.ts';
+import PlacementGenerator from '@/application/services/PlacementGenerator.ts';
+import TurnValidator from '@/application/services/TurnValidator.ts';
+import TurnDirector from '@/application/TurnDirector.ts';
+import PassTurnCommand from '@/application/commands/PassTurn.ts';
+import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
+import ResignGameCommand from '@/application/commands/ResignGame.ts';
+import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
+import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
 
-export default class GameFacade {
-  private static readonly layout = Layout.create();
+export type GameContext = {
+  board: Board;
+  dictionary: Dictionary;
+  inventory: Inventory;
+  turnDirector: TurnDirector;
+};
+
+export type GameCell = CellIndex;
+
+export type GameTile = TileId;
+
+export type GameState = {
+  isFinished: boolean;
+  tilesRemaining: number;
+  userTiles: ReadonlyArray<TileId>;
+  currentTurnScore?: number;
+  userScore: number;
+  opponentScore: number;
+  currentPlayerIsUser: boolean;
+  userPassWillBeResign: boolean;
+};
+
+export default class Game {
   private static readonly dictionary = Dictionary.create();
 
   readonly bonuses = Bonus;
@@ -30,23 +47,23 @@ export default class GameFacade {
 
   private constructor(
     private board: Board,
-    private tilePool: TilePool,
+    private inventory: Inventory,
     private turnDirector: TurnDirector,
   ) {}
 
-  static start(): GameFacade {
+  static start(): Game {
     const players = Object.values(Player);
-    const board = Board.create(GameFacade.layout);
-    const tilePool = TilePool.create({ players });
+    const board = Board.create();
+    const inventory = Inventory.create({ players });
     const turnDirector = TurnDirector.create({ players, board });
-    return new GameFacade(board, tilePool, turnDirector);
+    return new Game(board, inventory, turnDirector);
   }
 
   private get context(): GameContext {
     return {
       board: this.board,
-      dictionary: GameFacade.dictionary,
-      tilePool: this.tilePool,
+      dictionary: Game.dictionary,
+      inventory: this.inventory,
       turnDirector: this.turnDirector,
     };
   }
@@ -80,11 +97,11 @@ export default class GameFacade {
   }
 
   areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {
-    return this.tilePool.areTilesEqual(firstTile, secondTile);
+    return this.inventory.areTilesEqual(firstTile, secondTile);
   }
 
   getTileLetter(tile: GameTile): string {
-    return this.tilePool.getTileLetter(tile);
+    return this.inventory.getTileLetter(tile);
   }
 
   isCellLastConnectionInTurn(cell: GameCell): boolean {
@@ -99,7 +116,7 @@ export default class GameFacade {
 
   shuffleUserTiles(): void {
     this.ensureMutability();
-    this.tilePool.shuffleTilesFor(Player.User);
+    this.inventory.shuffleTilesFor(Player.User);
   }
 
   placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
@@ -136,7 +153,7 @@ export default class GameFacade {
   }
 
   private generatePlacement(player: Player): Placement | null {
-    for (const placement of MoveGenerator.execute(this.context, player)) return placement;
+    for (const placement of PlacementGenerator.execute(this.context, player)) return placement;
     return null;
   }
 
