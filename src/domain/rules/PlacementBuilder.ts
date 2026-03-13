@@ -1,14 +1,11 @@
 import { Placement } from '@/domain/types.ts';
-import { Link } from '@/domain/model/Placement.ts';
+import { Link } from '@/domain/model/Turn/TurnPlacement.ts';
 import { TileId } from '@/domain/model/Inventory/types.ts';
 import { AnchorCoordinates } from '@/domain/reference/Layout/types.ts';
 import { Board } from '@/domain/model/Board/types.ts';
 
 export default class PlacementBuilder {
-  static execute(
-    board: Board,
-    args: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> },
-  ): Placement {
+  static execute(board: Board, args: { coords: AnchorCoordinates; tileSequence: ReadonlyArray<TileId> }): Placement {
     const { coords, tileSequence } = args;
     if (tileSequence.length === 0) throw new Error('Tile sequence can`t be empty');
     const axisCells = board.getAxisCells(coords);
@@ -33,6 +30,6 @@ export default class PlacementBuilder {
       }
     }
     const isValid = segmentContainsTile && matchedTilesCount === tileSequence.length;
-    return isValid ? Placement.from(links) : Placement.create();
+    return isValid ? Placement.createFrom(links) : Placement.create();
   }
 }

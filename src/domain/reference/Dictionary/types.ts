@@ -1,5 +1,5 @@
 import { Letter } from '@/domain/enums.ts';
-import DictionaryClass from '@/domain/reference/Dictionary/index.ts';
+import DictionaryClass from '@/domain/reference/Dictionary/Dictionary.ts';
 
 export type Dictionary = DictionaryClass;
 

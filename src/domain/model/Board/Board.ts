@@ -1,4 +1,4 @@
-import Layout from '@/domain/reference/Layout/index.ts';
+import Layout from '@/domain/reference/Layout/Layout.ts';
 import { CellIndex, AnchorCoordinates } from '@/domain/reference/Layout/types.ts';
 import { TileId } from '@/domain/model/Inventory/types.ts';
 import { Bonus, Axis } from '@/domain/enums.ts';
@@ -14,42 +14,40 @@ export default class Board {
     return new Board(layout, new Map(), new Map());
   }
 
-  // --- Geometry (delegated to Layout) ---
-
   get cells(): ReadonlyArray<CellIndex> {
     return this.layout.cells;
   }
 
-  isCellCenter(cellIndex: CellIndex): boolean {
-    return this.layout.isCellCenter(cellIndex);
+  isCellCenter(cell: CellIndex): boolean {
+    return this.layout.isCellCenter(cell);
   }
 
-  getBonusForCell(cellIndex: CellIndex): Bonus | null {
-    return this.layout.getBonusForCell(cellIndex);
+  getBonusForCell(cell: CellIndex): Bonus | null {
+    return this.layout.getBonusForCell(cell);
   }
 
-  getLetterMultiplier(cellIndex: CellIndex): number {
-    return this.layout.getLetterMultiplier(cellIndex);
+  getLetterMultiplier(cell: CellIndex): number {
+    return this.layout.getLetterMultiplier(cell);
   }
 
-  getWordMultiplier(cellIndex: CellIndex): number {
-    return this.layout.getWordMultiplier(cellIndex);
+  getWordMultiplier(cell: CellIndex): number {
+    return this.layout.getWordMultiplier(cell);
   }
 
-  getAdjacentCells(cellIndex: CellIndex): ReadonlyArray<CellIndex> {
-    return this.layout.getAdjacentCells(cellIndex);
+  getAdjacentCells(cell: CellIndex): ReadonlyArray<CellIndex> {
+    return this.layout.getAdjacentCells(cell);
   }
 
   getAxisCells(coords: AnchorCoordinates): ReadonlyArray<CellIndex> {
     return this.layout.getAxisCells(coords);
   }
 
-  getRowIndex(cellIndex: CellIndex): number {
-    return this.layout.getRowIndex(cellIndex);
+  getRowIndex(cell: CellIndex): number {
+    return this.layout.getRowIndex(cell);
   }
 
-  getColumnIndex(cellIndex: CellIndex): number {
-    return this.layout.getColumnIndex(cellIndex);
+  getColumnIndex(cell: CellIndex): number {
+    return this.layout.getColumnIndex(cell);
   }
 
   getOppositeAxis(axis: Axis): Axis {
@@ -63,8 +61,6 @@ export default class Board {
   isCellPositionOnRightEdge(cellPosition: number): boolean {
     return this.layout.isCellPositionOnRightEdge(cellPosition);
   }
-
-  // --- Tile-cell mapping ---
 
   findTileByCell(cell: CellIndex): TileId | undefined {
     return this.tileByCell.get(cell);
@@ -87,15 +83,13 @@ export default class Board {
     this.cellByTile.set(tile, cell);
   }
 
-  removeTile(tile: TileId): void {
+  undoPlaceTile(tile: TileId): void {
     const cell = this.cellByTile.get(tile);
-    if (cell !== undefined) {
+    if (cell) {
       this.tileByCell.delete(cell);
       this.cellByTile.delete(tile);
     }
   }
-
-  // --- Anchor cell computation (absorbed from AnchorCellFinder) ---
 
   getAnchorCells(historyIsEmpty: boolean): ReadonlySet<CellIndex> {
     return new Set(

@@ -1,7 +1,9 @@
-import { GameContext, Placement, ComputedValue, ValidationResult, ValidResult, InvalidResult } from '@/domain/types.ts';
+import { Placement, ComputedValue, ValidationResult, ValidResult, InvalidResult } from '@/domain/types.ts';
 import { ValidationErrors, ValidationStatus } from '@/domain/enums.ts';
-import AxisCalculator from '@/domain/services/Validation/AxisCalculator.ts';
-import PlacementBuilder from '@/domain/services/Validation/PlacementBuilder.ts';
+import { GameContext } from '@/application/types.ts';
+import AxisCalculator from '@/domain/rules/AxisCalculator.ts';
+import PlacementBuilder from '@/domain/rules/PlacementBuilder.ts';
+import ScoreComputer from '@/domain/rules/ScoreComputer.ts';
 import {
   ValidatorArguments,
   PendingResult,
@@ -13,7 +15,7 @@ import {
   PlacementsOutput,
   WordsOutput,
   ScoreOutput,
-} from '@/domain/services/Validation/types.ts';
+} from '@/application/services/validation/types.ts';
 import { AnchorCoordinates } from '@/domain/reference/Layout/types.ts';
 
 export default class TurnValidator {
@@ -112,17 +114,13 @@ export default class TurnValidator {
   ): PipelineThroughput<PipelineState<ScoreOutput>> {
     const { board, inventory } = state.context;
     const newCells = new Set(state.sequences.cell);
-    let totalScore = 0;
-    for (const placement of state.placements) {
-      let placementScore = 0;
-      let placementMultiplier = 1;
-      for (const { cell, tile } of placement) {
-        const tileIsNew = newCells.has(cell);
-        placementScore += inventory.getTilePoints(tile) * (tileIsNew ? board.getLetterMultiplier(cell) : 1);
-        placementMultiplier *= tileIsNew ? board.getWordMultiplier(cell) : 1;
-      }
-      totalScore += placementScore * placementMultiplier;
-    }
-    return this.Pipeline.pass(state, { score: totalScore });
+    const score = ScoreComputer.execute(
+      state.placements,
+      newCells,
+      tile => inventory.getTilePoints(tile),
+      cell => board.getLetterMultiplier(cell),
+      cell => board.getWordMultiplier(cell),
+    );
+    return this.Pipeline.pass(state, { score });
   }
 }

@@ -1,7 +1,7 @@
 import { Letter } from '@/domain/enums.ts';
 import { SORTED_WORDS } from '@/domain/reference/Dictionary/constants.ts';
 import { FrozenNode, NodeId, NextNodeGenerator } from '@/domain/reference/Dictionary/types.ts';
-import NodeTreeBuilder from '@/domain/reference/Dictionary/NodeTreeBuilder.ts';
+import DictionaryTreeBuilder from '@/domain/reference/Dictionary/DictionaryTreeBuilder.ts';
 
 export default class Dictionary {
   private constructor(
@@ -11,7 +11,7 @@ export default class Dictionary {
   ) {}
 
   static create(): Dictionary {
-    const rootNode = NodeTreeBuilder.execute(SORTED_WORDS);
+    const rootNode = DictionaryTreeBuilder.execute(SORTED_WORDS);
     const nodeIndex = new Map<NodeId, FrozenNode>();
     const allLetters = new Set<Letter>();
     this.traverseNode(nodeIndex, allLetters, rootNode);

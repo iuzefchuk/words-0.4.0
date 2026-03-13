@@ -1,16 +1,16 @@
 import { TIME } from '@/shared/constants.ts';
 import { wait } from '@/shared/helpers.ts';
 import { Player, Bonus, Letter } from '@/domain/enums.ts';
-import { GameContext, Placement } from '@/domain/types.ts';
-import Board from '@/domain/model/Board/index.ts';
-import Dictionary from '@/domain/reference/Dictionary/index.ts';
-import Layout from '@/domain/reference/Layout/index.ts';
-import Inventory from '@/domain/model/Inventory/index.ts';
-import Turnkeeper from '@/domain/model/Turn/index.ts';
-import TurnValidator from '@/domain/services/Validation/index.ts';
-import TurnGenerator from '@/domain/services/Generation/index.ts';
-import TurnCompletion from '@/domain/services/TurnCompletion/index.ts';
-import { GameCell, GameTile, GameState } from '@/application/types.ts';
+import { Placement } from '@/domain/types.ts';
+import Board from '@/domain/model/Board/Board.ts';
+import Dictionary from '@/domain/reference/Dictionary/Dictionary.ts';
+import Layout from '@/domain/reference/Layout/Layout.ts';
+import Inventory from '@/domain/model/Inventory/Inventory.ts';
+import TurnKeeper from '@/application/TurnKeeper.ts';
+import TurnValidator from '@/application/services/validation/TurnValidator.ts';
+import TurnGenerator from '@/application/services/generation/TurnGenerator.ts';
+import { GameContext, GameCell, GameTile, GameState } from '@/application/types.ts';
+import { TileId } from '@/domain/model/Inventory/types.ts';
 
 export default class Game {
   private static readonly layout = Layout.create();
@@ -24,14 +24,14 @@ export default class Game {
   private constructor(
     private board: Board,
     private inventory: Inventory,
-    private turnkeeper: Turnkeeper,
+    private turnkeeper: TurnKeeper,
   ) {}
 
   static start(): Game {
     const players = Object.values(Player);
     const board = Board.create(Game.layout);
     const inventory = Inventory.create({ players });
-    const turnkeeper = Turnkeeper.create({ players, board });
+    const turnkeeper = TurnKeeper.create({ players, board });
     return new Game(board, inventory, turnkeeper);
   }
 
@@ -110,9 +110,9 @@ export default class Game {
     this.validateTurn();
   }
 
-  removeTile(tile: GameTile): void {
+  undoPlaceTile(tile: GameTile): void {
     this.ensureMutability();
-    this.turnkeeper.removeTile({ tile });
+    this.turnkeeper.undoPlaceTile({ tile });
     this.validateTurn();
   }
 
@@ -123,7 +123,7 @@ export default class Game {
 
   async saveTurn(): Promise<void> {
     this.ensureMutability();
-    TurnCompletion.execute(this.context, this.turnkeeper.currentPlayer);
+    this.completeTurn();
     if (this.turnkeeper.currentPlayer !== Player.User) await this.processOpponentTurn();
   }
 
@@ -133,10 +133,23 @@ export default class Game {
     if (this.turnkeeper.currentPlayer !== Player.User) await this.processOpponentTurn();
   }
 
+  completeTurn(): void {
+    const player = this.turnkeeper.currentPlayer;
+    const tiles = this.turnkeeper.currentTurnTileSequence;
+    if (!tiles) throw new Error('Current turn tile sequence does not exist');
+    this.turnkeeper.saveCurrentTurn();
+    this.discardTiles(this.inventory, player, tiles);
+    this.inventory.replenishTilesFor(player);
+  }
+
   resignGame(): void {
     this.ensureMutability();
     this.turnkeeper.resignCurrentTurn();
     this.isMutable = false;
+  }
+
+  private discardTiles(inventory: Inventory, player: Player, tiles: ReadonlyArray<TileId>): void {
+    tiles.forEach((tile: TileId) => inventory.discardTile({ player, tileId: tile }));
   }
 
   private validateTurn(): void {
@@ -157,7 +170,7 @@ export default class Game {
       } else {
         for (const link of generatedPlacement) this.turnkeeper.placeTile({ cell: link.cell, tile: link.tile });
         this.validateTurn();
-        TurnCompletion.execute(this.context, this.turnkeeper.currentPlayer);
+        this.completeTurn();
       }
     });
   }

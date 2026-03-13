@@ -1,8 +1,8 @@
 import { Player } from '@/domain/enums.ts';
-import { PlayerAction } from '@/domain/model/Turn/enums.ts';
+import { PlayerAction } from '@/domain/model/Player/enums.ts';
 
 export default class ActionTracker {
-  private constructor(private readonly actions: Map<Player, PlayerAction>) {}
+  private constructor(private readonly lastActions: Map<Player, PlayerAction>) {}
 
   static create(players: Array<Player>): ActionTracker {
     const actions = new Map(players.map(player => [player, PlayerAction.Joined]));
@@ -10,10 +10,10 @@ export default class ActionTracker {
   }
 
   record(player: Player, action: PlayerAction): void {
-    this.actions.set(player, action);
+    this.lastActions.set(player, action);
   }
 
   hasPlayerPassed(player: Player): boolean {
-    return this.actions.get(player) === PlayerAction.PlayedByPass;
+    return this.lastActions.get(player) === PlayerAction.PlayedByPass;
   }
 }

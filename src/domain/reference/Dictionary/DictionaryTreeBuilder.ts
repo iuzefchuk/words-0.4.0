@@ -1,11 +1,11 @@
 import { Letter } from '@/domain/enums.ts';
 import { Transition, Node, FrozenNode, NodeGenerator, NodeId } from '@/domain/reference/Dictionary/types.ts';
 
-export default class NodeTreeBuilder {
+export default class DictionaryTreeBuilder {
   private currentId: NodeId = 0;
 
   static execute(sortedWords: ReadonlyArray<string>): FrozenNode {
-    const builder = new NodeTreeBuilder();
+    const builder = new DictionaryTreeBuilder();
     return builder.build(sortedWords);
   }
 

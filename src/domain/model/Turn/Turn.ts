@@ -44,10 +44,6 @@ export default class Turn {
     return this.initialPlacement;
   }
 
-  get links(): ReadonlyArray<{ cell: CellIndex; tile: TileId }> {
-    return [...this.initialPlacement];
-  }
-
   setValidation(result: ValidationResult): void {
     this.validationResult = result;
   }
@@ -56,8 +52,8 @@ export default class Turn {
     this.initialPlacement.placeTile({ cell, tile });
   }
 
-  removeTile({ tile }: { tile: TileId }): void {
-    this.initialPlacement.removeTile({ tile });
+  undoPlaceTile({ tile }: { tile: TileId }): void {
+    this.initialPlacement.undoPlaceTile({ tile });
   }
 
   reset(): void {

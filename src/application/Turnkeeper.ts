@@ -1,22 +1,23 @@
 import { Player } from '@/domain/enums.ts';
-import { PlayerAction } from '@/domain/model/Turn/enums.ts';
+import { PlayerAction } from '@/domain/model/Player/enums.ts';
 import { TileId } from '@/domain/model/Inventory/types.ts';
 import { CellIndex } from '@/domain/reference/Layout/types.ts';
 import { Placement, ValidationResult } from '@/domain/types.ts';
 import { Board } from '@/domain/model/Board/types.ts';
-import History from '@/domain/model/Turn/History.ts';
-import ActionTracker from '@/domain/model/Turn/ActionTracker.ts';
+import TurnHistory from '@/domain/model/Turn/TurnHistory.ts';
+import ActionTracker from '@/domain/model/Player/ActionTracker.ts';
 
-export default class Turnkeeper {
+export default class TurnKeeper {
   private constructor(
-    private readonly history: History,
+    private readonly board: Board,
+    private readonly history: TurnHistory,
     private readonly actionTracker: ActionTracker,
   ) {}
 
-  static create({ players, board }: { players: Array<Player>; board: Board }): Turnkeeper {
-    const history = History.create(board);
+  static create({ players, board }: { players: Array<Player>; board: Board }): TurnKeeper {
+    const history = TurnHistory.create();
     const actionTracker = ActionTracker.create(players);
-    const manager = new Turnkeeper(history, actionTracker);
+    const manager = new TurnKeeper(board, history, actionTracker);
     manager.startTurnForNextPlayer();
     return manager;
   }
@@ -62,11 +63,13 @@ export default class Turnkeeper {
   }
 
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
-    this.history.placeTile({ cell, tile });
+    this.history.currentTurn.placeTile({ cell, tile });
+    this.board.placeTile(cell, tile);
   }
 
-  removeTile({ tile }: { tile: TileId }): void {
-    this.history.removeTile({ tile });
+  undoPlaceTile({ tile }: { tile: TileId }): void {
+    this.history.currentTurn.undoPlaceTile({ tile });
+    this.board.undoPlaceTile(tile);
   }
 
   setCurrentTurnValidation(result: ValidationResult): void {
@@ -74,7 +77,10 @@ export default class Turnkeeper {
   }
 
   resetCurrentTurn(): void {
-    this.history.resetCurrentTurn();
+    for (const { tile } of this.history.currentTurn.placement) {
+      this.board.undoPlaceTile(tile);
+    }
+    this.history.currentTurn.reset();
   }
 
   saveCurrentTurn(): void {

@@ -3,15 +3,15 @@ import { TileId } from '@/domain/model/Inventory/types.ts';
 
 export type Link = { readonly cell: CellIndex; readonly tile: TileId };
 
-export default class Placement {
+export default class TurnPlacement {
   private constructor(private readonly links: Array<Link>) {}
 
-  static create(): Placement {
-    return new Placement([]);
+  static create(): TurnPlacement {
+    return new TurnPlacement([]);
   }
 
-  static from(links: Array<Link>): Placement {
-    return new Placement(links);
+  static createFrom(links: Array<Link>): TurnPlacement {
+    return new TurnPlacement(links);
   }
 
   get length(): number {
@@ -34,15 +34,13 @@ export default class Placement {
     return this.links[Symbol.iterator]();
   }
 
-  // -- Validated mutation (used by Turn) --
-
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
-    this.validateAbsence(cell, tile);
+    this.ensureAbsence(cell, tile);
     this.links.push({ cell, tile } as Link);
     this.links.sort((a, b) => a.cell - b.cell);
   }
 
-  removeTile({ tile }: { tile: TileId }): void {
+  undoPlaceTile({ tile }: { tile: TileId }): void {
     const index = this.links.findIndex(link => link.tile === tile);
     if (index === -1) throw new Error(`Tile ${tile} not found`);
     this.links.splice(index, 1);
@@ -52,8 +50,6 @@ export default class Placement {
     this.links.length = 0;
   }
 
-  // -- Raw mutation (used by PlacementGenerator for backtracking) --
-
   push(link: Link): void {
     this.links.push(link);
   }
@@ -62,9 +58,7 @@ export default class Placement {
     return this.links.pop();
   }
 
-  // -- Validation --
-
-  private validateAbsence(cell: CellIndex, tile: TileId): void {
+  private ensureAbsence(cell: CellIndex, tile: TileId): void {
     if (this.links.some(link => link.cell === cell)) throw new Error(`Cell ${cell} already connected`);
     if (this.links.some(link => link.tile === tile)) throw new Error(`Tile ${tile} already connected`);
   }

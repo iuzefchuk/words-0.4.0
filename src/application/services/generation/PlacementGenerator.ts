@@ -1,11 +1,12 @@
-import { GameContext, Placement } from '@/domain/types.ts';
+import { Placement } from '@/domain/types.ts';
 import { ValidationStatus } from '@/domain/enums.ts';
 import { Board } from '@/domain/model/Board/types.ts';
-import Dictionary from '@/domain/reference/Dictionary/index.ts';
-import Inventory from '@/domain/model/Inventory/index.ts';
+import Dictionary from '@/domain/reference/Dictionary/Dictionary.ts';
+import Inventory from '@/domain/model/Inventory/Inventory.ts';
 import { TileCollection } from '@/domain/model/Inventory/types.ts';
-import TurnValidator from '@/domain/services/Validation/index.ts';
-import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/domain/services/Generation/enums.ts';
+import { GameContext } from '@/application/types.ts';
+import TurnValidator from '@/application/services/validation/TurnValidator.ts';
+import { GenerationDirection, GenerationTask, GenerationCommandType } from '@/application/services/generation/enums.ts';
 import {
   GeneratorArguments,
   Traversal,
@@ -26,8 +27,8 @@ import {
   DispatcherState,
   DispatcherComputeds,
   GenerationResult,
-} from '@/domain/services/Generation/types.ts';
-import AnchorLettersComputer from '@/domain/services/Generation/AnchorLettersComputer.ts';
+} from '@/application/services/generation/types.ts';
+import AnchorLettersComputer from '@/domain/rules/AnchorLettersComputer.ts';
 
 export default class PlacementGenerator {
   static *execute(args: GeneratorArguments): Generator<GenerationResult> {
