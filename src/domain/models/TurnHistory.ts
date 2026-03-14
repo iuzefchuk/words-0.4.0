@@ -4,6 +4,8 @@ import { TileId } from '@/domain/models/Inventory.ts';
 
 export type Link = { readonly cell: CellIndex; readonly tile: TileId };
 
+export type PlacementLinks = ReadonlyArray<Link>;
+
 export enum ValidationStatus {
   Unvalidated = 'Unvalidated',
   Pending = 'Pending',
@@ -19,16 +21,16 @@ export enum ValidationErrors {
 }
 
 type ComputedSequences = { sequences: { cell: ReadonlyArray<CellIndex>; tile: ReadonlyArray<TileId> } };
-type ComputedPlacements = { placements: ReadonlyArray<Placement> };
+type ComputedPlacementLinks = { placementLinks: ReadonlyArray<PlacementLinks> };
 type ComputedWords = { words: ReadonlyArray<string> };
 type ComputedScore = { score: number };
 
-export type ComputedValue = ComputedSequences | ComputedPlacements | ComputedWords | ComputedScore;
+export type ComputedValue = ComputedSequences | ComputedPlacementLinks | ComputedWords | ComputedScore;
 
 export type UnvalidatedResult = { status: ValidationStatus.Unvalidated };
 export type InvalidResult = { status: ValidationStatus.Invalid; error: ValidationErrors };
 export type ValidResult = { status: ValidationStatus.Valid } & ComputedSequences &
-  ComputedPlacements &
+  ComputedPlacementLinks &
   ComputedWords &
   ComputedScore;
 export type ValidationResult = UnvalidatedResult | InvalidResult | ValidResult;
@@ -77,7 +79,12 @@ export default class TurnHistory {
     return this.turns.filter(t => t.player === player).reduce((sum, t) => sum + (t.score ?? 0), 0);
   }
 
+  get currentTurnPlacementLinks(): PlacementLinks {
+    return this.currentTurn.placementLinks;
+  }
+
   createNewTurnFor(player: Player): void {
+    if (player !== this.nextPlayer) throw new Error(`Expected next player to be ${this.nextPlayer}, but got ${player}`);
     this.turns.push(Turn.create({ player }));
   }
 }
@@ -119,8 +126,8 @@ class Turn {
     return this.validationResult.status === ValidationStatus.Valid;
   }
 
-  get placement(): Placement {
-    return this.initialPlacement;
+  get placementLinks(): PlacementLinks {
+    return this.initialPlacement.links();
   }
 
   setValidationResult(result: ValidationResult): void {
@@ -141,59 +148,35 @@ class Turn {
   }
 }
 
-export class Placement {
-  private constructor(private readonly links: Array<Link>) {}
+class Placement {
+  private constructor(private readonly _links: Array<Link>) {}
 
   static create(): Placement {
     return new Placement([]);
   }
 
-  static createFrom(links: Array<Link>): Placement {
-    return new Placement(links);
+  links(): PlacementLinks {
+    return [...this._links];
   }
 
   get length(): number {
-    return this.links.length;
-  }
-
-  get isEmpty(): boolean {
-    return this.links.length === 0;
-  }
-
-  get cellSequence(): ReadonlyArray<CellIndex> {
-    return this.links.map(link => link.cell);
-  }
-
-  get tileSequence(): ReadonlyArray<TileId> {
-    return this.links.map(link => link.tile);
-  }
-
-  [Symbol.iterator](): Iterator<Link> {
-    return this.links[Symbol.iterator]();
+    return this._links.length;
   }
 
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
-    if (this.links.some(link => link.cell === cell)) throw new Error(`Cell ${cell} already connected`);
-    if (this.links.some(link => link.tile === tile)) throw new Error(`Tile ${tile} already connected`);
-    this.links.push({ cell, tile } as Link);
-    this.links.sort((a, b) => a.cell - b.cell);
+    if (this._links.some(link => link.cell === cell)) throw new Error(`Cell ${cell} already connected`);
+    if (this._links.some(link => link.tile === tile)) throw new Error(`Tile ${tile} already connected`);
+    this._links.push({ cell, tile } as Link);
+    this._links.sort((a, b) => a.cell - b.cell);
   }
 
   undoPlaceTile({ tile }: { tile: TileId }): void {
-    const index = this.links.findIndex(link => link.tile === tile);
+    const index = this._links.findIndex(link => link.tile === tile);
     if (index === -1) throw new Error(`Tile ${tile} not found`);
-    this.links.splice(index, 1);
+    this._links.splice(index, 1);
   }
 
   reset(): void {
-    this.links.length = 0;
-  }
-
-  push(link: Link): void {
-    this.links.push(link);
-  }
-
-  pop(): Link | undefined {
-    return this.links.pop();
+    this._links.length = 0;
   }
 }

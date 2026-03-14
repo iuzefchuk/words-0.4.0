@@ -1,25 +1,25 @@
 import { CellIndex } from '@/domain/models/Board.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
-import { Placement } from '@/domain/models/TurnHistory.ts';
+import { PlacementLinks } from '@/domain/models/TurnHistory.ts';
 
 export default class ScoreCalculator {
   static execute(
-    placements: ReadonlyArray<Placement>,
+    allPlacementLinks: ReadonlyArray<PlacementLinks>,
     newCells: ReadonlySet<CellIndex>,
     getTilePoints: (tile: TileId) => number,
     getLetterMultiplier: (cell: CellIndex) => number,
     getWordMultiplier: (cell: CellIndex) => number,
   ): number {
     let totalScore = 0;
-    for (const placement of placements) {
-      let placementScore = 0;
-      let placementMultiplier = 1;
-      for (const { cell, tile } of placement) {
+    for (const placementLinks of allPlacementLinks) {
+      let score = 0;
+      let multiplier = 1;
+      for (const { cell, tile } of placementLinks) {
         const tileIsNew = newCells.has(cell);
-        placementScore += getTilePoints(tile) * (tileIsNew ? getLetterMultiplier(cell) : 1);
-        placementMultiplier *= tileIsNew ? getWordMultiplier(cell) : 1;
+        score += getTilePoints(tile) * (tileIsNew ? getLetterMultiplier(cell) : 1);
+        multiplier *= tileIsNew ? getWordMultiplier(cell) : 1;
       }
-      totalScore += placementScore * placementMultiplier;
+      totalScore += score * multiplier;
     }
     return totalScore;
   }

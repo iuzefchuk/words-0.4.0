@@ -197,16 +197,18 @@ export class Board {
   }
 
   placeTile(cell: CellIndex, tile: TileId): void {
+    Board.layout.validateCell(cell);
+    if (this.tileByCell.has(cell)) throw new Error(`Cell ${cell} is already occupied`);
+    if (this.cellByTile.has(tile)) throw new Error(`Tile ${tile} is already placed on the board`);
     this.tileByCell.set(cell, tile);
     this.cellByTile.set(tile, cell);
   }
 
   undoPlaceTile(tile: TileId): void {
     const cell = this.cellByTile.get(tile);
-    if (cell) {
-      this.tileByCell.delete(cell);
-      this.cellByTile.delete(tile);
-    }
+    if (cell === undefined) throw new Error(`Tile ${tile} is not on the board`);
+    this.tileByCell.delete(cell);
+    this.cellByTile.delete(tile);
   }
 
   getAnchorCells(historyIsEmpty: boolean): ReadonlySet<CellIndex> {

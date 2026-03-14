@@ -2,7 +2,7 @@ import ActionTracker, { PlayerAction } from '@/domain/models/ActionTracker.ts';
 import { Board, CellIndex } from '@/domain/models/Board.ts';
 import { Player } from '@/domain/enums.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
-import TurnHistory, { Placement, ValidationResult } from '@/domain/models/TurnHistory.ts';
+import TurnHistory, { PlacementLinks, ValidationResult } from '@/domain/models/TurnHistory.ts';
 
 export default class TurnDirector {
   private constructor(
@@ -39,8 +39,8 @@ export default class TurnDirector {
     return this.history.currentTurn.isValid;
   }
 
-  get currentTurnPlacement(): Placement {
-    return this.history.currentTurn.placement;
+  get currentTurnPlacementLinks(): PlacementLinks {
+    return this.history.currentTurnPlacementLinks;
   }
 
   get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined {
@@ -74,7 +74,7 @@ export default class TurnDirector {
   }
 
   resetCurrentTurn(): void {
-    for (const { tile } of this.history.currentTurn.placement) {
+    for (const { tile } of this.history.currentTurn.placementLinks) {
       this.board.undoPlaceTile(tile);
     }
     this.history.currentTurn.reset();

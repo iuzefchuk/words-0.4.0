@@ -2,7 +2,7 @@ import { AnchorCoordinates, CellIndex, Axis, Board } from '@/domain/models/Board
 import Dictionary, { NodeId } from '@/domain/models/Dictionary.ts';
 import Inventory, { TileCollection, TileId } from '@/domain/models/Inventory.ts';
 import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
-import { Placement, ValidationStatus } from '@/domain/models/TurnHistory.ts';
+import { PlacementLinks, Link, ValidationStatus } from '@/domain/models/TurnHistory.ts';
 import TurnValidator from '@/application/services/TurnValidator.ts';
 import { Player } from '@/domain/enums.ts';
 import { GameContext } from '@/application/Game.ts';
@@ -52,14 +52,12 @@ export type ReverseTask = {
 export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | ApplyTask | ReverseTask;
 
 export type ContinueTaskCommand = { type: GenerationCommandType.ContinueExecute; newTasks: Array<Task> };
-export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: GenerationResult };
+export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: PlacementLinks };
 export type StopTaskCommand = { type: GenerationCommandType.StopExecute };
 export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
 
-export type DispatcherState = { tiles: TileCollection; placement: Placement };
+export type DispatcherState = { tiles: TileCollection; placementLinks: Array<Link> };
 export type DispatcherComputeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
-
-export type GenerationResult = Placement;
 
 enum GenerationDirection {
   Left = -1,
@@ -81,8 +79,8 @@ enum GenerationCommandType {
   ReturnResult = 'ReturnResult',
 }
 
-export default class PlacementGenerator {
-  static *execute(context: GameContext, player: Player): Generator<Placement> {
+export default class PlacementLinksGenerator {
+  static *execute(context: GameContext, player: Player): Generator<PlacementLinks> {
     const { inventory, board, dictionary, turnDirector } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
@@ -92,16 +90,15 @@ export default class PlacementGenerator {
     for (const cell of anchorCells) {
       for (const axis of Object.values(Axis)) {
         const coords: AnchorCoordinates = { axis, cell };
-        for (const placement of this.generate({ context, lettersComputer, playerTileCollection, coords }))
-          yield placement;
+        for (const links of this.generate({ context, lettersComputer, playerTileCollection, coords })) yield links;
       }
     }
   }
 
-  static *generate(args: GeneratorArguments): Generator<GenerationResult> {
+  static *generate(args: GeneratorArguments): Generator<PlacementLinks> {
     const { context, coords } = args;
     const { dictionary } = context;
-    const dispatcher = PlacementGenerator.TaskDispatcher.create(args);
+    const dispatcher = PlacementLinksGenerator.TaskDispatcher.create(args);
     const firstTask: EvaluateTask = {
       type: GenerationTask.EvaluateTraversal,
       traversal: {
@@ -110,7 +107,7 @@ export default class PlacementGenerator {
         node: dictionary.firstNode,
       },
     };
-    const resolver = PlacementGenerator.TaskCommandResolver.create(firstTask);
+    const resolver = PlacementLinksGenerator.TaskCommandResolver.create(firstTask);
     yield* resolver.execute(task => dispatcher.execute(task));
   }
 
@@ -122,7 +119,7 @@ export default class PlacementGenerator {
       return new TaskCommandResolver(tasks);
     }
 
-    *execute(dispatcher: (task: Task) => TaskCommand): Generator<GenerationResult> {
+    *execute(dispatcher: (task: Task) => TaskCommand): Generator<PlacementLinks> {
       while (this.stack.length > 0) {
         const task = this.popFromStack();
         const command = dispatcher(task);
@@ -149,7 +146,7 @@ export default class PlacementGenerator {
       return { type: GenerationCommandType.StopExecute };
     }
 
-    static returnResult(result: GenerationResult): ReturnTaskCommand {
+    static returnResult(result: PlacementLinks): ReturnTaskCommand {
       return { type: GenerationCommandType.ReturnResult, result };
     }
   };
@@ -172,8 +169,8 @@ export default class PlacementGenerator {
       return this.context.inventory;
     }
 
-    private get placement(): Placement {
-      return this.state.placement;
+    private get placementLinks(): Array<Link> {
+      return this.state.placementLinks;
     }
 
     private get tiles(): TileCollection {
@@ -181,7 +178,7 @@ export default class PlacementGenerator {
     }
 
     static create({ context, lettersComputer, playerTileCollection, coords }: GeneratorArguments): TaskDispatcher {
-      const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: Placement.create() };
+      const state: DispatcherState = { tiles: new Map(playerTileCollection), placementLinks: [] };
       const computeds: DispatcherComputeds = {
         axisCells: context.board.getAxisCells(coords),
         oppositeAxis: context.board.getOppositeAxis(coords.axis),
@@ -207,24 +204,25 @@ export default class PlacementGenerator {
     }
 
     private emitContinue(newTasks: Array<Task> = []): ContinueTaskCommand {
-      return PlacementGenerator.TaskCommandResolver.continueExecute(newTasks);
+      return PlacementLinksGenerator.TaskCommandResolver.continueExecute(newTasks);
     }
 
     private emitStop(): StopTaskCommand {
-      return PlacementGenerator.TaskCommandResolver.stopExecute();
+      return PlacementLinksGenerator.TaskCommandResolver.stopExecute();
     }
 
-    private emitReturn(result: GenerationResult): ReturnTaskCommand {
-      return PlacementGenerator.TaskCommandResolver.returnResult(result);
+    private emitReturn(result: PlacementLinks): ReturnTaskCommand {
+      return PlacementLinksGenerator.TaskCommandResolver.returnResult(result);
     }
 
     private evaluateTraversal(task: EvaluateTask): ReturnTaskCommand | ContinueTaskCommand {
       const { traversal } = task;
-      const placementIsUsable = this.placement.length > 0 && this.dictionary.isNodeFinal(traversal.node);
+      const placementIsUsable = this.placementLinks.length > 0 && this.dictionary.isNodeFinal(traversal.node);
       if (traversal.direction === GenerationDirection.Right && placementIsUsable) {
-        const validationResult = TurnValidator.execute(this.context, this.placement);
+        const placementLinks = [...this.placementLinks];
+        const validationResult = TurnValidator.execute(this.context, placementLinks);
         if (validationResult.status === ValidationStatus.Valid) {
-          return this.emitReturn(this.placement);
+          return this.emitReturn(placementLinks);
         }
       }
       const nextTasks: Array<Task> = [];
@@ -321,7 +319,7 @@ export default class PlacementGenerator {
       const { tile } = task.resolution;
       const { letterTiles } = task.resolutionComputeds;
       letterTiles.splice(letterTiles.indexOf(tile), 1);
-      this.placement.push({ cell, tile });
+      this.placementLinks.push({ cell, tile } as Link);
       return this.emitContinue();
     }
 
@@ -329,7 +327,7 @@ export default class PlacementGenerator {
       const { tile } = task.resolution;
       const { letterTiles } = task.resolutionComputeds;
       letterTiles.push(tile);
-      this.placement.pop();
+      this.placementLinks.pop();
       return this.emitContinue();
     }
   };
