@@ -50,7 +50,7 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
     }
 
     private handleNextFrame(): void {
-      this.element._animationFrameRequestId = requestAnimationFrame(this.frameCallback);
+      this.element._animationFrameRequestId = requestAnimationFrame((time) => this.frameCallback(time));
     }
   };
 }

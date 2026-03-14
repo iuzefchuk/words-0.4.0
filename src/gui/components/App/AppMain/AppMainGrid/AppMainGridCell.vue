@@ -5,13 +5,12 @@ import { PropType, computed } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 import ItemsStore from '@/gui/stores/ItemsStore.ts';
 import { getBonusName } from '@/gui/mappings.ts';
-const props = defineProps({ cell: { type: Object as PropType<GameCell>, required: true } });
+const props = defineProps({ cell: { type: Number as PropType<GameCell>, required: true } });
 const storeGame = GameStore.getInstance();
 const storeItems = ItemsStore.getInstance();
 const bonus = computed(() => storeGame.getCellBonus(props.cell));
 const bonusName = computed(() => (bonus.value ? getBonusName(bonus.value) : ''));
-const tile = computed(() => storeGame.findTileConnectedToCell(props.cell));
-const tileLetter = computed(() => (tile.value ? storeGame.getTileLetter(tile.value) : ''));
+const tile = computed(() => storeGame.findTileOnCell(props.cell));
 </script>
 
 <template>
@@ -39,12 +38,12 @@ const tileLetter = computed(() => (tile.value ? storeGame.getTileLetter(tile.val
     </Transition>
     <Transition name="fade" appear>
       <AppTile
-        v-if="tile && tileLetter"
+        v-if="tile"
         class="cell__tile"
-        :letter="tileLetter"
+        :letter="storeGame.getTileLetter(tile)"
         :is-inverted="storeItems.isTileSelected(tile)"
         :is-highlighted="storeGame.wasTileUsedInLastTurn(tile)"
-        :is-elevated="storeItems.isTileInInventory(tile)"
+        :is-elevated="storeItems.isTileInItems(tile)"
         @click.stop="storeItems.handleClickBoardTile(tile)"
       />
     </Transition>

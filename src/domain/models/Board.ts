@@ -192,7 +192,7 @@ export class Board {
     return this.tileByCell.has(cell);
   }
 
-  isTileConnected(tile: TileId): boolean {
+  isTilePlaced(tile: TileId): boolean {
     return this.cellByTile.has(tile);
   }
 

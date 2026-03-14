@@ -18,22 +18,22 @@ export default class GameStore {
       opponentScore: state.opponentScore,
       currentPlayerIsUser: state.currentPlayerIsUser,
       userPassWillBeResign: state.userPassWillBeResign,
-      isCellInCenterOfLayout: game.isCellInCenterOfLayout,
-      getCellBonus: game.getCellBonus,
-      findTileConnectedToCell: game.findTileByCell,
-      findCellConnectedToTile: game.findCellByTile,
-      isTileConnected: game.isTileConnected,
-      areTilesSame: game.areTilesSame,
-      getTileLetter: game.getTileLetter,
-      isCellLastConnectionInTurn: game.isCellLastConnectionInTurn,
-      wasTileUsedInLastTurn: game.wasTileUsedInPreviousTurn,
-      shuffleUserTiles: state.updateAfterCallback(() => game.shuffleUserTiles()),
-      placeTile: (args: { cell: GameCell; tile: GameTile }) => state.updateAfterCallback(() => game.placeTile(args)),
-      undoPlaceTile: (tile: GameTile) => state.updateAfterCallback(() => game.undoPlaceTile(tile)),
-      resetTurn: () => state.updateAfterCallback(() => game.resetTurn()),
-      saveTurn: () => state.updateAfterCallback(() => game.saveTurn()),
-      passTurn: () => state.updateAfterCallback(() => game.passTurn()),
-      resignGame: () => state.updateAfterCallback(() => game.resignGame()),
+      isCellInCenterOfLayout: (cell: GameCell) => game.isCellInCenterOfLayout(cell),
+      getCellBonus: (cell: GameCell) => game.getCellBonus(cell),
+      findTileOnCell: (cell: GameCell) => state.voidRefBefore(() => game.findTileByCell(cell)),
+      findCellWithTile: (tile: GameTile) => state.voidRefBefore(() => game.findCellByTile(tile)),
+      isTilePlaced: (tile: GameTile) => state.voidRefBefore(() => game.isTilePlaced(tile)),
+      areTilesSame: (firstTile: GameTile, secondTile: GameTile) => game.areTilesSame(firstTile, secondTile),
+      getTileLetter: (tile: GameTile) => game.getTileLetter(tile),
+      isCellLastConnectionInTurn: (cell: GameCell) => state.voidRefBefore(() => game.isCellLastConnectionInTurn(cell)),
+      wasTileUsedInLastTurn: (tile: GameTile) => state.voidRefBefore(() => game.wasTileUsedInPreviousTurn(tile)),
+      shuffleUserTiles: () => state.triggerRefAfter(() => game.shuffleUserTiles()),
+      placeTile: (args: { cell: GameCell; tile: GameTile }) => state.triggerRefAfter(() => game.placeTile(args)),
+      undoPlaceTile: (tile: GameTile) => state.triggerRefAfter(() => game.undoPlaceTile(tile)),
+      resetTurn: () => state.triggerRefAfter(() => game.resetTurn()),
+      saveTurn: () => state.triggerRefAfter(() => game.saveTurn()),
+      passTurn: () => state.triggerRefAfter(() => game.passTurn()),
+      resignGame: () => state.triggerRefAfter(() => game.resignGame()),
     };
   });
 
@@ -57,7 +57,12 @@ export default class GameStore {
       return this.stateRef.value;
     }
 
-    updateAfterCallback<T>(callback: () => T): T {
+    voidRefBefore<T>(callback: () => T): T {
+      void this.stateRef.value;
+      return callback();
+    }
+
+    triggerRefAfter<T>(callback: () => T): T {
       const result = callback();
       triggerRef(this.stateRef);
       return result;

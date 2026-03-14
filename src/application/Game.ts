@@ -39,7 +39,6 @@ export type GameState = {
 
 export default class Game {
   private static readonly dictionary = Dictionary.create();
-
   static readonly bonuses = Bonus;
   static readonly letters = Letter;
 
@@ -92,8 +91,8 @@ export default class Game {
     return this.board.findCellByTile(tile);
   }
 
-  isTileConnected(tile: GameTile): boolean {
-    return this.board.isTileConnected(tile);
+  isTilePlaced(tile: GameTile): boolean {
+    return this.board.isTilePlaced(tile);
   }
 
   areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {

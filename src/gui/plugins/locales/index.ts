@@ -40,7 +40,7 @@ export default class LocalesPlugin {
     const [file, key] = string.split('.');
     if (!this.content.value) throw new Error('Locales didn`t fetch content');
     let localizedText = this.content.value[file as LocaleFile]?.[key];
-    if (!localizedText) throw new Error('Locales file or key are incorrect');
+    if (!localizedText) throw new Error(`Locales file ${file} or key ${key} are incorrect`);
     if (props) {
       for (const [key, value] of Object.entries(props)) {
         localizedText = localizedText.replaceAll(`{${key}}`, String(value));

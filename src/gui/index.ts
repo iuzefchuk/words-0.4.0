@@ -19,9 +19,9 @@ class Application {
   }
 
   private installPlugins(): void {
+    this.app.use(createPinia());
     this.app.use(directives);
     this.app.use(provides);
-    this.app.use(createPinia());
   }
 
   private async installAsyncPlugins(): Promise<void> {

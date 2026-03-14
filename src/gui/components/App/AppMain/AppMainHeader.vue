@@ -1,32 +1,46 @@
 <script lang="ts" setup>
-//import GameStore from '@/gui/stores/GameStore.ts';
-//const storeGame = GameStore.getInstance();
-
-// TODO
+import { reactive } from 'vue';
+import GameStore from '@/gui/stores/GameStore.ts';
+import { PLAYER_AVATAR_SVG_HTML } from '@/gui/constants.ts';
+const storeGame = GameStore.getInstance();
+const players = reactive([
+  {
+    name: window.t('game.player_user'),
+    score: storeGame.userScore,
+    isPendingMove: storeGame.currentPlayerIsUser,
+    avatarSvgHtml: PLAYER_AVATAR_SVG_HTML[0],
+  },
+  {
+    name: window.t('game.player_opponent'),
+    score: storeGame.opponentScore,
+    isPendingMove: !storeGame.currentPlayerIsUser,
+    avatarSvgHtml: PLAYER_AVATAR_SVG_HTML[1],
+  },
+]);
 </script>
 
 <template>
   <header class="header">
     <div class="header__wrapper app__width-content">
-      <!-- <div v-for="player in Object.values(gamePlayers)" :key="player" class="header__player">
+      <div v-for="player in players" :key="player.name" class="header__player">
         <div class="header__player-info">
-          <p class="header__player-name">{{ getPlayerName(player) }}</p>
+          <p class="header__player-name">{{ player.name }}</p>
           <span
             v-animate-number="{
-              number: getPlayerScore(player),
+              number: player.score,
             }"
             class="header__player-score"
           />
         </div>
         <svg
-          :class="{ 'header__player-avatar': true, 'header__player-avatar--pulsing': isPlayerPendingMove(player) }"
+          :class="{ 'header__player-avatar': true, 'header__player-avatar--pulsing': player.isPendingMove }"
           viewBox="0 0 80 80"
           fill="none"
           role="img"
           xmlns="http://www.w3.org/2000/svg"
-          v-html="getPlayerAvatarSvgHtml(player)"
+          v-html="player.avatarSvgHtml"
         ></svg>
-      </div> -->
+      </div>
     </div>
   </header>
 </template>
@@ -65,9 +79,10 @@
     width: calc(var(--cell-tile-width) * 1.5 + var(--cell-tile-gap));
     border-radius: var(--space-4xs);
     opacity: 0.9;
-    &--pulsing {
-      animation: rotate calc(var(--transition-duration) * 8) var(--transition-timing-function) infinite;
-    }
+    // &--pulsing {
+    // TODO
+    //   animation: rotate calc(var(--transition-duration) * 8) var(--transition-timing-function) infinite;
+    // }
   }
   &__player-info {
     display: flex;

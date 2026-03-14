@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import AppTile from '@/gui/components/shared/AppTile.vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 import ItemsStore from '@/gui/stores/ItemsStore.ts';
 import { storeToRefs } from 'pinia';
@@ -15,9 +16,9 @@ const { tiles } = storeToRefs(storeItems);
       <span class="inventory__count-item">{{ t('game.unassigned_count') }}</span>
     </li>
     <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="storeItems.handleClickRackCell(idx)">
-      <TileId
+      <AppTile
         v-if="storeItems.isTileVisible(tile)"
-        :tile="tile"
+        :letter="storeGame.getTileLetter(tile)"
         :is-inverted="storeItems.isTileSelected(tile)"
         @click.stop="storeItems.handleClickRackTile(tile)"
       />

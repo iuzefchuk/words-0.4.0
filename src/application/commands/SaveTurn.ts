@@ -1,4 +1,4 @@
-import { GameContext } from '@/application/types.ts';
+import { GameContext } from '@/application/Game.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
 
 export default class SaveTurn {
@@ -8,7 +8,7 @@ export default class SaveTurn {
     const tiles = turnDirector.currentTurnTileSequence;
     if (!tiles) throw new Error('Current turn tile sequence does not exist');
     turnDirector.saveCurrentTurn();
-    tiles.forEach((tile: TileId) => inventory.discardTile({ player, tileId: tile }));
+    tiles.forEach((tile: TileId) => inventory.discardTile({ player, tile }));
     inventory.replenishTilesFor(player);
   }
 }

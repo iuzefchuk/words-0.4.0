@@ -2,16 +2,16 @@
 //import DialogStore from '@/gui/stores/DialogStore.ts';
 import GameStore from '@/gui/stores/GameStore.ts';
 import ItemsStore from '@/gui/stores/ItemsStore.ts';
-//import ToastStore from '@/gui/stores/ToastStore.ts';
+import ToastStore from '@/gui/stores/ToastStore.ts';
 import { storeToRefs } from 'pinia';
 
 // TODO
 //const storeDialog = DialogStore.getInstance();
 const storeGame = GameStore.getInstance();
 const storeItems = ItemsStore.getInstance();
-//const storeToast = ToastStore.getInstance();
+const storeToast = ToastStore.getInstance();
 const { currentPlayerIsUser } = storeToRefs(storeGame);
-const { inventoryIsFull } = storeToRefs(storeItems);
+const { allItemsAreConnected } = storeToRefs(storeItems);
 // const { shuffleUserTiles } = storeGame;
 
 async function triggerResignDialog() {
@@ -35,19 +35,17 @@ async function handlePass(): Promise<void> {
 }
 
 function handleClear(): void {
-  // storeItems.init();
+  // storeItems.initialize();
   // storeGame.resetTurn();
 }
 
 async function handlePlay() {
-  // const error = await storeGame.saveTurn({
-  //   afterSaveCallback: (wordList: Array<string>) => {
-  //     storeGame.resetTurn();
-  //     storeToast.addToast({ html: wordList.join(',') });
-  //   },
-  // });
-  // if (error) storeToast.addToast({ html: error });
-  // storeItems.init();
+  const error = await storeGame.saveTurn();
+  // afterSaveCallback: (words: Array<string>) => {
+  //   storeToast.addMessage(words.join(','));
+  // },;
+  if (error) storeToast.addMessage(error);
+  storeItems.initialize();
 }
 </script>
 
@@ -64,7 +62,7 @@ async function handlePlay() {
           {{ t('game.action_pass') }}
         </button>
       </li>
-      <li v-if="inventoryIsFull" class="actions__list-item">
+      <li v-if="allItemsAreConnected" class="actions__list-item">
         <button class="actions__btn" :disabled="!currentPlayerIsUser">
           {{ t('game.action_shuffle') }}
         </button>

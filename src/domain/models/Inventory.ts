@@ -58,8 +58,8 @@ export default class Inventory {
     this.replenishRack(rack);
   }
 
-  discardTile({ player, tileId }: { player: Player; tileId: TileId }): void {
-    const removedTile = this.getRackFor(player).discardTile(tileId);
+  discardTile({ player, tile }: { player: Player; tile: TileId }): void {
+    const removedTile = this.getRackFor(player).discardTile(tile);
     this.discardPool.push(removedTile);
   }
 
