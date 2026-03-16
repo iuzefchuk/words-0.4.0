@@ -1,18 +1,27 @@
 <script lang="ts" setup>
 import DialogStore, { DialogStatus } from '@/gui/stores/DialogStore.ts';
 import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
 const storeDialog = DialogStore.getInstance();
 const { title, html, cancelText, confirmText, cancelIsHidden, confirmIsHidden } = storeToRefs(storeDialog);
 const { resolve } = storeDialog;
+const exitAnimation = ref(false);
+function toggleExitAnimation() {
+  exitAnimation.value = true;
+  setTimeout(() => {
+    exitAnimation.value = false;
+  }, 300);
+}
 </script>
 
 <template>
   <Transition name="fade">
-    <div v-if="title" class="dialog">
+    <div v-if="title" class="dialog" @mousedown="toggleExitAnimation">
       <Transition tag="div" name="fade-down-up" appear>
         <div
           v-on-click-outside="{ callback: () => resolve({ status: DialogStatus.Dismissed }) }"
-          class="dialog__window"
+          :class="{ dialog__window: true, 'dialog__window--shaking': exitAnimation, 'app__width-content': true }"
+          @mousedown.stop
         >
           <div class="dialog__content">
             <p class="dialog__content-title">{{ title }}</p>
@@ -40,14 +49,18 @@ const { resolve } = storeDialog;
   width: 100%;
   height: 100%;
   z-index: var(--z-index-level-2);
-  display: grid;
-  place-items: center;
-  background: rgb(24 24 27 / 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   &__window {
     padding: var(--space-l) var(--space-xl);
     border-radius: var(--primary-border-radius);
     color: var(--color-gray-fainter);
     background: var(--color-gray-dark);
+    margin-top: calc(var(--header-height) + var(--space-s));
+    &--shaking {
+      animation: horizontal-shake var(--transition-duration) linear forwards;
+    }
   }
   &__content {
     display: flex;
@@ -71,7 +84,9 @@ const { resolve } = storeDialog;
       &:last-child {
         color: var(--color-red);
       }
-      text-decoration: underline;
+      padding: var(--space-s);
+      background: var(--color-gray-darker);
+      border-radius: var(--primary-border-radius);
     }
   }
 }

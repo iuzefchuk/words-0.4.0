@@ -23,7 +23,10 @@ onMounted(() => {
   <div
     :class="{ app: true, 'app--blurred': gameIsFinished }"
     :style="{
-      '--transition-duration': `${transitionDurationMs}ms`,
+      ...(transitionDurationMs && {
+        '--transition-duration': `${transitionDurationMs}ms`,
+        '--transition-duration-half': `${transitionDurationMs / 2}ms`,
+      }),
       '--cell-count-per-axis': Math.sqrt(storeGame.layoutCells.length),
     }"
   >
@@ -37,6 +40,7 @@ onMounted(() => {
 
 <style lang="scss">
 @use '@/gui/assets/css/adjustments.scss';
+@use '@/gui/assets/css/animations.scss';
 @use '@/gui/assets/css/colors.scss';
 @use '@/gui/assets/css/transitions.scss';
 @use '@/gui/assets/css/variables.scss';
@@ -64,8 +68,6 @@ onMounted(() => {
   --tile-shadow-color-inverted: var(--color-purple-darker);
   --tile-shadow-inset-elevated: var(--space-2xs);
   --header-height: 5.3rem;
-  --score-color: var(--color-white);
-  --score-bg: var(--color-purple-darker);
 }
 .app {
   color: var(--primary-color);

@@ -1,4 +1,4 @@
-import { AnchorCoordinates, CellIndex, Axis, Board } from '@/domain/models/Board.ts';
+import Board, { AnchorCoordinates, CellIndex, Axis } from '@/domain/models/Board.ts';
 import Dictionary, { NodeId } from '@/domain/models/Dictionary.ts';
 import Inventory, { TileCollection, TileId } from '@/domain/models/Inventory.ts';
 import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
@@ -84,7 +84,7 @@ export default class PlacementLinksGenerator {
     const { inventory, board, dictionary, turnDirector } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
-    const anchorCells = board.getAnchorCells(turnDirector.historyIsEmpty);
+    const anchorCells = board.getAnchorCells(turnDirector.historyHasOpponentTurns);
     if (anchorCells.size === 0) return;
     const lettersComputer = new CrossCheckComputer(board, dictionary, inventory);
     for (const cell of anchorCells) {

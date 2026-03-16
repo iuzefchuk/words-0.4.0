@@ -1,8 +1,8 @@
-import { Bonus, Board, CellIndex } from '@/domain/models/Board.ts';
+import Board, { Bonus, CellIndex } from '@/domain/models/Board.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import { Letter, Player } from '@/domain/enums.ts';
 import Inventory, { TileId } from '@/domain/models/Inventory.ts';
-import { PlacementLinks } from '@/domain/models/TurnHistory.ts';
+import { PlacementLinks, ValidationError } from '@/domain/models/TurnHistory.ts';
 import { TIME } from '@/shared/constants.ts';
 import { wait } from '@/shared/helpers.ts';
 import GameStateQuery from '@/application/queries/GameState.ts';
@@ -133,10 +133,12 @@ export default class Game {
     this.turnDirector.resetCurrentTurn();
   }
 
-  async saveTurn(): Promise<void> {
+  async saveTurn(): Promise<ValidationError | null> {
     this.ensureMutability();
-    SaveTurnCommand.execute(this.context);
+    const error = SaveTurnCommand.execute(this.context);
+    if (error) return error;
     if (this.turnDirector.currentPlayer !== Player.User) await this.processOpponentTurn();
+    return null;
   }
 
   async passTurn(): Promise<void> {
@@ -159,14 +161,11 @@ export default class Game {
   private async processOpponentTurn(): Promise<void> {
     await this.setMinimumExecutionTime(() => {
       const generatedPlacementLinks = this.generatePlacementLinks(Player.Opponent);
-      if (generatedPlacementLinks === null) {
-        PassTurnCommand.execute(this.context);
-      } else {
-        for (const link of generatedPlacementLinks) this.turnDirector.placeTile({ cell: link.cell, tile: link.tile });
-        const result = TurnValidator.execute(this.context, this.turnDirector.currentTurnPlacementLinks);
-        this.turnDirector.setCurrentTurnValidation(result);
-        SaveTurnCommand.execute(this.context);
-      }
+      if (generatedPlacementLinks === null) return PassTurnCommand.execute(this.context);
+      for (const link of generatedPlacementLinks) this.turnDirector.placeTile({ cell: link.cell, tile: link.tile });
+      const result = TurnValidator.execute(this.context, this.turnDirector.currentTurnPlacementLinks);
+      this.turnDirector.setCurrentTurnValidation(result);
+      SaveTurnCommand.execute(this.context);
     });
   }
 

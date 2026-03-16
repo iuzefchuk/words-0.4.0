@@ -119,7 +119,7 @@ class Layout {
   }
 }
 
-export class Board {
+export default class Board {
   private static readonly layout = Layout.create();
   private static readonly defaultAxis = Axis.X;
 
@@ -211,11 +211,11 @@ export class Board {
     this.cellByTile.delete(tile);
   }
 
-  getAnchorCells(historyIsEmpty: boolean): ReadonlySet<CellIndex> {
+  getAnchorCells(historyHasOpponentTurns: boolean): ReadonlySet<CellIndex> {
     return new Set(
       Board.layout.cells.filter((cell: CellIndex) => {
         const isCenter = Board.layout.isCellCenter(cell);
-        if (historyIsEmpty) return isCenter;
+        if (!historyHasOpponentTurns) return isCenter;
         if (this.isCellOccupied(cell)) return false;
         const hasUsedAdjacentCells = Board.layout
           .getAdjacentCells(cell)

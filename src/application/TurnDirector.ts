@@ -1,8 +1,8 @@
 import ActionTracker, { PlayerAction } from '@/domain/models/ActionTracker.ts';
-import { Board, CellIndex } from '@/domain/models/Board.ts';
+import Board, { CellIndex } from '@/domain/models/Board.ts';
 import { Player } from '@/domain/enums.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
-import TurnHistory, { PlacementLinks, ValidationResult } from '@/domain/models/TurnHistory.ts';
+import TurnHistory, { PlacementLinks, ValidationError, ValidationResult } from '@/domain/models/TurnHistory.ts';
 
 export default class TurnDirector {
   private constructor(
@@ -31,6 +31,10 @@ export default class TurnDirector {
     return this.history.currentTurnTileSequence;
   }
 
+  get currentTurnError(): ValidationError | undefined {
+    return this.history.currentTurn.error;
+  }
+
   get currentTurnScore(): number | undefined {
     return this.history.currentTurn.score;
   }
@@ -47,8 +51,8 @@ export default class TurnDirector {
     return this.history.previousTurnTileSequence;
   }
 
-  get historyIsEmpty(): boolean {
-    return this.history.isEmpty;
+  get historyHasOpponentTurns(): boolean {
+    return this.history.hasOpponentTurns;
   }
 
   getScoreFor(player: Player): number {

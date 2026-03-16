@@ -11,10 +11,6 @@ const { tiles } = storeToRefs(storeItems);
 
 <template>
   <ul class="app__width-content app__grid--footer">
-    <li class="inventory__count">
-      <span v-animate-number="{ number: tilesRemaining }" class="inventory__count-item" />
-      <span class="inventory__count-item">{{ t('game.unassigned_count') }}</span>
-    </li>
     <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="storeItems.handleClickRackCell(idx)">
       <AppTile
         v-if="storeItems.isTileVisible(tile)"
@@ -23,29 +19,34 @@ const { tiles } = storeToRefs(storeItems);
         @click.stop="storeItems.handleClickRackTile(tile)"
       />
     </li>
+    <li class="inventory__count">
+      <p>
+        <span v-animate-number="{ number: tilesRemaining }" class="inventory__count-item" />
+        {{ t('game.unassigned_count') }}
+      </p>
+    </li>
   </ul>
 </template>
 
 <style lang="scss" scoped>
 .inventory {
-  &__count {
-    font-size: var(--font-size-small);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-gray-dark);
-  }
-  &__count-item {
-    width: max-content;
-    height: max-content;
-    position: static;
-  }
   &__cell {
     cursor: pointer;
     background: var(--color-gray-faint);
     border-radius: calc(var(--primary-border-radius) * 2);
     box-shadow: var(--box-shadow-inner);
+  }
+  &__count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight);
+  }
+  &__count-item {
+    width: max-content;
+    height: max-content;
+    position: static;
   }
 }
 </style>

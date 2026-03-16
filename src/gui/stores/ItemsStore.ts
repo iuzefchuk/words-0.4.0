@@ -4,6 +4,7 @@ import { shallowRef, ref, computed, triggerRef } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 
 export default class ItemsStore {
+  // TODO game controlls store ?
   static readonly getInstance = defineStore('items', () => {
     const storeGame = GameStore.getInstance();
     const store = new ItemsStore(storeGame);

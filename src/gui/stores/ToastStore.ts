@@ -31,8 +31,8 @@ export default class ToastStore {
     const message: Message = { html, timestamp: crypto.randomUUID() };
     if (this.maxLimitIsReached) this.messages.shift();
     this.messages.push(message);
-    await wait(ToastStore.timeoutMs);
-    this.removeMessage(message.timestamp);
+    // await wait(ToastStore.timeoutMs);
+    // this.removeMessage(message.timestamp);
   }
 
   private removeMessage(timestamp: string): void {

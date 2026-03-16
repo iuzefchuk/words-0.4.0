@@ -13,7 +13,7 @@ export enum ValidationStatus {
   Valid = 'Valid',
 }
 
-export enum ValidationErrors {
+export enum ValidationError {
   InvalidTilePlacement = 'error_tile_1',
   InvalidCellPlacement = 'error_cell_2',
   NoCellsUsableAsFirst = 'error_cell_3',
@@ -28,7 +28,7 @@ type ComputedScore = { score: number };
 export type ComputedValue = ComputedSequences | ComputedPlacementLinks | ComputedWords | ComputedScore;
 
 export type UnvalidatedResult = { status: ValidationStatus.Unvalidated };
-export type InvalidResult = { status: ValidationStatus.Invalid; error: ValidationErrors };
+export type InvalidResult = { status: ValidationStatus.Invalid; error: ValidationError };
 export type ValidResult = { status: ValidationStatus.Valid } & ComputedSequences &
   ComputedPlacementLinks &
   ComputedWords &
@@ -44,8 +44,8 @@ export default class TurnHistory {
     return new TurnHistory([]);
   }
 
-  get isEmpty(): boolean {
-    return this.turns.length === 0;
+  get hasOpponentTurns(): boolean {
+    return this.turns.length > 1;
   }
 
   get currentPlayer(): Player {
@@ -72,7 +72,8 @@ export default class TurnHistory {
   }
 
   get previousTurnTileSequence(): ReadonlyArray<TileId> | undefined {
-    return this.turns.at(-2)?.tileSequence;
+    // TODO rename
+    return this.turns.at(-3)?.tileSequence;
   }
 
   getScoreFor(player: Player): number {
@@ -110,7 +111,7 @@ class Turn {
     return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.sequences.tile : undefined;
   }
 
-  get error(): string | undefined {
+  get error(): ValidationError | undefined {
     return this.validationResult.status === ValidationStatus.Invalid ? this.validationResult.error : undefined;
   }
 

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-//import DialogStore from '@/gui/stores/DialogStore.ts';
+import DialogStore from '@/gui/stores/DialogStore.ts';
 import GameStore from '@/gui/stores/GameStore.ts';
 import ItemsStore from '@/gui/stores/ItemsStore.ts';
 import ToastStore from '@/gui/stores/ToastStore.ts';
 import { storeToRefs } from 'pinia';
 
 // TODO
-//const storeDialog = DialogStore.getInstance();
+const storeDialog = DialogStore.getInstance();
 const storeGame = GameStore.getInstance();
 const storeItems = ItemsStore.getInstance();
 const storeToast = ToastStore.getInstance();
@@ -19,12 +19,14 @@ async function triggerResignDialog() {
 }
 
 async function handleResign(): Promise<void> {
+  storeToast.addMessage('Testing');
   // const { isConfirmed } = await triggerResignDialog();
   // if (!isConfirmed) return;
   // resignGame();
 }
 
 async function handlePass(): Promise<void> {
+  storeDialog.trigger({ html: 'Testing', title: 'Test' });
   // if (willUserPassBeResign) {
   //   const { isConfirmed } = await triggerResignDialog();
   //   if (!isConfirmed) return;
@@ -41,11 +43,12 @@ function handleClear(): void {
 
 async function handlePlay() {
   const error = await storeGame.saveTurn();
+  if (error) storeToast.addMessage(error);
+  storeItems.initialize();
+
   // afterSaveCallback: (words: Array<string>) => {
   //   storeToast.addMessage(words.join(','));
   // },;
-  if (error) storeToast.addMessage(error);
-  storeItems.initialize();
 }
 </script>
 
@@ -83,7 +86,7 @@ async function handlePlay() {
 
 <style lang="scss" scoped>
 .actions {
-  height: calc(var(--cell-tile-width) * 1.5);
+  height: calc(var(--cell-tile-width) * 1.6);
   width: 100%;
   display: grid;
   place-items: center;
@@ -91,7 +94,7 @@ async function handlePlay() {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
-    gap: var(--space-s);
+    gap: var(--space-m);
     height: 100%;
   }
   &__list-item {
@@ -100,15 +103,16 @@ async function handlePlay() {
   &__btn {
     cursor: pointer;
     text-align: center;
-    background: var(--color-white);
     border-radius: var(--primary-border-radius);
-    box-shadow: var(--box-shadow-level-0);
+    background: var(--color-gray-faintest);
     width: 100%;
     height: 100%;
-    border: 1px solid var(--color-gray-lightest);
+    font-weight: var(--font-weight);
+    border: 1px solid var(--color-gray);
+    box-shadow: var(--box-shadow-level-1);
     user-select: none;
     transition-property: box-shadow, border-color;
-    transition-duration: var(--transition-duration);
+    transition-duration: var(--transition-duration-half);
     transition-timing-function: var(--transition-timing-function);
     &:hover:not(:active):not(:disabled) {
       box-shadow: var(--box-shadow-level-1);
@@ -117,11 +121,11 @@ async function handlePlay() {
     &:active:not(:disabled) {
       box-shadow: none;
     }
-    &:focus:not(:active):not(:disabled) {
-      outline-offset: 1px;
-      outline: 1.5px solid var(--color-purple-dark);
-      transition-duration: calc(var(--transition-duration) / 2);
-    }
+    // &:focus:not(:active):not(:disabled) {
+    //   outline-offset: 1px;
+    //   outline: 1.5px solid var(--color-purple-dark);
+    //   transition-duration: calc(var(--transition-duration) / 2);
+    // }
     &:disabled {
       opacity: 0.7;
       cursor: not-allowed;

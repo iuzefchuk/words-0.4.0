@@ -46,14 +46,13 @@ const { removeMessage } = storeToast;
     border-radius: var(--primary-border-radius);
     display: grid;
     place-items: center;
-    padding: var(--space-s) var(--space-m);
+    padding: var(--space-m);
     cursor: pointer;
     text-align: center;
     user-select: none;
     color: var(--color-gray-fainter);
     background: var(--color-gray-dark);
     font-weight: var(--font-weight-small);
-    font-size: var(--font-size-small);
     line-height: var(--line-height-small);
   }
 }

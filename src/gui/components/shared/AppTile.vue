@@ -1,25 +1,24 @@
 <script lang="ts" setup>
 import { getLetterSvgHtml } from '@/gui/mappings.ts';
-import { ref } from 'vue';
-//import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-//const transitionDurationMs = inject(transitionDurationMsKey);
+import { ref, watch, inject } from 'vue';
+import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
+const transitionDurationMs = inject(transitionDurationMsKey);
 const transitionIsDisabled = ref(false);
-defineProps({
+const props = defineProps({
   letter: { type: String, required: true },
   isInverted: { type: Boolean, default: false },
   isHighlighted: { type: Boolean, default: false },
   isElevated: { type: Boolean, default: false },
 });
-// watch(
-//   () => props.letter,
-//   newValue => {
-//     if (newValue) transitionIsDisabled.value = true; // TODO test
-//     setTimeout(() => {
-//       transitionIsDisabled.value = false;
-//     }, transitionDurationMs);
-//   },
-// );
-// TODO test
+watch(
+  () => props.letter,
+  newValue => {
+    if (newValue) transitionIsDisabled.value = true;
+    setTimeout(() => {
+      transitionIsDisabled.value = false;
+    }, transitionDurationMs);
+  },
+);
 </script>
 
 <template>
@@ -50,6 +49,7 @@ defineProps({
   position: relative;
   top: 0;
   left: 0;
+  z-index: 1;
   &--transition-is-disabled {
     transition-duration: 0ms;
   }
@@ -64,6 +64,7 @@ defineProps({
     box-shadow: calc(var(--tile-shadow-inset-elevated) * -1) var(--tile-shadow-inset-elevated) var(--tile-shadow-color);
     top: calc(var(--tile-shadow-inset-elevated) * -1) !important;
     left: var(--tile-shadow-inset-elevated) !important;
+    height: 100%;
   }
   &--elevated:is(&--inverted) {
     box-shadow: calc(var(--tile-shadow-inset-elevated) * -1) var(--tile-shadow-inset-elevated)

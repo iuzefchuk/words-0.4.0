@@ -121,7 +121,7 @@ class DictionaryTreeBuilder {
       }
       previousWord = word;
     }
-    const lastNode = generator.return(rootNode).value;
+    const lastNode = generator.next({ depth: 0 }).value;
     lastNode.isFinal = true;
     return rootNode;
   }
@@ -131,10 +131,12 @@ class DictionaryTreeBuilder {
     while (true) {
       const input: { depth?: number } | Transition | undefined = yield stack[stack.length - 1];
       if (input && 'depth' in input) {
+        let finishedNode: Node | undefined;
         while (stack.length > (input.depth ?? 0) + 1) {
-          const finishedNode = stack.pop()!;
-          yield finishedNode;
+          if (!finishedNode) finishedNode = stack.pop()!;
+          else stack.pop();
         }
+        if (finishedNode) yield finishedNode;
       } else if (input && 'parentNode' in input) {
         const { parentNode, childLetter, childNode } = input;
         parentNode.children.set(childLetter, childNode);

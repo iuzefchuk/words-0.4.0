@@ -11,11 +11,16 @@ const storeItems = ItemsStore.getInstance();
 const bonus = computed(() => storeGame.getCellBonus(props.cell));
 const bonusName = computed(() => (bonus.value ? getBonusName(bonus.value) : ''));
 const tile = computed(() => storeGame.findTileOnCell(props.cell));
+const isTileHighlighted = computed(() => tile.value != null && storeGame.wasTileUsedInPreviousTurn(tile.value));
 </script>
 
 <template>
   <li
-    :class="{ cell: true, 'cell--center': storeGame.isCellInCenterOfLayout(cell), 'cell--has-tile': tile }"
+    :class="{
+      cell: true,
+      'cell--center': storeGame.isCellInCenterOfLayout(cell),
+      'cell--has-tile': tile,
+    }"
     @click="storeItems.handleClickBoardCell(cell)"
   >
     <Transition name="fade" appear>
@@ -39,10 +44,9 @@ const tile = computed(() => storeGame.findTileOnCell(props.cell));
     <Transition name="fade" appear>
       <AppTile
         v-if="tile"
-        class="cell__tile"
         :letter="storeGame.getTileLetter(tile)"
         :is-inverted="storeItems.isTileSelected(tile)"
-        :is-highlighted="storeGame.wasTileUsedInLastTurn(tile)"
+        :is-highlighted="isTileHighlighted"
         :is-elevated="storeItems.isTileInItems(tile)"
         @click.stop="storeItems.handleClickBoardTile(tile)"
       />

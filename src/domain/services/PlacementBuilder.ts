@@ -1,4 +1,4 @@
-import { Board, AnchorCoordinates } from '@/domain/models/Board.ts';
+import Board, { AnchorCoordinates } from '@/domain/models/Board.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
 import { PlacementLinks, Link } from '@/domain/models/TurnHistory.ts';
 

@@ -2,27 +2,24 @@
 import GameStore from '@/gui/stores/GameStore.ts';
 import { storeToRefs } from 'pinia';
 const storeGame = GameStore.getInstance();
-const { unsavedTurnScore } = storeToRefs(storeGame);
+const { currentTurnScore } = storeToRefs(storeGame);
 </script>
 
 <template>
-  <div v-if="unsavedTurnScore" class="tooltip">{{ unsavedTurnScore }}</div>
+  <div v-if="currentTurnScore" class="tooltip">{{ currentTurnScore }}</div>
 </template>
 
 <style lang="scss" scoped>
 .tooltip {
   position: absolute;
   inset: auto;
-  bottom: -2px;
-  right: -8px;
+  bottom: 25px;
+  right: -19px;
   width: max-content;
   height: max-content;
   z-index: var(--z-index-level-1);
-  background: var(--score-bg);
-  color: var(--score-color);
-  font-weight: 300;
-  font-size: var(--font-size-smaller);
-  padding: 0 2px;
+  padding: 2px 4px;
   border-radius: 2px;
+  font-weight: var(--font-weight);
 }
 </style>

@@ -1,6 +1,6 @@
 import Game, { GameCell, GameState, GameTile } from '@/application/Game.ts';
 import { defineStore } from 'pinia';
-import { computed, Ref, shallowRef, triggerRef } from 'vue';
+import { computed, Ref, shallowRef } from 'vue';
 
 export default class GameStore {
   static readonly getInstance = defineStore('game', () => {
@@ -13,7 +13,7 @@ export default class GameStore {
       gameIsFinished: state.isFinished,
       tilesRemaining: state.tilesRemaining,
       userTiles: state.userTiles,
-      unsavedTurnScore: state.currentTurnScore,
+      currentTurnScore: state.currentTurnScore,
       userScore: state.userScore,
       opponentScore: state.opponentScore,
       currentPlayerIsUser: state.currentPlayerIsUser,
@@ -26,7 +26,7 @@ export default class GameStore {
       areTilesSame: (firstTile: GameTile, secondTile: GameTile) => game.areTilesSame(firstTile, secondTile),
       getTileLetter: (tile: GameTile) => game.getTileLetter(tile),
       isCellLastConnectionInTurn: (cell: GameCell) => state.voidRefBefore(() => game.isCellLastConnectionInTurn(cell)),
-      wasTileUsedInLastTurn: (tile: GameTile) => state.voidRefBefore(() => game.wasTileUsedInPreviousTurn(tile)),
+      wasTileUsedInPreviousTurn: (tile: GameTile) => state.voidRefBefore(() => game.wasTileUsedInPreviousTurn(tile)),
       shuffleUserTiles: () => state.triggerRefAfter(() => game.shuffleUserTiles()),
       placeTile: (args: { cell: GameCell; tile: GameTile }) => state.triggerRefAfter(() => game.placeTile(args)),
       undoPlaceTile: (tile: GameTile) => state.triggerRefAfter(() => game.undoPlaceTile(tile)),
@@ -64,8 +64,15 @@ export default class GameStore {
 
     triggerRefAfter<T>(callback: () => T): T {
       const result = callback();
-      triggerRef(this.stateRef);
+      this.refreshState();
+      if (result instanceof Promise) {
+        result.then(() => this.refreshState());
+      }
       return result;
+    }
+
+    private refreshState(): void {
+      this.stateRef.value = this.game.state;
     }
   };
 }
