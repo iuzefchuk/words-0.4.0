@@ -13,13 +13,12 @@ const { currentTurnScore } = storeToRefs(storeGame);
 .tooltip {
   position: absolute;
   inset: auto;
-  bottom: 25px;
-  right: -19px;
+  bottom: var(--space-l);
+  right: calc(-1 * var(--space-xl));
   width: max-content;
   height: max-content;
+  padding: var(--space-3xs);
   z-index: var(--z-index-level-1);
-  padding: 2px 4px;
-  border-radius: 2px;
   font-weight: var(--font-weight);
 }
 </style>

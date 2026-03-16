@@ -6,14 +6,22 @@ const storeGame = GameStore.getInstance();
 const players = reactive([
   {
     name: window.t('game.player_user'),
-    score: storeGame.userScore,
-    isPendingMove: storeGame.currentPlayerIsUser,
+    get score() {
+      return storeGame.userScore;
+    },
+    get isPendingMove() {
+      return storeGame.currentPlayerIsUser;
+    },
     avatarSvgHtml: PLAYER_AVATAR_SVG_HTML[0],
   },
   {
     name: window.t('game.player_opponent'),
-    score: storeGame.opponentScore,
-    isPendingMove: !storeGame.currentPlayerIsUser,
+    get score() {
+      return storeGame.opponentScore;
+    },
+    get isPendingMove() {
+      return !storeGame.currentPlayerIsUser;
+    },
     avatarSvgHtml: PLAYER_AVATAR_SVG_HTML[1],
   },
 ]);

@@ -159,14 +159,14 @@ export default class Game {
   }
 
   private async processOpponentTurn(): Promise<void> {
-    await this.setMinimumExecutionTime(() => {
-      const generatedPlacementLinks = this.generatePlacementLinks(Player.Opponent);
-      if (generatedPlacementLinks === null) return PassTurnCommand.execute(this.context);
-      for (const link of generatedPlacementLinks) this.turnDirector.placeTile({ cell: link.cell, tile: link.tile });
-      const result = TurnValidator.execute(this.context, this.turnDirector.currentTurnPlacementLinks);
-      this.turnDirector.setCurrentTurnValidation(result);
-      SaveTurnCommand.execute(this.context);
-    });
+    const generatedPlacementLinks = await this.setMinimumExecutionTime(() =>
+      this.generatePlacementLinks(Player.Opponent),
+    );
+    if (generatedPlacementLinks === null) return PassTurnCommand.execute(this.context);
+    for (const link of generatedPlacementLinks) this.turnDirector.placeTile({ cell: link.cell, tile: link.tile });
+    const result = TurnValidator.execute(this.context, this.turnDirector.currentTurnPlacementLinks);
+    this.turnDirector.setCurrentTurnValidation(result);
+    SaveTurnCommand.execute(this.context);
   }
 
   private async setMinimumExecutionTime<T>(

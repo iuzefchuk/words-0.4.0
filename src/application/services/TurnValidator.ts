@@ -86,8 +86,12 @@ export default class TurnValidator {
     const cells = state.initialPlacementLinks.map(link => link.cell);
     if (cells.length === 0) return this.Pipeline.fail(ValidationError.InvalidCellPlacement);
     const { board, turnDirector } = state.context;
-    const anchorCells = board.getAnchorCells(turnDirector.historyHasOpponentTurns);
-    const someCellsAreAnchor = cells.some(cell => anchorCells.has(cell));
+    const placementCells = new Set(cells);
+    const someCellsAreAnchor = cells.some(cell => {
+      if (board.isCellCenter(cell)) return true;
+      if (!turnDirector.historyHasOpponentTurns) return false;
+      return board.getAdjacentCells(cell).some(adj => board.isCellOccupied(adj) && !placementCells.has(adj));
+    });
     return someCellsAreAnchor
       ? this.Pipeline.pass(state, { sequences: { cell: cells, tile: tiles } })
       : this.Pipeline.fail(ValidationError.NoCellsUsableAsFirst);

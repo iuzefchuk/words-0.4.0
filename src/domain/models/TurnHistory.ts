@@ -77,7 +77,9 @@ export default class TurnHistory {
   }
 
   getScoreFor(player: Player): number {
-    return this.turns.filter(t => t.player === player).reduce((sum, t) => sum + (t.score ?? 0), 0);
+    return this.turns
+      .filter(turn => turn.player === player && turn.id !== this.currentTurn.id)
+      .reduce((sum, turn) => sum + (turn.score ?? 0), 0);
   }
 
   get currentTurnPlacementLinks(): PlacementLinks {
@@ -92,15 +94,17 @@ export default class TurnHistory {
 
 class Turn {
   private constructor(
+    readonly id: string,
     readonly player: Player,
     private initialPlacement: Placement,
     private validationResult: ValidationResult,
   ) {}
 
   static create({ player }: { player: Player }): Turn {
+    const id = crypto.randomUUID();
     const initialPlacement = Placement.create();
     const validationResult: UnvalidatedResult = { status: ValidationStatus.Unvalidated };
-    return new Turn(player, initialPlacement, validationResult);
+    return new Turn(id, player, initialPlacement, validationResult);
   }
 
   get cellSequence(): ReadonlyArray<CellIndex> | undefined {

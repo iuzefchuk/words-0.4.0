@@ -16,16 +16,16 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
   }
 
   private static Animator = class Animator {
+    private readonly startTime: number;
+
     private constructor(
       private readonly element: AnimatedHtmlElement,
       private readonly endValue: number,
       private readonly delay: number = 0,
       private readonly duration: number = 500,
       private readonly startValue: number = 0,
-    ) {}
-
-    private get startTime(): number {
-      return performance.now() + this.delay;
+    ) {
+      this.startTime = performance.now() + this.delay;
     }
 
     static create(element: AnimatedHtmlElement, bindingValue: BindingValue, startValue?: number): Animator {
@@ -50,7 +50,7 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
     }
 
     private handleNextFrame(): void {
-      this.element._animationFrameRequestId = requestAnimationFrame((time) => this.frameCallback(time));
+      this.element._animationFrameRequestId = requestAnimationFrame(time => this.frameCallback(time));
     }
   };
 }

@@ -222,6 +222,7 @@ export default class PlacementLinksGenerator {
         const placementLinks = [...this.placementLinks];
         const validationResult = TurnValidator.execute(this.context, placementLinks);
         if (validationResult.status === ValidationStatus.Valid) {
+          for (const link of placementLinks) this.board.undoPlaceTile(link.tile);
           return this.emitReturn(placementLinks);
         }
       }
@@ -320,6 +321,7 @@ export default class PlacementLinksGenerator {
       const { letterTiles } = task.resolutionComputeds;
       letterTiles.splice(letterTiles.indexOf(tile), 1);
       this.placementLinks.push({ cell, tile } as Link);
+      this.board.placeTile(cell, tile);
       return this.emitContinue();
     }
 
@@ -328,6 +330,7 @@ export default class PlacementLinksGenerator {
       const { letterTiles } = task.resolutionComputeds;
       letterTiles.push(tile);
       this.placementLinks.pop();
+      this.board.undoPlaceTile(tile);
       return this.emitContinue();
     }
   };
