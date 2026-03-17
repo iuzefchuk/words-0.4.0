@@ -11,6 +11,7 @@ const isBlurred = ref(false);
     <Transition name="fade-down-up" appear>
       <AppMainHeader />
     </Transition>
+    <AppMainNotifications />
     <AppMainGrid />
     <Transition name="fade-up-down" appear>
       <AppMainFooter />

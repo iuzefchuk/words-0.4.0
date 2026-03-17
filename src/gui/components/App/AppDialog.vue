@@ -52,11 +52,12 @@ function toggleExitAnimation() {
   display: flex;
   flex-direction: column;
   align-items: center;
+   background: rgb(24 24 27 / 0.35);
   &__window {
     padding: var(--space-l) var(--space-xl);
     border-radius: var(--primary-border-radius);
     color: var(--color-gray-fainter);
-    background: var(--color-gray-dark);
+    background: var(--color-gray-darker);
     margin-top: calc(var(--header-height) + var(--space-s));
     &--shaking {
       animation: horizontal-shake var(--transition-duration) linear forwards;
@@ -81,12 +82,11 @@ function toggleExitAnimation() {
     padding-bottom: var(--space-xs);
     button {
       cursor: pointer;
+      border-bottom: 1px solid var(--color-gray-faintest);
       &:last-child {
         color: var(--color-red);
       }
-      padding: var(--space-s);
-      background: var(--color-gray-darker);
-      border-radius: var(--primary-border-radius);
+      padding: var(--space-4xs) 0;
     }
   }
 }

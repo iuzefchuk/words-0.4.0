@@ -66,7 +66,7 @@ onMounted(() => {
   --tile-bg-highlighted: var(--color-pink-saturated);
   --tile-shadow-color: var(--color-purple);
   --tile-shadow-color-inverted: var(--color-purple-darker);
-  --tile-shadow-inset-elevated: var(--space-2xs);
+  --tile-shadow-inset-elevated: var(--space-xs);
   --header-height: 5.3rem;
 }
 .app {

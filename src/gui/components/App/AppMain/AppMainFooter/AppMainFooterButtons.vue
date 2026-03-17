@@ -77,22 +77,22 @@ const actions = reactive([
     cursor: pointer;
     text-align: center;
     border-radius: var(--primary-border-radius);
-    background: var(--color-gray-faintest);
+    // background: var(--color-gray-faintest);
     width: 100%;
     height: 100%;
     font-weight: var(--font-weight);
-    border: 1px solid var(--color-gray);
-    box-shadow: var(--box-shadow-level-1);
+    border: 1.5px solid var(--color-gray);
+    // box-shadow: var(--box-shadow-level-1);
     user-select: none;
     transition-property: box-shadow, border-color;
     transition-duration: var(--transition-duration-half);
     transition-timing-function: var(--transition-timing-function);
     &:hover:not(:active):not(:disabled) {
-      box-shadow: var(--box-shadow-level-1);
+      //  box-shadow: var(--box-shadow-level-1);
       border-color: var(--color-gray-lighter);
     }
     &:active:not(:disabled) {
-      box-shadow: none;
+      //  box-shadow: none;
     }
     // &:focus:not(:active):not(:disabled) {
     //   outline-offset: 1px;

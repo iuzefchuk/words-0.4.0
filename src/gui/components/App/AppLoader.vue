@@ -6,6 +6,7 @@ const emit = defineEmits(['derendered']);
 const controller = new LoaderController(props, emit);
 const { isRendered, INTRO_LETTERS, allTilesAreHighlighted } = controller;
 const isTileElevated = controller.isTileElevated.bind(controller);
+// TODO 
 </script>
 
 <template>

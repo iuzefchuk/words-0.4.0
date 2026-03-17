@@ -20,11 +20,13 @@ export default class SoundPlayer {
     [Sound.TilePlaced]: [{ frequency: 880, duration: 0.06, type: 'sine', gain: 0.15 }],
     [Sound.TileReturned]: [{ frequency: 440, duration: 0.06, type: 'sine', gain: 0.1 }],
     [Sound.TurnSaved]: [
-      { frequency: 523, duration: 0.1, type: 'sine', gain: 0.15 },
-      { frequency: 659, duration: 0.1, type: 'sine', gain: 0.15 },
-      { frequency: 784, duration: 0.15, type: 'sine', gain: 0.15 },
+      { frequency: 330, duration: 0.12, type: 'sine', gain: 0.15 },
+      { frequency: 330, duration: 0.12, type: 'sine', gain: 0.1 },
+    ], // TODO change
+    [Sound.TurnPassed]: [
+      { frequency: 330, duration: 0.12, type: 'sine', gain: 0.1 },
+      { frequency: 330, duration: 0.12, type: 'sine', gain: 0.15 },
     ],
-    [Sound.TurnPassed]: [{ frequency: 330, duration: 0.12, type: 'triangle', gain: 0.12 }],
     [Sound.TilesShuffled]: [
       { frequency: 600, duration: 0.04, type: 'sine', gain: 0.1 },
       { frequency: 700, duration: 0.04, type: 'sine', gain: 0.1 },
@@ -36,7 +38,8 @@ export default class SoundPlayer {
       { frequency: 659, duration: 0.15, type: 'sine', gain: 0.2 },
       { frequency: 784, duration: 0.15, type: 'sine', gain: 0.2 },
       { frequency: 1047, duration: 0.3, type: 'sine', gain: 0.2 },
-    ],
+    ], //TODO add for losers
+    // TODO generate pina colada on win ?
   };
 
   private _context: AudioContext | null = null;
