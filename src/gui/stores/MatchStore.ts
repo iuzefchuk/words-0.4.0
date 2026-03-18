@@ -11,7 +11,7 @@ export async function startGame(): Promise<void> {
   game = await Game.start();
 }
 
-export default class GameStore {
+export default class MatchStore {
   private static readonly soundPlayer = new SoundPlayer();
 
   private static readonly eventSounds: Record<DomainEvent, Sound> = {
@@ -19,15 +19,15 @@ export default class GameStore {
     [DomainEvent.TileUndoPlaced]: Sound.ActionNeutralReverse,
     [DomainEvent.TurnSaved]: Sound.ActionGood,
     [DomainEvent.TurnPassed]: Sound.ActionBad,
-    [DomainEvent.TilesShuffled]: Sound.Mixer,
+    [DomainEvent.TilesShuffled]: Sound.ActionMix,
     [DomainEvent.GameWon]: Sound.EndGood,
     [DomainEvent.GameTied]: Sound.EndNeutral,
     [DomainEvent.GameLost]: Sound.EndBad,
-    [DomainEvent.OpponentTurnGenerated]: Sound.OpponentPlayed,
+    [DomainEvent.OpponentTurnGenerated]: Sound.OpponentAction,
   };
 
   static readonly getInstance = defineStore('game', () => {
-    const state = new GameStore.ReactiveState(game);
+    const state = new MatchStore.ReactiveState(game);
     return {
       bonuses: Game.bonuses,
       letters: Game.letters,

@@ -5,11 +5,11 @@ import AppEndscreen from '@/gui/components/App/AppEndscreen.vue';
 import AppLoader from '@/gui/components/App/AppLoader.vue';
 import AppToast from '@/gui/components/App/AppToast.vue';
 import { onMounted, ref, inject } from 'vue';
-import GameStore from '@/gui/stores/GameStore.ts';
+import MatchStore from '@/gui/stores/MatchStore.ts';
 import { storeToRefs } from 'pinia';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-const gameStore = GameStore.getInstance();
-const { gameIsFinished } = storeToRefs(gameStore);
+const matchStore = MatchStore.getInstance();
+const { gameIsFinished } = storeToRefs(matchStore);
 const loaderIsActive = ref(true);
 const mainIsRendered = ref(false);
 const transitionDurationMs = inject(transitionDurationMsKey);
@@ -27,7 +27,7 @@ onMounted(() => {
         '--transition-duration': `${transitionDurationMs}ms`,
         '--transition-duration-half': `${transitionDurationMs / 2}ms`,
       }),
-      '--cell-count-per-axis': Math.sqrt(gameStore.layoutCells.length),
+      '--cell-count-per-axis': Math.sqrt(matchStore.layoutCells.length),
     }"
   >
     <AppLoader :is-active="loaderIsActive" @derendered="mainIsRendered = true" />

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import AppMainGridCell from '@/gui/components/App/AppMain/AppMainGrid/AppMainGridCell.vue';
 import AppMainGridTooltip from '@/gui/components/App/AppMain/AppMainGrid/AppMainGridTooltip.vue';
-import GameStore from '@/gui/stores/GameStore.ts';
-const gameStore = GameStore.getInstance();
+import MatchStore from '@/gui/stores/MatchStore.ts';
+const matchStore = MatchStore.getInstance();
 </script>
 
 <template>
@@ -14,9 +14,9 @@ const gameStore = GameStore.getInstance();
       grid: true,
     }"
   >
-    <AppMainGridCell v-for="cell in gameStore.layoutCells" :key="cell" :cell="cell">
+    <AppMainGridCell v-for="cell in matchStore.layoutCells" :key="cell" :cell="cell">
       <Transition name="fade" appear>
-        <AppMainGridTooltip v-if="gameStore.isCellLastConnectionInTurn(cell)" />
+        <AppMainGridTooltip v-if="matchStore.isCellLastConnectionInTurn(cell)" />
       </Transition>
     </AppMainGridCell>
   </ul>

@@ -3,8 +3,8 @@ export enum Sound {
   ActionNeutral = 'ActionNeutral',
   ActionNeutralReverse = 'ActionNeutralReverse',
   ActionBad = 'ActionBad',
-  Mixer = 'Mixer',
-  OpponentPlayed = 'OpponentPlayed',
+  ActionMix = 'ActionMix',
+  OpponentAction = 'OpponentAction',
   EndGood = 'EndGood',
   EndNeutral = 'EndNeutral',
   EndBad = 'EndBad',
@@ -21,37 +21,40 @@ type SoundDefinition = {
 export default class SoundPlayer {
   private static readonly definitions: Record<Sound, ReadonlyArray<SoundDefinition>> = {
     [Sound.ActionGood]: [
-      { frequency: 330, duration: 0.12, type: 'sine', gain: 0.1 },
-      { frequency: 495, duration: 0.12, type: 'sine', gain: 0.15 },
+      { frequency: 523, duration: 0.08, type: 'sine', gain: 0.12 },
+      { frequency: 659, duration: 0.1, type: 'sine', gain: 0.15 },
     ],
-    [Sound.ActionNeutral]: [{ frequency: 880, duration: 0.06, type: 'sine', gain: 0.15 }],
-    [Sound.ActionNeutralReverse]: [{ frequency: 440, duration: 0.06, type: 'sine', gain: 0.1 }],
+    [Sound.ActionNeutral]: [{ frequency: 440, duration: 0.07, type: 'sine', gain: 0.12 }],
+    [Sound.ActionNeutralReverse]: [{ frequency: 330, duration: 0.07, type: 'sine', gain: 0.1 }],
     [Sound.ActionBad]: [
-      { frequency: 330, duration: 0.12, type: 'sine', gain: 0.1 },
-      { frequency: 247, duration: 0.12, type: 'sine', gain: 0.15 },
+      { frequency: 392, duration: 0.08, type: 'sine', gain: 0.12 },
+      { frequency: 311, duration: 0.12, type: 'sine', gain: 0.14 },
     ],
-    [Sound.Mixer]: [
-      { frequency: 600, duration: 0.04, type: 'sine', gain: 0.1 },
-      { frequency: 700, duration: 0.04, type: 'sine', gain: 0.1 },
-      { frequency: 500, duration: 0.04, type: 'sine', gain: 0.1 },
-      { frequency: 800, duration: 0.04, type: 'sine', gain: 0.1 },
+    [Sound.ActionMix]: [
+      { frequency: 554, duration: 0.04, type: 'sine', gain: 0.1 },
+      { frequency: 440, duration: 0.04, type: 'sine', gain: 0.1 },
+      { frequency: 622, duration: 0.04, type: 'sine', gain: 0.11 },
+      { frequency: 370, duration: 0.04, type: 'sine', gain: 0.1 },
     ],
-    [Sound.OpponentPlayed]: [{ frequency: 660, duration: 0.1, type: 'triangle', gain: 0.12 }],
+    [Sound.OpponentAction]: [
+      { frequency: 220, duration: 0.1, type: 'triangle', gain: 0.1 },
+      { frequency: 262, duration: 0.08, type: 'triangle', gain: 0.08 },
+    ],
     [Sound.EndGood]: [
-      { frequency: 523, duration: 0.15, type: 'sine', gain: 0.15 },
-      { frequency: 659, duration: 0.15, type: 'sine', gain: 0.17 },
-      { frequency: 784, duration: 0.15, type: 'sine', gain: 0.19 },
-      { frequency: 1047, duration: 0.25, type: 'sine', gain: 0.2 },
+      { frequency: 523, duration: 0.12, type: 'square', gain: 0.06 },
+      { frequency: 659, duration: 0.12, type: 'square', gain: 0.07 },
+      { frequency: 784, duration: 0.12, type: 'square', gain: 0.08 },
+      { frequency: 1047, duration: 0.2, type: 'square', gain: 0.09 },
     ],
     [Sound.EndNeutral]: [
-      { frequency: 440, duration: 0.2, type: 'sine', gain: 0.12 },
-      { frequency: 523, duration: 0.2, type: 'sine', gain: 0.14 },
-      { frequency: 440, duration: 0.25, type: 'sine', gain: 0.1 },
+      { frequency: 440, duration: 0.15, type: 'square', gain: 0.06 },
+      { frequency: 523, duration: 0.15, type: 'square', gain: 0.06 },
+      { frequency: 440, duration: 0.2, type: 'square', gain: 0.05 },
     ],
     [Sound.EndBad]: [
-      { frequency: 330, duration: 0.2, type: 'sine', gain: 0.15 },
-      { frequency: 294, duration: 0.2, type: 'sine', gain: 0.17 },
-      { frequency: 262, duration: 0.3, type: 'sine', gain: 0.19 },
+      { frequency: 370, duration: 0.15, type: 'square', gain: 0.06 },
+      { frequency: 311, duration: 0.15, type: 'square', gain: 0.07 },
+      { frequency: 262, duration: 0.25, type: 'square', gain: 0.08 },
     ],
   };
 

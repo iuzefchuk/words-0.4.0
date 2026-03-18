@@ -4,7 +4,7 @@ import App from '@/gui/components/App/App.vue';
 import directives from '@/gui/plugins/directives/index.ts';
 import provides from '@/gui/plugins/provides/index.ts';
 import LocalesPlugin from '@/gui/plugins/locales/index.ts';
-import { startGame } from '@/gui/stores/GameStore.ts';
+import { startGame } from '@/gui/stores/MatchStore.ts';
 
 class Application {
   private app = createApp(App);

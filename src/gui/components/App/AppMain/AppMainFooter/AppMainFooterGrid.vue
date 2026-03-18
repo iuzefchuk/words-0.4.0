@@ -1,22 +1,22 @@
 <script lang="ts" setup>
 import AppTile from '@/gui/components/shared/AppTile.vue';
-import GameStore from '@/gui/stores/GameStore.ts';
-import ItemsStore from '@/gui/stores/ItemsStore.ts';
+import MatchStore from '@/gui/stores/MatchStore.ts';
+import RackStore from '@/gui/stores/RackStore.ts';
 import { storeToRefs } from 'pinia';
-const gameStore = GameStore.getInstance();
-const itemsStore = ItemsStore.getInstance();
-const { tilesRemaining } = storeToRefs(gameStore);
-const { tiles } = storeToRefs(itemsStore);
+const matchStore = MatchStore.getInstance();
+const rackStore = RackStore.getInstance();
+const { tilesRemaining } = storeToRefs(matchStore);
+const { tiles } = storeToRefs(rackStore);
 </script>
 
 <template>
   <ul class="app__width-content app__grid--footer">
-    <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="itemsStore.handleClickRackCell(idx)">
+    <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="rackStore.handleClickRackCell(idx)">
       <AppTile
-        v-if="itemsStore.isTileVisible(tile)"
-        :letter="gameStore.getTileLetter(tile)"
-        :is-inverted="itemsStore.isTileSelected(tile)"
-        @click.stop="itemsStore.handleClickRackTile(tile)"
+        v-if="rackStore.isTileVisible(tile)"
+        :letter="matchStore.getTileLetter(tile)"
+        :is-inverted="rackStore.isTileSelected(tile)"
+        @click.stop="rackStore.handleClickRackTile(tile)"
       />
     </li>
     <li class="inventory__count">

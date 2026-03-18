@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import ItemsStore from '@/gui/stores/ItemsStore.ts';
+import RackStore from '@/gui/stores/RackStore.ts';
 import UseActions from '@/gui/composables/UseActions.ts';
 import { reactive } from 'vue';
 import { storeToRefs } from 'pinia';
-const itemsStore = ItemsStore.getInstance();
-const { allItemsAreConnected } = storeToRefs(itemsStore);
+const rackStore = RackStore.getInstance();
+const { allTilesArePlaced } = storeToRefs(rackStore);
 const actions = new UseActions();
 const { allActionsAreDisabled } = actions; // ComputedRef<boolean>
 const buttons = reactive([
@@ -26,14 +26,14 @@ const buttons = reactive([
     name: window.t('game.action_shuffle'),
     action: () => actions.handleShuffle(),
     get isRendered() {
-      return allItemsAreConnected.value;
+      return allTilesArePlaced.value;
     },
   },
   {
     name: window.t('game.action_clear'),
     action: () => actions.handleClear(),
     get isRendered() {
-      return !allItemsAreConnected.value;
+      return !allTilesArePlaced.value;
     },
   },
   {
