@@ -41,7 +41,8 @@ const { tiles } = storeToRefs(rackStore);
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-weight: var(--font-weight);
+    color: var(--color-gray-light);
+    font-size: var(--font-size-small);
   }
   &__count-item {
     width: max-content;

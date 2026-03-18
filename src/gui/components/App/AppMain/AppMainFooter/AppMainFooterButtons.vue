@@ -101,7 +101,7 @@ const buttons = reactive([
     width: 100%;
     height: 100%;
     font-weight: var(--font-weight);
-    border: 1.5px solid var(--color-gray);
+    border: var(--primary-border);
     // box-shadow: var(--box-shadow-level-1);
     user-select: none;
     transition-property: box-shadow, border-color;

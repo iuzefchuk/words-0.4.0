@@ -61,8 +61,8 @@ const isTileHighlighted = computed(() => tile.value != null && matchStore.wasTil
   aspect-ratio: 1 / 1;
   border-radius: var(--primary-border-radius);
   background: var(--cell-bg);
-  box-shadow: var(--box-shadow-level-0);
   user-select: none;
+  box-shadow: var(--cell-shadow);
   cursor: pointer;
   &--center {
     background: var(--cell-bg-center);

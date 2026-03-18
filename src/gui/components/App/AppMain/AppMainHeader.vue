@@ -33,7 +33,7 @@ const players = reactive([
   width: 100%;
   display: grid;
   place-items: center;
-  border-bottom: 1.5px solid var(--color-gray);
+  border-bottom: var(--primary-border);
   z-index: var(--z-index-level-2);
   padding: var(--primary-padding);
   justify-self: center;

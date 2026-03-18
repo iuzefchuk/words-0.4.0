@@ -1,0 +1,87 @@
+:root {
+  --primary-color: var(--color-gray-darkest);
+  --primary-bg: var(--color-gray-fainter);
+  --primary-padding: var(--space-s);
+  --primary-border: 1.5px solid var(--color-gray);
+  --primary-border-radius: var(--space-xs);
+  --cell-color-dw: var(--color-blue);
+  --cell-color-tw: var(--color-red);
+  --cell-color-dl: var(--color-green);
+  --cell-color-tl: var(--color-yellow);
+  --cell-bg: var(--color-white);
+  --cell-bg-center: var(--color-purple-light);
+  --cell-bg-footer: var(--color-gray-faint);
+  --cell-tile-width: var(--space-4xl);
+  --cell-tile-gap: var(--space-2xs);
+  --cell-shadow: var(--box-shadow-level-0);
+  --tile-color: var(--primary-color);
+  --tile-color-inverted: var(--color-gray-fainter);
+  --tile-bg: var(--color-pink);
+  --tile-bg-inverted: var(--color-purple-dark);
+  --tile-bg-highlighted: var(--color-pink-saturated);
+  --tile-shadow-color: var(--color-purple);
+  --tile-shadow-color-inverted: var(--color-purple-darker);
+  --tile-shadow-inset-elevated: var(--space-xs);
+  --header-height: 5.3rem;
+}
+
+.app {
+  color: var(--primary-color);
+  background: var(--primary-bg);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-small);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  &--blurred {
+    filter: blur(0.1rem);
+  }
+  &__dark {
+    --primary-color: var(--color-gray-lightest);
+    --primary-bg: rgba(36 36 77 / 1);
+    --primary-border: 1.5px solid var(--color-gray-lightest);
+    --cell-color-dw: rgba(10 189 227 / 1);
+    --cell-color-tw: rgba(238 83 83 / 1);
+    --cell-color-dl: rgba(17 172 132 / 1);
+    --cell-color-tl: rgba(255 159 68 / 1);
+    --cell-bg: rgba(25 25 48 / 1);
+    --cell-bg-center: rgba(47 47 95 / 1);
+    --cell-bg-footer: var(--color-gray-faint);
+    --cell-shadow: var(--box-shadow-inner-dark);
+    --tile-color-inverted: rgba(0 0 0 / 1);
+    --tile-bg: rgba(121 67 176 / 1);
+    --tile-bg-inverted: rgba(0 0 0 / 1);
+    --tile-bg-highlighted: rgba(202 121 221 / 1);
+    --tile-shadow-color: var(--color-purple);
+    --tile-shadow-color-inverted: var(--color-purple-darker);
+  }
+  &__width-content {
+    max-width: calc(
+      var(--cell-count-per-axis) *
+        (var(--cell-tile-gap) + var(--cell-tile-width))
+    );
+    width: 100%;
+  }
+  &__grid {
+    @mixin grid($columns, $rows, $gap: var(--cell-tile-gap)) {
+      display: grid;
+      grid-template-columns: repeat($columns, minmax(0, 1fr));
+      grid-template-rows: repeat($rows, minmax(0, 1fr));
+      gap: $gap;
+      > * {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        > * {
+          position: absolute;
+          inset: 0;
+        }
+      }
+    }
+    &--board {
+      @include grid(var(--cell-count-per-axis), var(--cell-count-per-axis));
+    }
+    &--footer {
+      @include grid(8, 1, calc(var(--cell-tile-gap) * 2));
+    }
+  }
+}
