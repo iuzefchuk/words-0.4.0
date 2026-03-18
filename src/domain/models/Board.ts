@@ -18,7 +18,7 @@ export type CellIndex = Brand<number, 'CellIndex'>;
 export type AnchorCoordinates = { readonly axis: Axis; readonly cell: CellIndex };
 
 export default class Board {
-  private static readonly defaultAxis = Axis.X;
+  private static readonly DEFAULT_AXIS = Axis.X;
 
   private constructor(
     private readonly tileByCell: Map<CellIndex, TileId>,
@@ -133,7 +133,7 @@ export default class Board {
       const connectedAdjacents = this.getAdjacentCells(firstCell).filter(cell => this.isCellOccupied(cell));
       normalizedSequence = connectedAdjacents.length === 0 ? [] : [connectedAdjacents[0], firstCell];
     }
-    if (normalizedSequence.length === 0) return Board.defaultAxis;
+    if (normalizedSequence.length === 0) return Board.DEFAULT_AXIS;
     const [firstIndex] = normalizedSequence;
     const firstColumn = this.getColumnIndex(firstIndex);
     const isVertical = normalizedSequence.every(cell => this.getColumnIndex(cell) === firstColumn);
@@ -142,14 +142,14 @@ export default class Board {
 }
 
 class Layout {
-  private static readonly cellsPerAxis = 15;
+  private static readonly CELLS_PER_AXIS = 15;
 
-  private static readonly cellsByIndex: ReadonlyArray<CellIndex> = Array.from(
-    { length: this.cellsPerAxis ** 2 },
+  private static readonly CELLS_BY_INDEX: ReadonlyArray<CellIndex> = Array.from(
+    { length: this.CELLS_PER_AXIS ** 2 },
     (_, i) => this.createCellIndex(i),
   );
 
-  private static readonly bonusByCell: ReadonlyMap<CellIndex, Bonus> = new Map(
+  private static readonly BONUS_BY_CELL: ReadonlyMap<CellIndex, Bonus> = new Map(
     Object.values(Bonus).flatMap(bonus => {
       return {
         [Bonus.DoubleLetter]: [
@@ -163,12 +163,12 @@ class Layout {
   );
 
   private static get centerCell(): CellIndex {
-    const mid = Math.floor(this.cellsPerAxis / 2);
-    return this.createCellIndex(mid * this.cellsPerAxis + mid);
+    const mid = Math.floor(this.CELLS_PER_AXIS / 2);
+    return this.createCellIndex(mid * this.CELLS_PER_AXIS + mid);
   }
 
   static get cells(): ReadonlyArray<CellIndex> {
-    return this.cellsByIndex;
+    return this.CELLS_BY_INDEX;
   }
 
   static isCellPositionOnLeftEdge(cellPosition: number): boolean {
@@ -176,7 +176,7 @@ class Layout {
   }
 
   static isCellPositionOnRightEdge(cellPosition: number): boolean {
-    return cellPosition === this.cellsPerAxis - 1;
+    return cellPosition === this.CELLS_PER_AXIS - 1;
   }
 
   static isCellCenter(cell: CellIndex): boolean {
@@ -186,7 +186,7 @@ class Layout {
 
   static getBonusForCell(cell: CellIndex): Bonus | null {
     this.validateCell(cell);
-    return this.bonusByCell.get(cell) ?? null;
+    return this.BONUS_BY_CELL.get(cell) ?? null;
   }
 
   static getLetterMultiplier(cell: CellIndex): number {
@@ -211,28 +211,28 @@ class Layout {
     const row = this.getRowIndex(cell);
     const column = this.getColumnIndex(cell);
     if (column > 0) result.push(this.createCellIndex(cell - 1));
-    if (column < this.cellsPerAxis - 1) result.push(this.createCellIndex(cell + 1));
-    if (row > 0) result.push(this.createCellIndex(cell - this.cellsPerAxis));
-    if (row < this.cellsPerAxis - 1) result.push(this.createCellIndex(cell + this.cellsPerAxis));
+    if (column < this.CELLS_PER_AXIS - 1) result.push(this.createCellIndex(cell + 1));
+    if (row > 0) result.push(this.createCellIndex(cell - this.CELLS_PER_AXIS));
+    if (row < this.CELLS_PER_AXIS - 1) result.push(this.createCellIndex(cell + this.CELLS_PER_AXIS));
     return result;
   }
 
   static getAxisCells(coords: AnchorCoordinates): ReadonlyArray<CellIndex> {
     const { axis, cell } = coords;
     this.validateCell(cell);
-    return Array.from({ length: this.cellsPerAxis }, (_, i) =>
+    return Array.from({ length: this.CELLS_PER_AXIS }, (_, i) =>
       this.createCellIndex(
-        axis === Axis.X ? cell - this.getColumnIndex(cell) + i : this.getColumnIndex(cell) + i * this.cellsPerAxis,
+        axis === Axis.X ? cell - this.getColumnIndex(cell) + i : this.getColumnIndex(cell) + i * this.CELLS_PER_AXIS,
       ),
     );
   }
 
   static getRowIndex(cell: CellIndex): number {
-    return Math.floor(cell / this.cellsPerAxis);
+    return Math.floor(cell / this.CELLS_PER_AXIS);
   }
 
   static getColumnIndex(cell: CellIndex): number {
-    return cell % this.cellsPerAxis;
+    return cell % this.CELLS_PER_AXIS;
   }
 
   static getOppositeAxis(axis: Axis): Axis {
@@ -240,7 +240,7 @@ class Layout {
   }
 
   static validateCell(cell: CellIndex): void {
-    if (cell < 0 || cell >= this.cellsByIndex.length) throw new Error('Cell out of bounds');
+    if (cell < 0 || cell >= this.CELLS_BY_INDEX.length) throw new Error('Cell out of bounds');
   }
 
   private static createCellIndex(value: number): CellIndex {

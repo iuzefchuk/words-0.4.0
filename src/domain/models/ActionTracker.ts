@@ -27,14 +27,10 @@ export default class ActionTracker {
   }
 
   willPlayerPassBeResign(player: Player): boolean {
-    return this.lastActionFor(player)?.type === ActionType.Pass;
+    return this.getLastAction(player)?.type === ActionType.Pass;
   }
 
   getLastAction(player: Player): Action | undefined {
-    return this.lastActionFor(player);
-  }
-
-  private lastActionFor(player: Player): Action | undefined {
     for (let i = this._log.length - 1; i >= 0; i--) {
       if (this._log[i].player === player) return this._log[i];
     }

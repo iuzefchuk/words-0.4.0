@@ -25,7 +25,7 @@ export type DialogResult = {
 };
 
 export default class DialogStore {
-  static readonly getInstance = defineStore('dialog', () => {
+  static readonly INSTANCE = defineStore('dialog', () => {
     const store = new DialogStore();
     return {
       title: store.titleRef,
@@ -39,21 +39,21 @@ export default class DialogStore {
     };
   });
 
-  private static readonly defaultStatus = DialogStatus.None;
-  private static readonly defaultTitle = '';
-  private static readonly defaultHtml = '';
-  private static readonly defaultCancelText = 'general.cancel';
-  private static readonly defaultConfirmText = 'general.ok';
-  private static readonly defaultCancelIsHidden = false;
-  private static readonly defaultConfirmIsHidden = false;
+  private static readonly DEFAULT_STATUS = DialogStatus.None;
+  private static readonly DEFAULT_TITLE = '';
+  private static readonly DEFAULT_HTML = '';
+  private static readonly DEFAULT_CANCEL_TEXT = 'general.cancel';
+  private static readonly DEFAULT_CONFIRM_TEXT = 'general.ok';
+  private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
+  private static readonly DEFAULT_CONFIRM_IS_HIDDEN = false;
 
-  private statusRef = ref(DialogStore.defaultStatus);
-  private titleRef = ref(DialogStore.defaultTitle);
-  private htmlRef = ref(DialogStore.defaultHtml);
-  private cancelTextRef = ref(DialogStore.defaultCancelText);
-  private confirmTextRef = ref(DialogStore.defaultConfirmText);
-  private cancelIsHiddenRef = ref(DialogStore.defaultCancelIsHidden);
-  private confirmIsHiddenRef = ref(DialogStore.defaultConfirmIsHidden);
+  private statusRef = ref(DialogStore.DEFAULT_STATUS);
+  private titleRef = ref(DialogStore.DEFAULT_TITLE);
+  private htmlRef = ref(DialogStore.DEFAULT_HTML);
+  private cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
+  private confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
+  private cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
+  private confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
 
   private get status(): DialogStatus {
     return this.statusRef.value;
@@ -120,12 +120,12 @@ export default class DialogStore {
   }
 
   private resetState() {
-    this.status = DialogStore.defaultStatus;
-    this.title = DialogStore.defaultTitle;
-    this.html = DialogStore.defaultHtml;
-    this.cancelText = DialogStore.defaultCancelText;
-    this.confirmText = DialogStore.defaultConfirmText;
-    this.cancelIsHidden = DialogStore.defaultCancelIsHidden;
-    this.confirmIsHidden = DialogStore.defaultConfirmIsHidden;
+    this.status = DialogStore.DEFAULT_STATUS;
+    this.title = DialogStore.DEFAULT_TITLE;
+    this.html = DialogStore.DEFAULT_HTML;
+    this.cancelText = DialogStore.DEFAULT_CANCEL_TEXT;
+    this.confirmText = DialogStore.DEFAULT_CONFIRM_TEXT;
+    this.cancelIsHidden = DialogStore.DEFAULT_CANCEL_IS_HIDDEN;
+    this.confirmIsHidden = DialogStore.DEFAULT_CONFIRM_IS_HIDDEN;
   }
 }

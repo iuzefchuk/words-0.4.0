@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { reactive } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
-const matchStore = MatchStore.getInstance();
+const matchStore = MatchStore.INSTANCE();
 const players = reactive([
   {
     name: window.t('game.player_user'),
@@ -51,6 +51,7 @@ const players = reactive([
     align-items: center;
     font-weight: var(--font-weight);
     flex-direction: row;
+    font-size: var(--font-size-big);
   }
 }
 </style>

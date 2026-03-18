@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import { storeToRefs } from 'pinia';
-const matchStore = MatchStore.getInstance();
+const matchStore = MatchStore.INSTANCE();
 const { currentTurnScore } = storeToRefs(matchStore);
 </script>
 

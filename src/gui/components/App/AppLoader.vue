@@ -12,7 +12,7 @@ const { isRendered, allTilesAreHighlighted } = loader;
     <div v-if="isRendered" class="loader">
       <div class="loader__logo">
         <AppTile
-          v-for="(letter, idx) in UseLoader.word"
+          v-for="(letter, idx) in UseLoader.WORD"
           :key="idx"
           class="loader__tile"
           :letter="letter"

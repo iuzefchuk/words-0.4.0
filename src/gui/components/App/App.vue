@@ -7,7 +7,7 @@ import { onMounted, ref, inject } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import { storeToRefs } from 'pinia';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-const matchStore = MatchStore.getInstance();
+const matchStore = MatchStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(matchStore);
 const loaderIsActive = ref(true);
 const mainIsRendered = ref(false);

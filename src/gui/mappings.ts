@@ -1,5 +1,5 @@
 import Game from '@/application/index.ts';
-const { bonuses, letters } = Game;
+const { BONUSES: bonuses, LETTERS: letters } = Game;
 
 export function getBonusName(cellBonus: string): string {
   return (

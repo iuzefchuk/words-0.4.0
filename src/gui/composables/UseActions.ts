@@ -5,16 +5,16 @@ import RackStore from '@/gui/stores/RackStore.ts';
 
 export default class UseActions {
   private get dialogStore() {
-    return DialogStore.getInstance();
+    return DialogStore.INSTANCE();
   }
   private get matchStore() {
-    return MatchStore.getInstance();
+    return MatchStore.INSTANCE();
   }
   private get rackStore() {
-    return RackStore.getInstance();
+    return RackStore.INSTANCE();
   }
 
-  readonly allActionsAreDisabled = computed(() => !MatchStore.getInstance().currentPlayerIsUser);
+  readonly allActionsAreDisabled = computed(() => !MatchStore.INSTANCE().currentPlayerIsUser);
 
   async handleResign(): Promise<void> {
     const { isConfirmed } = await this.triggerResignDialog();

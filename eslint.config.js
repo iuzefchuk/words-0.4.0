@@ -26,6 +26,22 @@ export default defineConfigWithVueTs([
           format: ['strictCamelCase', 'UPPER_CASE'],
         },
         {
+          selector: 'parameter',
+          modifiers: ['unused'],
+          format: null,
+          filter: { regex: '^_', match: true },
+        },
+        {
+          selector: 'variable',
+          modifiers: ['const', 'global'],
+          format: ['strictCamelCase', 'UPPER_CASE'],
+        },
+        {
+          selector: 'classProperty',
+          modifiers: ['static', 'readonly'],
+          format: ['UPPER_CASE'],
+        },
+        {
           selector: 'typeLike',
           format: ['StrictPascalCase'],
         },

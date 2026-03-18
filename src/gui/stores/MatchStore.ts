@@ -13,7 +13,7 @@ export async function startGame(): Promise<void> {
 }
 
 export default class MatchStore {
-  private static readonly eventSounds: Record<DomainEvent, Sound> = {
+  private static readonly EVENT_SOUNDS: Record<DomainEvent, Sound> = {
     [DomainEvent.TilePlaced]: Sound.ActionNeutral,
     [DomainEvent.TileUndoPlaced]: Sound.ActionNeutralReverse,
     [DomainEvent.TurnSaved]: Sound.ActionGood,
@@ -25,11 +25,11 @@ export default class MatchStore {
     [DomainEvent.OpponentTurnGenerated]: Sound.OpponentAction,
   };
 
-  static readonly getInstance = defineStore('game', () => {
+  static readonly INSTANCE = defineStore('game', () => {
     const store = new MatchStore(game);
     return {
-      bonuses: Game.bonuses,
-      letters: Game.letters,
+      bonuses: Game.BONUSES,
+      letters: Game.LETTERS,
       layoutCells: game.layoutCells,
       matchIsFinished: store.state.isFinished,
       tilesRemaining: store.state.tilesRemaining,
@@ -150,7 +150,7 @@ export default class MatchStore {
   }
 
   private handleEvents(): void {
-    for (const event of this.game.drainEvents()) this.soundPlayer.play(MatchStore.eventSounds[event]);
+    for (const event of this.game.drainEvents()) this.soundPlayer.play(MatchStore.EVENT_SOUNDS[event]);
   }
 
   private static ReactiveState = class {

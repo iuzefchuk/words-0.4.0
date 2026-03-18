@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { ActionType, type Action } from '@/domain/models/ActionTracker.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 const MAX_ACTIONS = 3;
-const matchStore = MatchStore.getInstance();
+const matchStore = MatchStore.INSTANCE();
 const messages = computed(() => matchStore.actionLog.slice(-MAX_ACTIONS));
 function convertMessageToHtml(message: Action): string {
   if (message.type === ActionType.Save) return `${message.words.join(', ')} <em>${message.points}pts</em>`;

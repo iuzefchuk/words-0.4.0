@@ -19,7 +19,7 @@ type SoundDefinition = {
 };
 
 export default class SoundPlayer {
-  private static readonly definitions: Record<Sound, ReadonlyArray<SoundDefinition>> = {
+  private static readonly DEFINITIONS: Record<Sound, ReadonlyArray<SoundDefinition>> = {
     [Sound.ActionGood]: [
       { frequency: 523, duration: 0.08, type: 'sine', gain: 0.12 },
       { frequency: 659, duration: 0.1, type: 'sine', gain: 0.15 },
@@ -58,7 +58,7 @@ export default class SoundPlayer {
     ],
   };
 
-  private static readonly fadeOut = 0.03;
+  private static readonly FADE_OUT = 0.03;
 
   private _context: AudioContext | null = null;
   private queueEnd: number = 0;
@@ -69,7 +69,7 @@ export default class SoundPlayer {
   }
 
   play(sound: Sound): void {
-    const notes = SoundPlayer.definitions[sound];
+    const notes = SoundPlayer.DEFINITIONS[sound];
     if (notes.length === 0) return;
     setTimeout(() => this.scheduleSound(notes), 0);
   }
@@ -102,7 +102,7 @@ export default class SoundPlayer {
     osc.frequency.value = note.frequency;
 
     gainNode.gain.setValueAtTime(note.gain, start);
-    gainNode.gain.setValueAtTime(note.gain, end - SoundPlayer.fadeOut);
+    gainNode.gain.setValueAtTime(note.gain, end - SoundPlayer.FADE_OUT);
     gainNode.gain.linearRampToValueAtTime(0.001, end);
 
     osc.connect(gainNode);

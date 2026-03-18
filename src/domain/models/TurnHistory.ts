@@ -37,7 +37,7 @@ export type ValidResult = { status: ValidationStatus.Valid } & ComputedSequences
 export type ValidationResult = UnvalidatedResult | InvalidResult | ValidResult;
 
 export default class TurnHistory {
-  private static readonly firstPlayer: Player = Player.User;
+  private static readonly FIRST_PLAYER: Player = Player.User;
 
   private constructor(
     private turns: Array<Turn>,
@@ -61,7 +61,7 @@ export default class TurnHistory {
   }
 
   get nextPlayer(): Player {
-    if (this.turns.length === 0) return TurnHistory.firstPlayer;
+    if (this.turns.length === 0) return TurnHistory.FIRST_PLAYER;
     return this.currentPlayer === Player.User ? Player.Opponent : Player.User;
   }
 

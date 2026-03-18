@@ -4,8 +4,8 @@ import { shallowRef, ref, computed, triggerRef } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 
 export default class RackStore {
-  static readonly getInstance = defineStore('items', () => {
-    const matchStore = MatchStore.getInstance();
+  static readonly INSTANCE = defineStore('items', () => {
+    const matchStore = MatchStore.INSTANCE();
     const store = new RackStore(matchStore);
     store.initialize(matchStore.userTiles);
     return {
@@ -24,7 +24,7 @@ export default class RackStore {
   });
 
   private constructor(
-    private matchStore: ReturnType<typeof MatchStore.getInstance>,
+    private matchStore: ReturnType<typeof MatchStore.INSTANCE>,
     private tilesRef = shallowRef<Array<GameTile>>([]),
     private selectedTileRef = ref<GameTile | null>(null),
   ) {}

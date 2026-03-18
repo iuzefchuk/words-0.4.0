@@ -20,15 +20,15 @@ import IdGenerator from '@/infrastructure/CryptoIdGenerator.ts';
 import Clock from '@/infrastructure/DateApiClock.ts';
 
 export default class Game {
-  private static readonly actionEvents: Partial<Record<ActionType, DomainEvent>> = {
+  private static readonly ACTION_EVENTS: Partial<Record<ActionType, DomainEvent>> = {
     [ActionType.Won]: DomainEvent.GameWon,
     [ActionType.Tied]: DomainEvent.GameTied,
     [ActionType.Lost]: DomainEvent.GameLost,
   };
-  private static readonly opponentResponseMinTime = TIME.ms_in_second * 2;
-  private static readonly clock = new Clock();
-  static readonly bonuses = Bonus;
-  static readonly letters = Letter;
+  private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
+  private static readonly CLOCK = new Clock();
+  static readonly BONUSES = Bonus;
+  static readonly LETTERS = Letter;
   private readonly placementLinksGeneratorWorker = new PlacementLinksGeneratorWorker();
   private readonly events = new EventCollector();
   private static dictionary: Dictionary;
@@ -196,16 +196,16 @@ export default class Game {
     this.placementLinksGeneratorWorker.terminate();
     this.isMutable = false;
     const userAction = this.turnDirector.getLastActionFor(Player.User);
-    const event = userAction && Game.actionEvents[userAction.type];
+    const event = userAction && Game.ACTION_EVENTS[userAction.type];
     if (event) this.events.raise(event);
   }
 
   private async setMinimumExecutionTime<T>(callback: () => Promise<T> | T): Promise<T> {
-    const startTime = Game.clock.now();
+    const startTime = Game.CLOCK.now();
     const result = await callback();
-    const elapsed = Game.clock.now() - startTime;
-    const delay = Game.opponentResponseMinTime - elapsed;
-    if (delay > 0) await Game.clock.wait(delay);
+    const elapsed = Game.CLOCK.now() - startTime;
+    const delay = Game.OPPONENT_RESPONSE_MIN_TIME - elapsed;
+    if (delay > 0) await Game.CLOCK.wait(delay);
     return result;
   }
 

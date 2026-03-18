@@ -2,7 +2,7 @@
 import DialogStore, { DialogStatus } from '@/gui/stores/DialogStore.ts';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
-const dialogStore = DialogStore.getInstance();
+const dialogStore = DialogStore.INSTANCE();
 const { title, html, cancelText, confirmText, cancelIsHidden, confirmIsHidden } = storeToRefs(dialogStore);
 const { resolve } = dialogStore;
 const exitAnimation = ref(false);

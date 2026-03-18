@@ -4,7 +4,7 @@ import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
 import Game from '@/application/index.ts';
 
 export default class UseLoader {
-  static readonly word = [Game.letters.W, Game.letters.O, Game.letters.R, Game.letters.D, Game.letters.S];
+  static readonly WORD = [Game.LETTERS.W, Game.LETTERS.O, Game.LETTERS.R, Game.LETTERS.D, Game.LETTERS.S];
 
   private readonly counter;
   private readonly isRenderedRef = ref(false);
@@ -18,10 +18,10 @@ export default class UseLoader {
 
   readonly allTilesAreHighlighted = computed(() => this.counter.value > 0 && this.remainingCounterValue.value === 0);
 
-  private readonly remainingCounterValue = computed(() => this.counter.value % (UseLoader.word.length + 1));
+  private readonly remainingCounterValue = computed(() => this.counter.value % (UseLoader.WORD.length + 1));
 
   private readonly onlyFirstTileIsElevated = computed(() =>
-    UseLoader.word.every((_, idx) => (idx === 0 ? this.isTileElevated(idx) : !this.isTileElevated(idx))),
+    UseLoader.WORD.every((_, idx) => (idx === 0 ? this.isTileElevated(idx) : !this.isTileElevated(idx))),
   );
 
   constructor(

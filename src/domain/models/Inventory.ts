@@ -8,7 +8,7 @@ export type TileId = Brand<string, 'TileId'>;
 export type TileCollection = Map<Letter, Array<TileId>>;
 
 export default class Inventory {
-  private static readonly rackCapacity = 7;
+  private static readonly RACK_CAPACITY = 7;
 
   private constructor(
     private drawPool: Array<Tile>,
@@ -22,10 +22,10 @@ export default class Inventory {
   static create({ players, idGenerator }: { players: ReadonlyArray<Player>; idGenerator: IdGenerator }): Inventory {
     const drawPool = shuffleArrayWithFisherYates(
       Object.values(Letter).flatMap(letter =>
-        Array.from({ length: LETTER_DISTRIBUTION[letter] }, () => Tile.create({ letter, idGenerator })),
+        Array.from({ length: LETTER_CONFIG[letter].distribution }, () => Tile.create({ letter, idGenerator })),
       ),
     );
-    const racks = new Map(players.map(player => [player, Rack.create({ maxLimit: this.rackCapacity })]));
+    const racks = new Map(players.map(player => [player, Rack.create({ maxLimit: this.RACK_CAPACITY })]));
     const discardPool: Array<Tile> = [];
     const tileById = new Map<TileId, Tile>(drawPool.map(tile => [tile.id, tile]));
     return new Inventory(drawPool, racks, discardPool, tileById);
@@ -93,7 +93,7 @@ export default class Inventory {
   }
 
   private replenishRack(rack: Rack): void {
-    const drawCount = Math.min(Inventory.rackCapacity - rack.tileCount, this.unusedTilesCount);
+    const drawCount = Math.min(Inventory.RACK_CAPACITY - rack.tileCount, this.unusedTilesCount);
     for (let i = 0; i < drawCount; i++) {
       const tile = this.drawPool.pop();
       if (!tile) throw new Error('No tiles left in inventory');
@@ -190,7 +190,7 @@ class Tile {
   }
 
   get points(): number {
-    return LETTER_POINTS[this.letter];
+    return LETTER_CONFIG[this.letter].points;
   }
 
   equals(other: Tile): boolean {
@@ -198,60 +198,31 @@ class Tile {
   }
 }
 
-const LETTER_DISTRIBUTION = {
-  [Letter.A]: 9,
-  [Letter.B]: 2,
-  [Letter.C]: 2,
-  [Letter.D]: 4,
-  [Letter.E]: 12,
-  [Letter.F]: 2,
-  [Letter.G]: 3,
-  [Letter.H]: 2,
-  [Letter.I]: 9,
-  [Letter.J]: 1,
-  [Letter.K]: 1,
-  [Letter.L]: 4,
-  [Letter.M]: 2,
-  [Letter.N]: 6,
-  [Letter.O]: 8,
-  [Letter.P]: 2,
-  [Letter.Q]: 1,
-  [Letter.R]: 6,
-  [Letter.S]: 4,
-  [Letter.T]: 6,
-  [Letter.U]: 4,
-  [Letter.V]: 2,
-  [Letter.W]: 2,
-  [Letter.X]: 1,
-  [Letter.Y]: 2,
-  [Letter.Z]: 1,
-} as const;
-
-const LETTER_POINTS = {
-  [Letter.A]: 1,
-  [Letter.B]: 4,
-  [Letter.C]: 4,
-  [Letter.D]: 2,
-  [Letter.E]: 1,
-  [Letter.F]: 4,
-  [Letter.G]: 3,
-  [Letter.H]: 4,
-  [Letter.I]: 1,
-  [Letter.J]: 10,
-  [Letter.K]: 5,
-  [Letter.L]: 1,
-  [Letter.M]: 3,
-  [Letter.N]: 1,
-  [Letter.O]: 1,
-  [Letter.P]: 4,
-  [Letter.Q]: 10,
-  [Letter.R]: 1,
-  [Letter.S]: 1,
-  [Letter.T]: 1,
-  [Letter.U]: 2,
-  [Letter.V]: 4,
-  [Letter.W]: 4,
-  [Letter.X]: 8,
-  [Letter.Y]: 4,
-  [Letter.Z]: 10,
-} as const;
+const LETTER_CONFIG: Record<Letter, { distribution: number; points: number }> = {
+  [Letter.A]: { distribution: 9, points: 1 },
+  [Letter.B]: { distribution: 2, points: 4 },
+  [Letter.C]: { distribution: 2, points: 4 },
+  [Letter.D]: { distribution: 4, points: 2 },
+  [Letter.E]: { distribution: 12, points: 1 },
+  [Letter.F]: { distribution: 2, points: 4 },
+  [Letter.G]: { distribution: 3, points: 3 },
+  [Letter.H]: { distribution: 2, points: 4 },
+  [Letter.I]: { distribution: 9, points: 1 },
+  [Letter.J]: { distribution: 1, points: 10 },
+  [Letter.K]: { distribution: 1, points: 5 },
+  [Letter.L]: { distribution: 4, points: 1 },
+  [Letter.M]: { distribution: 2, points: 3 },
+  [Letter.N]: { distribution: 6, points: 1 },
+  [Letter.O]: { distribution: 8, points: 1 },
+  [Letter.P]: { distribution: 2, points: 4 },
+  [Letter.Q]: { distribution: 1, points: 10 },
+  [Letter.R]: { distribution: 6, points: 1 },
+  [Letter.S]: { distribution: 4, points: 1 },
+  [Letter.T]: { distribution: 6, points: 1 },
+  [Letter.U]: { distribution: 4, points: 2 },
+  [Letter.V]: { distribution: 2, points: 4 },
+  [Letter.W]: { distribution: 2, points: 4 },
+  [Letter.X]: { distribution: 1, points: 8 },
+  [Letter.Y]: { distribution: 2, points: 4 },
+  [Letter.Z]: { distribution: 1, points: 10 },
+};

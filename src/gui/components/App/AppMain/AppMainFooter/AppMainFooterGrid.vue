@@ -3,8 +3,8 @@ import AppTile from '@/gui/components/shared/AppTile.vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
 import { storeToRefs } from 'pinia';
-const matchStore = MatchStore.getInstance();
-const rackStore = RackStore.getInstance();
+const matchStore = MatchStore.INSTANCE();
+const rackStore = RackStore.INSTANCE();
 const { tilesRemaining } = storeToRefs(matchStore);
 const { tiles } = storeToRefs(rackStore);
 </script>
