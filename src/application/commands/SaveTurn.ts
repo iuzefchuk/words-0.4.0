@@ -1,13 +1,10 @@
-import { GameContext } from '@/application/types.ts';
+import { GameContext, SaveTurnResult } from '@/application/types.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
-import { ValidationError } from '@/domain/models/TurnHistory.ts';
-
-export type SaveTurnResult = { error: ValidationError } | { words: ReadonlyArray<string> };
 
 export default class SaveTurn {
   static execute(context: GameContext): SaveTurnResult {
     const { turnDirector, inventory } = context;
-    if (turnDirector.currentTurnError) return { error: turnDirector.currentTurnError };
+    if (turnDirector.currentTurnError) return { ok: false, error: turnDirector.currentTurnError };
     const player = turnDirector.currentPlayer;
     const tiles = turnDirector.currentTurnTileSequence;
     const words = turnDirector.currentTurnWords;
@@ -16,6 +13,6 @@ export default class SaveTurn {
     turnDirector.saveCurrentTurn();
     tiles.forEach((tile: TileId) => inventory.discardTile({ player, tile }));
     inventory.replenishTilesFor(player);
-    return { words };
+    return { ok: true, value: { words } };
   }
 }

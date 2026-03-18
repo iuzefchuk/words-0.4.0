@@ -3,6 +3,8 @@ import { CellIndex } from '@/domain/models/Board.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import Inventory, { TileId } from '@/domain/models/Inventory.ts';
 import TurnDirector from '@/application/TurnDirector.ts';
+import { Result } from '@/shared/result.ts';
+import { ValidationError } from '@/domain/models/TurnHistory.ts';
 
 export type GameContext = {
   board: Board;
@@ -25,3 +27,5 @@ export type GameState = {
   currentPlayerIsUser: boolean;
   userPassWillBeResign: boolean;
 };
+
+export type SaveTurnResult = Result<{ words: ReadonlyArray<string> }, ValidationError>;

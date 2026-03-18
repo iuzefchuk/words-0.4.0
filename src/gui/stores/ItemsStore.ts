@@ -1,4 +1,4 @@
-import { GameCell, GameTile } from '@/application/index.ts';
+import { GameCell, GameTile } from '@/application/types.ts';
 import { defineStore } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
@@ -6,14 +6,14 @@ import GameStore from '@/gui/stores/GameStore.ts';
 export default class ItemsStore {
   // TODO game controlls store ?
   static readonly getInstance = defineStore('items', () => {
-    const storeGame = GameStore.getInstance();
-    const store = new ItemsStore(storeGame);
-    store.initialize(storeGame.userTiles);
+    const gameStore = GameStore.getInstance();
+    const store = new ItemsStore(gameStore);
+    store.initialize(gameStore.userTiles);
     return {
       tiles: store.tilesRef,
       selectedTile: store.selectedTileRef,
       allItemsAreConnected: computed(() => store.allItemsAreConnected),
-      initialize: () => store.initialize(storeGame.userTiles),
+      initialize: () => store.initialize(gameStore.userTiles),
       isTileInItems: store.isTileInItems.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       isTileVisible: store.isTileVisible.bind(store),
@@ -25,7 +25,7 @@ export default class ItemsStore {
   });
 
   private constructor(
-    private storeGame: ReturnType<typeof GameStore.getInstance>,
+    private gameStore: ReturnType<typeof GameStore.getInstance>,
     private tilesRef = shallowRef<Array<GameTile>>([]),
     private selectedTileRef = ref<GameTile | null>(null),
   ) {}
@@ -47,11 +47,11 @@ export default class ItemsStore {
   }
 
   private get allItemsAreConnected(): boolean {
-    return this.tiles.every(tile => !this.storeGame.isTilePlaced(tile));
+    return this.tiles.every(tile => !this.gameStore.isTilePlaced(tile));
   }
 
   private get selectedTileIsPlaced(): boolean {
-    return this.selectedTile !== null && this.storeGame.isTilePlaced(this.selectedTile);
+    return this.selectedTile !== null && this.gameStore.isTilePlaced(this.selectedTile);
   }
 
   private initialize(userTiles: ReadonlyArray<GameTile>): void {
@@ -64,7 +64,7 @@ export default class ItemsStore {
   }
 
   private getTileIdx(tile: GameTile): number {
-    return this.tiles.findIndex(item => this.storeGame.areTilesSame(item, tile));
+    return this.tiles.findIndex(item => this.gameStore.areTilesSame(item, tile));
   }
 
   private isTileInItems(tile: GameTile): boolean {
@@ -72,11 +72,11 @@ export default class ItemsStore {
   }
 
   private isTileSelected(tile: GameTile): boolean {
-    return this.selectedTile !== null && this.storeGame.areTilesSame(this.selectedTile, tile);
+    return this.selectedTile !== null && this.gameStore.areTilesSame(this.selectedTile, tile);
   }
 
   private isTileVisible(tile: GameTile): boolean {
-    return this.isTileInItems(tile) && !this.storeGame.isTilePlaced(tile);
+    return this.isTileInItems(tile) && !this.gameStore.isTilePlaced(tile);
   }
 
   private switchTiles(firstTile: GameTile, secondTile: GameTile): void {
@@ -89,7 +89,7 @@ export default class ItemsStore {
 
   private handleClickRackCell(idx: number): void {
     if (!this.selectedTile) return;
-    if (this.selectedTileIsPlaced) this.storeGame.undoPlaceTile(this.selectedTile);
+    if (this.selectedTileIsPlaced) this.gameStore.undoPlaceTile(this.selectedTile);
     this.switchTiles(this.selectedTile, this.tiles[idx]);
     this.deselectTile();
   }
@@ -100,10 +100,10 @@ export default class ItemsStore {
       return;
     }
     if (!this.isTileSelected(tile)) {
-      const selectedCell = this.storeGame.findCellWithTile(this.selectedTile);
+      const selectedCell = this.gameStore.findCellWithTile(this.selectedTile);
       if (selectedCell) {
-        this.storeGame.undoPlaceTile(this.selectedTile);
-        this.storeGame.placeTile({ tile, cell: selectedCell });
+        this.gameStore.undoPlaceTile(this.selectedTile);
+        this.gameStore.placeTile({ tile, cell: selectedCell });
       }
       this.switchTiles(this.selectedTile, tile);
     }
@@ -112,10 +112,10 @@ export default class ItemsStore {
 
   private handleClickBoardCell(cell: GameCell): void {
     if (!this.selectedTile) return;
-    const existingTile = this.storeGame.findTileOnCell(cell);
+    const existingTile = this.gameStore.findTileOnCell(cell);
     if (existingTile) return;
-    if (this.selectedTileIsPlaced) this.storeGame.undoPlaceTile(this.selectedTile);
-    this.storeGame.placeTile({ tile: this.selectedTile, cell });
+    if (this.selectedTileIsPlaced) this.gameStore.undoPlaceTile(this.selectedTile);
+    this.gameStore.placeTile({ tile: this.selectedTile, cell });
     this.deselectTile();
   }
 
@@ -129,17 +129,17 @@ export default class ItemsStore {
       this.selectedTile = tile;
       return;
     }
-    const tileCell = this.storeGame.findCellWithTile(tile);
+    const tileCell = this.gameStore.findCellWithTile(tile);
     if (!tileCell) return;
-    const selectedCell = this.storeGame.findCellWithTile(this.selectedTile);
+    const selectedCell = this.gameStore.findCellWithTile(this.selectedTile);
     if (selectedCell) {
-      this.storeGame.undoPlaceTile(this.selectedTile);
-      this.storeGame.undoPlaceTile(tile);
-      this.storeGame.placeTile({ tile, cell: selectedCell });
-      this.storeGame.placeTile({ tile: this.selectedTile, cell: tileCell });
+      this.gameStore.undoPlaceTile(this.selectedTile);
+      this.gameStore.undoPlaceTile(tile);
+      this.gameStore.placeTile({ tile, cell: selectedCell });
+      this.gameStore.placeTile({ tile: this.selectedTile, cell: tileCell });
     } else {
-      this.storeGame.undoPlaceTile(tile);
-      this.storeGame.placeTile({ tile: this.selectedTile, cell: tileCell });
+      this.gameStore.undoPlaceTile(tile);
+      this.gameStore.placeTile({ tile: this.selectedTile, cell: tileCell });
       this.switchTiles(this.selectedTile, tile);
     }
     this.deselectTile();

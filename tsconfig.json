@@ -3,10 +3,10 @@
     "strict": true,
     "target": "esnext",
     "module": "nodenext",
-    "paths": { "@/*": ["./src/*"] },
+    "paths": { "@/*": ["./src/*"], "$/*": ["./tests/*"] },
     "types": ["vue"], 
     "noEmit": true,
     "allowImportingTsExtensions": true,
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "tests", "vite.config.ts"]
 }

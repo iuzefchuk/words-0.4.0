@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import GameStore from '@/gui/stores/GameStore.ts';
 import { storeToRefs } from 'pinia';
-const storeGame = GameStore.getInstance();
-const { currentTurnScore } = storeToRefs(storeGame);
+const gameStore = GameStore.getInstance();
+const { currentTurnScore } = storeToRefs(gameStore);
 </script>
 
 <template>

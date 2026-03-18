@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import ToastStore from '@/gui/stores/ToastStore.ts';
 import { storeToRefs } from 'pinia';
-const storeToast = ToastStore.getInstance();
-const { messages } = storeToRefs(storeToast);
-const { removeMessage } = storeToast;
+const toastStore = ToastStore.getInstance();
+const { messages } = storeToRefs(toastStore);
+const { removeMessage } = toastStore;
 </script>
 
 <template>

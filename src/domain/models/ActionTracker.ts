@@ -12,7 +12,7 @@ export enum PlayerAction {
 export default class ActionTracker {
   private constructor(private readonly lastActions: Map<Player, PlayerAction>) {}
 
-  static create(players: Array<Player>): ActionTracker {
+  static create(players: ReadonlyArray<Player>): ActionTracker {
     const actions = new Map(players.map(player => [player, PlayerAction.Joined]));
     return new ActionTracker(actions);
   }

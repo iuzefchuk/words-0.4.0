@@ -17,7 +17,7 @@ export default class TurnDirector {
     board,
     idGenerator,
   }: {
-    players: Array<Player>;
+    players: ReadonlyArray<Player>;
     board: Board;
     idGenerator: IdGenerator;
   }): TurnDirector {

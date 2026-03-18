@@ -1,8 +1,9 @@
 import { shuffleArrayWithFisherYates } from '@/shared/helpers.ts';
 import { Letter, Player } from '@/domain/enums.ts';
 import { IdGenerator } from '@/shared/ports.ts';
+import { Brand } from '@/shared/brand.ts';
 
-export type TileId = string;
+export type TileId = Brand<string, 'TileId'>;
 
 export type TileCollection = Map<Letter, Array<TileId>>;
 
@@ -18,7 +19,7 @@ export default class Inventory {
     this.initializeRacks();
   }
 
-  static create({ players, idGenerator }: { players: Array<Player>; idGenerator: IdGenerator }): Inventory {
+  static create({ players, idGenerator }: { players: ReadonlyArray<Player>; idGenerator: IdGenerator }): Inventory {
     const drawPool = shuffleArrayWithFisherYates(
       Object.values(Letter).flatMap(letter =>
         Array.from({ length: LETTER_DISTRIBUTION[letter] }, () => Tile.create({ letter, idGenerator })),
@@ -180,7 +181,7 @@ class Tile {
   ) {}
 
   static create({ letter, idGenerator }: { letter: Letter; idGenerator: IdGenerator }): Tile {
-    const id = idGenerator.execute();
+    const id = idGenerator.execute() as TileId;
     return new Tile(id, letter);
   }
 

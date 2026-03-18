@@ -3,20 +3,20 @@ import AppTile from '@/gui/components/shared/AppTile.vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 import ItemsStore from '@/gui/stores/ItemsStore.ts';
 import { storeToRefs } from 'pinia';
-const storeGame = GameStore.getInstance();
-const storeItems = ItemsStore.getInstance();
-const { tilesRemaining } = storeToRefs(storeGame);
-const { tiles } = storeToRefs(storeItems);
+const gameStore = GameStore.getInstance();
+const itemsStore = ItemsStore.getInstance();
+const { tilesRemaining } = storeToRefs(gameStore);
+const { tiles } = storeToRefs(itemsStore);
 </script>
 
 <template>
   <ul class="app__width-content app__grid--footer">
-    <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="storeItems.handleClickRackCell(idx)">
+    <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="itemsStore.handleClickRackCell(idx)">
       <AppTile
-        v-if="storeItems.isTileVisible(tile)"
-        :letter="storeGame.getTileLetter(tile)"
-        :is-inverted="storeItems.isTileSelected(tile)"
-        @click.stop="storeItems.handleClickRackTile(tile)"
+        v-if="itemsStore.isTileVisible(tile)"
+        :letter="gameStore.getTileLetter(tile)"
+        :is-inverted="itemsStore.isTileSelected(tile)"
+        @click.stop="itemsStore.handleClickRackTile(tile)"
       />
     </li>
     <li class="inventory__count">

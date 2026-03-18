@@ -1,4 +1,5 @@
-import Game, { GameCell, GameState, GameTile, SaveTurnResult } from '@/application/index.ts';
+import Game from '@/application/index.ts';
+import { GameCell, GameTile, GameState, SaveTurnResult } from '@/application/types.ts';
 import { DomainEvent } from '@/domain/events.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
@@ -62,14 +63,14 @@ export default class GameStore {
         GameStore.handleEvents();
       },
       resetTurn: () => state.triggerRefAfter(() => game.resetTurn()),
-      saveTurn: (): SaveTurnResult & { opponentTurn?: Promise<SaveTurnResult> } => {
-        const { opponentTurn, ...result } = state.triggerRefAfter(() => game.saveTurn());
+      saveTurn: (): { result: SaveTurnResult; opponentTurn?: Promise<SaveTurnResult> } => {
+        const { result, opponentTurn } = state.triggerRefAfter(() => game.saveTurn());
         GameStore.handleEvents();
         const resolved = opponentTurn?.then(opponentResult => {
           state.refreshState();
           return opponentResult;
         });
-        return { ...result, opponentTurn: resolved };
+        return { result, opponentTurn: resolved };
       },
       passTurn: (): { opponentTurn?: Promise<SaveTurnResult> } => {
         const { opponentTurn } = state.triggerRefAfter(() => game.passTurn());
@@ -107,11 +108,15 @@ export default class GameStore {
       return this.stateRef.value;
     }
 
+    // Read the shallowRef to register a reactive dependency before
+    // calling into the imperative Game object.
     voidRefBefore<T>(callback: () => T): T {
       void this.stateRef.value;
       return callback();
     }
 
+    // Re-assign the shallowRef after mutation to trigger reactive
+    // updates in all dependents.
     triggerRefAfter<T>(callback: () => T): T {
       const result = callback();
       this.refreshState();

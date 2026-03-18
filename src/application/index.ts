@@ -4,22 +4,19 @@ import { Letter, Player } from '@/domain/enums.ts';
 import { DomainEvent, EventCollector } from '@/domain/events.ts';
 import Inventory from '@/domain/models/Inventory.ts';
 import { TIME } from '@/shared/constants.ts';
-import { GameContext, GameCell, GameTile, GameState } from '@/application/types.ts';
+import { GameContext, GameCell, GameTile, GameState, SaveTurnResult } from '@/application/types.ts';
 import GameStateQuery from '@/application/queries/GameState.ts';
 import TurnValidator from '@/application/services/TurnValidator.ts';
 import TurnDirector from '@/application/TurnDirector.ts';
 import PassTurnCommand from '@/application/commands/PassTurn.ts';
 import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
 import ResignGameCommand from '@/application/commands/ResignGame.ts';
-import SaveTurnCommand, { SaveTurnResult } from '@/application/commands/SaveTurn.ts';
+import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
 import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
 import PlacementLinksGeneratorWorker from '@/infrastructure/PlacementLinksGeneratorWorker/index.ts';
 import IndexedDbDictionaryFactory from '@/infrastructure/IndexedDbDictionaryFactory.ts';
 import IdGenerator from '@/infrastructure/CryptoIdGenerator.ts';
 import Clock from '@/infrastructure/DateApiClock.ts';
-
-export type { GameCell, GameTile, GameState } from '@/application/types.ts';
-export type { SaveTurnResult } from '@/application/commands/SaveTurn.ts';
 
 export default class Game {
   private static readonly opponentResponseMinTime = TIME.ms_in_second * 2;
@@ -129,15 +126,15 @@ export default class Game {
     this.turnDirector.resetCurrentTurn();
   }
 
-  saveTurn(): SaveTurnResult & { opponentTurn?: Promise<SaveTurnResult> } {
+  saveTurn(): { result: SaveTurnResult; opponentTurn?: Promise<SaveTurnResult> } {
     this.ensureMutability();
     const player = this.turnDirector.currentPlayer;
     const result = SaveTurnCommand.execute(this.context);
-    if ('error' in result) return result;
+    if (!result.ok) return { result };
     this.events.raise(DomainEvent.TurnSaved);
-    if (this.checkTileDepletion(player)) return result;
+    if (this.checkTileDepletion(player)) return { result };
     const opponentTurn = this.turnDirector.currentPlayer !== Player.User ? this.createOpponentTurn() : undefined;
-    return { ...result, opponentTurn };
+    return { result, opponentTurn };
   }
 
   passTurn(): { opponentTurn?: Promise<SaveTurnResult> } {
@@ -160,7 +157,7 @@ export default class Game {
         PassTurnCommand.execute(this.context);
         this.events.raise(DomainEvent.TurnPassed);
       }
-      return { words: [] };
+      return { ok: true, value: { words: [] } };
     }
     const player = this.turnDirector.currentPlayer;
     for (const link of generatedPlacementLinks) this.turnDirector.placeTile({ cell: link.cell, tile: link.tile });

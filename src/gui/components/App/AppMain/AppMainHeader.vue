@@ -1,18 +1,18 @@
 <script lang="ts" setup>
 import { reactive } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
-const storeGame = GameStore.getInstance();
+const gameStore = GameStore.getInstance();
 const players = reactive([
   {
     name: window.t('game.player_user'),
     get score() {
-      return storeGame.userScore;
+      return gameStore.userScore;
     },
   },
   {
     name: window.t('game.player_opponent'),
     get score() {
-      return storeGame.opponentScore;
+      return gameStore.opponentScore;
     },
   },
 ]);

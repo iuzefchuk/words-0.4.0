@@ -8,8 +8,8 @@ import { onMounted, ref, inject } from 'vue';
 import GameStore from '@/gui/stores/GameStore.ts';
 import { storeToRefs } from 'pinia';
 import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-const storeGame = GameStore.getInstance();
-const { gameIsFinished } = storeToRefs(storeGame);
+const gameStore = GameStore.getInstance();
+const { gameIsFinished } = storeToRefs(gameStore);
 const loaderIsActive = ref(true);
 const mainIsRendered = ref(false);
 const transitionDurationMs = inject(transitionDurationMsKey);
@@ -27,7 +27,7 @@ onMounted(() => {
         '--transition-duration': `${transitionDurationMs}ms`,
         '--transition-duration-half': `${transitionDurationMs / 2}ms`,
       }),
-      '--cell-count-per-axis': Math.sqrt(storeGame.layoutCells.length),
+      '--cell-count-per-axis': Math.sqrt(gameStore.layoutCells.length),
     }"
   >
     <AppLoader :is-active="loaderIsActive" @derendered="mainIsRendered = true" />

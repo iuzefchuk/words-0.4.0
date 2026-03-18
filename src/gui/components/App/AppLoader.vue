@@ -1,12 +1,10 @@
 <script lang="ts" setup>
 import AppTile from '@/gui/components/shared/AppTile.vue';
-import LoaderController from '@/gui/controllers/LoaderController.ts';
+import UseLoader from '@/gui/composables/UseLoader.ts';
 const props = defineProps({ isActive: { type: Boolean, required: true } });
 const emit = defineEmits(['derendered']);
-const controller = new LoaderController(props, emit);
-const { isRendered, INTRO_LETTERS, allTilesAreHighlighted } = controller;
-const isTileElevated = controller.isTileElevated.bind(controller);
-// TODO 
+const loader = new UseLoader(props, emit);
+const { isRendered, allTilesAreHighlighted } = loader;
 </script>
 
 <template>
@@ -14,12 +12,12 @@ const isTileElevated = controller.isTileElevated.bind(controller);
     <div v-if="isRendered" class="loader">
       <div class="loader__logo">
         <AppTile
-          v-for="(letter, idx) in INTRO_LETTERS"
+          v-for="(letter, idx) in UseLoader.word"
           :key="idx"
           class="loader__tile"
           :letter="letter"
           :is-highlighted="allTilesAreHighlighted"
-          :is-elevated="isTileElevated(idx)"
+          :is-elevated="loader.isTileElevated(idx)"
         />
       </div>
     </div>

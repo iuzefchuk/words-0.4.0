@@ -1,41 +1,44 @@
 <script lang="ts" setup>
-import ButtonsController from '@/gui/controllers/ButtonsController.ts';
+import ItemsStore from '@/gui/stores/ItemsStore.ts';
+import UseActions from '@/gui/composables/UseActions.ts';
 import { reactive } from 'vue';
-
-const controller = new ButtonsController();
-const { allItemsAreConnected, isDisabled } = controller;
-const actions = reactive([
+import { storeToRefs } from 'pinia';
+const itemsStore = ItemsStore.getInstance();
+const { allItemsAreConnected } = storeToRefs(itemsStore);
+const actions = new UseActions();
+const { allActionsAreDisabled } = actions;
+const buttons = reactive([
   {
     name: window.t('game.action_resign'),
-    action: controller.handleResign.bind(controller),
+    action: () => actions.handleResign(),
     get isRendered() {
       return true;
     },
   },
   {
     name: window.t('game.action_pass'),
-    action: controller.handlePass.bind(controller),
+    action: () => actions.handlePass(),
     get isRendered() {
       return true;
     },
   },
   {
     name: window.t('game.action_shuffle'),
-    action: controller.handleShuffle.bind(controller),
+    action: () => actions.handleShuffle(),
     get isRendered() {
       return allItemsAreConnected.value;
     },
   },
   {
     name: window.t('game.action_clear'),
-    action: controller.handleClear.bind(controller),
+    action: () => actions.handleClear(),
     get isRendered() {
       return !allItemsAreConnected.value;
     },
   },
   {
     name: window.t('game.action_play'),
-    action: controller.handlePlay.bind(controller),
+    action: () => actions.handlePlay(),
     get isRendered() {
       return true;
     },
@@ -46,9 +49,9 @@ const actions = reactive([
 <template>
   <div class="actions">
     <ul class="actions__list app__width-content">
-      <template v-for="{ name, action, isRendered } in actions" :key="name">
+      <template v-for="{ name, action, isRendered } in buttons" :key="name">
         <li v-if="isRendered" class="actions__list-item">
-          <button class="actions__btn" :disabled="isDisabled" @click="action()">
+          <button class="actions__btn" :disabled="allActionsAreDisabled" @click="action()">
             {{ name }}
           </button>
         </li>
