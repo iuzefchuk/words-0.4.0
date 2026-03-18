@@ -82,6 +82,10 @@ export default class TurnDirector {
     return this.actionTracker.hasPlayerPassed(player);
   }
 
+  getLastActionFor(player: Player): PlayerAction | undefined {
+    return this.actionTracker.getLastAction(player);
+  }
+
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
     this.history.placeTileInCurrentTurn({ cell, tile });
     this.board.placeTile(cell, tile);

@@ -18,9 +18,7 @@ export default class UseActions {
     return ToastStore.getInstance();
   }
 
-  get allActionsAreDisabled(): boolean {
-    return computed(() => !this.gameStore.currentPlayerIsUser).value;
-  }
+  readonly allActionsAreDisabled = computed(() => !GameStore.getInstance().currentPlayerIsUser);
 
   async handleResign(): Promise<void> {
     const { isConfirmed } = await this.triggerResignDialog();

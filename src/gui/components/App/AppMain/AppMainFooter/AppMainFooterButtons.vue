@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia';
 const itemsStore = ItemsStore.getInstance();
 const { allItemsAreConnected } = storeToRefs(itemsStore);
 const actions = new UseActions();
-const { allActionsAreDisabled } = actions;
+const { allActionsAreDisabled } = actions; // ComputedRef<boolean>
 const buttons = reactive([
   {
     name: window.t('game.action_resign'),

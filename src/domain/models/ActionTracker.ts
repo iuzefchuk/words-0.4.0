@@ -24,4 +24,8 @@ export default class ActionTracker {
   hasPlayerPassed(player: Player): boolean {
     return this.lastActions.get(player) === PlayerAction.Passed;
   }
+
+  getLastAction(player: Player): PlayerAction | undefined {
+    return this.lastActions.get(player);
+  }
 }

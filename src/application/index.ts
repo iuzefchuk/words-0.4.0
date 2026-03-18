@@ -2,6 +2,7 @@ import Board, { Bonus } from '@/domain/models/Board.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import { Letter, Player } from '@/domain/enums.ts';
 import { DomainEvent, EventCollector } from '@/domain/events.ts';
+import { PlayerAction } from '@/domain/models/ActionTracker.ts';
 import Inventory from '@/domain/models/Inventory.ts';
 import { TIME } from '@/shared/constants.ts';
 import { GameContext, GameCell, GameTile, GameState, SaveTurnResult } from '@/application/types.ts';
@@ -19,6 +20,11 @@ import IdGenerator from '@/infrastructure/CryptoIdGenerator.ts';
 import Clock from '@/infrastructure/DateApiClock.ts';
 
 export default class Game {
+  private static readonly outcomeEvents: Partial<Record<PlayerAction, DomainEvent>> = {
+    [PlayerAction.Won]: DomainEvent.GameWon,
+    [PlayerAction.Tied]: DomainEvent.GameTied,
+    [PlayerAction.Lost]: DomainEvent.GameLost,
+  };
   private static readonly opponentResponseMinTime = TIME.ms_in_second * 2;
   private static readonly clock = new Clock();
   static readonly bonuses = Bonus;
@@ -118,7 +124,7 @@ export default class Game {
   undoPlaceTile(tile: GameTile): void {
     this.ensureMutability();
     UndoPlaceTileCommand.execute(this.context, { tile });
-    this.events.raise(DomainEvent.TileUndone);
+    this.events.raise(DomainEvent.TileUndoPlaced);
   }
 
   resetTurn(): void {
@@ -165,6 +171,7 @@ export default class Game {
     this.turnDirector.setCurrentTurnValidation(result);
     const saveResult = SaveTurnCommand.execute(this.context);
     this.checkTileDepletion(player);
+    this.events.raise(DomainEvent.OpponentTurnGenerated);
     return saveResult;
   }
 
@@ -184,7 +191,9 @@ export default class Game {
   private endGame(): void {
     this.placementLinksGeneratorWorker.terminate();
     this.isMutable = false;
-    this.events.raise(DomainEvent.GameResigned);
+    const userAction = this.turnDirector.getLastActionFor(Player.User);
+    const event = userAction && Game.outcomeEvents[userAction];
+    if (event) this.events.raise(event);
   }
 
   private async setMinimumExecutionTime<T>(callback: () => Promise<T> | T): Promise<T> {

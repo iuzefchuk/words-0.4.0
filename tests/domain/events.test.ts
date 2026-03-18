@@ -25,8 +25,8 @@ describe('EventCollector', () => {
     const collector = new EventCollector();
     collector.raise(DomainEvent.TilesShuffled);
     collector.raise(DomainEvent.TurnPassed);
-    collector.raise(DomainEvent.GameResigned);
+    collector.raise(DomainEvent.GameWon);
     const events = collector.drain();
-    expect(events).toEqual([DomainEvent.TilesShuffled, DomainEvent.TurnPassed, DomainEvent.GameResigned]);
+    expect(events).toEqual([DomainEvent.TilesShuffled, DomainEvent.TurnPassed, DomainEvent.GameWon]);
   });
 });

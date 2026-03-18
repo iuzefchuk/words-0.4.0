@@ -11,21 +11,20 @@ export async function startGame(): Promise<void> {
   game = await Game.start();
 }
 
-const EVENT_SOUNDS: Record<DomainEvent, Sound> = {
-  [DomainEvent.TilePlaced]: Sound.TilePlaced,
-  [DomainEvent.TileUndone]: Sound.TileReturned,
-  [DomainEvent.TurnSaved]: Sound.TurnSaved,
-  [DomainEvent.TurnPassed]: Sound.TurnPassed,
-  [DomainEvent.TilesShuffled]: Sound.TilesShuffled,
-  [DomainEvent.GameResigned]: Sound.GameFinished,
-};
-
 export default class GameStore {
   private static readonly soundPlayer = new SoundPlayer();
 
-  private static handleEvents(): void {
-    for (const event of game.drainEvents()) this.soundPlayer.play(EVENT_SOUNDS[event]);
-  }
+  private static readonly eventSounds: Record<DomainEvent, Sound> = {
+    [DomainEvent.TilePlaced]: Sound.ActionNeutral,
+    [DomainEvent.TileUndoPlaced]: Sound.ActionNeutralReverse,
+    [DomainEvent.TurnSaved]: Sound.ActionGood,
+    [DomainEvent.TurnPassed]: Sound.ActionBad,
+    [DomainEvent.TilesShuffled]: Sound.Mixer,
+    [DomainEvent.GameWon]: Sound.EndGood,
+    [DomainEvent.GameTied]: Sound.EndNeutral,
+    [DomainEvent.GameLost]: Sound.EndBad,
+    [DomainEvent.OpponentTurnGenerated]: Sound.OpponentPlayed,
+  };
 
   static readonly getInstance = defineStore('game', () => {
     const state = new GameStore.ReactiveState(game);
@@ -52,41 +51,47 @@ export default class GameStore {
       wasTileUsedInPreviousTurn: (tile: GameTile) => state.voidRefBefore(() => game.wasTileUsedInPreviousTurn(tile)),
       shuffleUserTiles: () => {
         state.triggerRefAfter(() => game.shuffleUserTiles());
-        GameStore.handleEvents();
+        this.handleEvents();
       },
       placeTile: (args: { cell: GameCell; tile: GameTile }) => {
         state.triggerRefAfter(() => game.placeTile(args));
-        GameStore.handleEvents();
+        this.handleEvents();
       },
       undoPlaceTile: (tile: GameTile) => {
         state.triggerRefAfter(() => game.undoPlaceTile(tile));
-        GameStore.handleEvents();
+        this.handleEvents();
       },
       resetTurn: () => state.triggerRefAfter(() => game.resetTurn()),
       saveTurn: (): { result: SaveTurnResult; opponentTurn?: Promise<SaveTurnResult> } => {
         const { result, opponentTurn } = state.triggerRefAfter(() => game.saveTurn());
-        GameStore.handleEvents();
+        this.handleEvents();
         const resolved = opponentTurn?.then(opponentResult => {
           state.refreshState();
+          this.handleEvents();
           return opponentResult;
         });
         return { result, opponentTurn: resolved };
       },
       passTurn: (): { opponentTurn?: Promise<SaveTurnResult> } => {
         const { opponentTurn } = state.triggerRefAfter(() => game.passTurn());
-        GameStore.handleEvents();
+        this.handleEvents();
         const resolved = opponentTurn?.then(opponentResult => {
           state.refreshState();
+          this.handleEvents();
           return opponentResult;
         });
         return { opponentTurn: resolved };
       },
       resignGame: () => {
         state.triggerRefAfter(() => game.resignGame());
-        GameStore.handleEvents();
+        this.handleEvents();
       },
     };
   });
+
+  private static handleEvents(): void {
+    for (const event of game.drainEvents()) this.soundPlayer.play(this.eventSounds[event]);
+  }
 
   private static ReactiveState = class {
     readonly isFinished = computed(() => this.state.isFinished);

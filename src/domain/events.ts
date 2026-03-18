@@ -1,10 +1,13 @@
 export enum DomainEvent {
   TilePlaced = 'TilePlaced',
-  TileUndone = 'TileUndone',
+  TileUndoPlaced = 'TileUndoPlaced',
   TurnSaved = 'TurnSaved',
   TurnPassed = 'TurnPassed',
   TilesShuffled = 'TilesShuffled',
-  GameResigned = 'GameResigned',
+  GameWon = 'GameWon',
+  GameTied = 'GameTied',
+  GameLost = 'GameLost',
+  OpponentTurnGenerated = 'OpponentTurnGenerated',
 }
 
 export class EventCollector {

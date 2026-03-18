@@ -9,6 +9,21 @@ export default class UseLoader {
   private readonly counter;
   private readonly isRenderedRef = ref(false);
 
+  readonly isRendered = computed({
+    get: () => this.isRenderedRef.value,
+    set: (newValue: boolean) => {
+      this.isRenderedRef.value = newValue;
+    },
+  });
+
+  readonly allTilesAreHighlighted = computed(() => this.counter.value > 0 && this.remainingCounterValue.value === 0);
+
+  private readonly remainingCounterValue = computed(() => this.counter.value % (UseLoader.word.length + 1));
+
+  private readonly onlyFirstTileIsElevated = computed(() =>
+    UseLoader.word.every((_, idx) => (idx === 0 ? this.isTileElevated(idx) : !this.isTileElevated(idx))),
+  );
+
   constructor(
     private readonly props: { isActive: boolean },
     private readonly emit: (event: 'derendered') => void,
@@ -24,45 +39,23 @@ export default class UseLoader {
     );
   }
 
-  get isRendered(): boolean {
-    return this.isRenderedRef.value;
-  }
-
-  set isRendered(newValue: boolean) {
-    this.isRenderedRef.value = newValue;
-  }
-
-  get allTilesAreHighlighted(): boolean {
-    return computed(() => this.counter.value > 0 && this.remainingCounterValue === 0).value;
-  }
-
   isTileElevated(idx: number): boolean {
-    return idx < this.remainingCounterValue;
-  }
-
-  private get remainingCounterValue(): number {
-    return computed(() => this.counter.value % (UseLoader.word.length + 1)).value;
-  }
-
-  private get onlyFirstTileIsElevated(): boolean {
-    return computed(() =>
-      UseLoader.word.every((_, idx) => (idx === 0 ? this.isTileElevated(idx) : !this.isTileElevated(idx))),
-    ).value;
+    return idx < this.remainingCounterValue.value;
   }
 
   private initRenderWithCounter(): void {
-    this.isRendered = true;
+    this.isRendered.value = true;
     this.counter.restartCounter(() => this.onIncrementCounter());
   }
 
   private deinitRenderWithCounter(): void {
-    this.isRendered = false;
+    this.isRendered.value = false;
     this.counter.stopCounter();
     this.emit('derendered');
   }
 
   private onIncrementCounter(): void {
     if (this.counter.value <= 1) return;
-    if (!this.props.isActive && this.onlyFirstTileIsElevated) this.deinitRenderWithCounter();
+    if (!this.props.isActive && this.onlyFirstTileIsElevated.value) this.deinitRenderWithCounter();
   }
 }
