@@ -11,7 +11,12 @@ const { tiles } = storeToRefs(rackStore);
 
 <template>
   <ul class="app__width-content app__grid--footer">
-    <li v-for="(tile, idx) in tiles" :key="idx" class="inventory__cell" @click="rackStore.handleClickRackCell(idx)">
+    <li
+      v-for="(tile, idx) in tiles"
+      :key="idx"
+      class="inventory__cell"
+      @click.stop="rackStore.handleClickRackCell(idx)"
+    >
       <AppTile
         v-if="rackStore.isTileVisible(tile)"
         :letter="matchStore.getTileLetter(tile)"

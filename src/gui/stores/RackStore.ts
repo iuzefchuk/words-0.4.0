@@ -20,6 +20,7 @@ export default class RackStore {
       handleClickRackTile: store.handleClickRackTile.bind(store),
       handleClickBoardCell: store.handleClickBoardCell.bind(store),
       handleClickBoardTile: store.handleClickBoardTile.bind(store),
+      deselectTile: store.deselectTile.bind(store),
     };
   });
 
@@ -98,11 +99,19 @@ export default class RackStore {
   }
 
   private handleClickRackTile(tile: GameTile): void {
-    if (this.isTileSelected(tile)) {
-      this.deselectTile();
+    if (!this.selectedTile) {
+      this.selectedTile = tile;
       return;
     }
-    this.selectedTile = tile;
+    if (!this.isTileSelected(tile)) {
+      const selectedCell = this.matchStore.findCellWithTile(this.selectedTile);
+      if (selectedCell) {
+        this.matchStore.undoPlaceTile(this.selectedTile);
+        this.matchStore.placeTile({ tile, cell: selectedCell });
+      }
+      this.switchTiles(this.selectedTile, tile);
+    }
+    this.deselectTile();
   }
 
   private handleClickBoardCell(cell: GameCell): void {

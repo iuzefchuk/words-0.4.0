@@ -21,7 +21,7 @@ const isTileHighlighted = computed(() => tile.value != null && matchStore.wasTil
       'cell--center': matchStore.isCellInCenterOfLayout(cell),
       'cell--has-tile': tile,
     }"
-    @click="rackStore.handleClickBoardCell(cell)"
+    @click.stop="rackStore.handleClickBoardCell(cell)"
   >
     <Transition name="fade" appear>
       <svg
