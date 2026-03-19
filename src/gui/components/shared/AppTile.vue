@@ -44,11 +44,8 @@ defineProps({
   &--saturated:not(&--outlined) {
     background: var(--tile-bg-saturated);
   }
-  &--outlined {
-    outline: 2px solid var(--tile-outline-color);
-  }
-  &--outlined:is(&--inverted) {
-    outline: 2px solid var(--tile-outline-color-inverted);
+  &--outlined:not(&--inverted) {
+    //  outline: 2px solid var(--tile-outline-color);
   }
 }
 </style>

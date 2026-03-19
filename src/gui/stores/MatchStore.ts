@@ -34,6 +34,8 @@ export default class MatchStore {
       findTileOnCell: store.findTileOnCell.bind(store),
       findCellWithTile: store.findCellWithTile.bind(store),
       isTilePlaced: store.isTilePlaced.bind(store),
+      getCellRowIndex: store.getCellRowIndex.bind(store),
+      getCellColumnIndex: store.getCellColumnIndex.bind(store),
       areTilesSame: store.areTilesSame.bind(store),
       getTileLetter: store.getTileLetter.bind(store),
       isCellTopRightInTurn: store.isCellTopRightInTurn.bind(store),
@@ -132,6 +134,14 @@ export default class MatchStore {
     return this.state.trackDependency(() => this.game.isTilePlaced(tile));
   }
 
+  private getCellRowIndex(cell: GameCell): number {
+    return this.game.getCellRowIndex(cell);
+  }
+
+  private getCellColumnIndex(cell: GameCell): number {
+    return this.game.getCellColumnIndex(cell);
+  }
+
   private areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {
     return this.game.areTilesSame(firstTile, secondTile);
   }
@@ -141,6 +151,7 @@ export default class MatchStore {
   }
 
   private isCellTopRightInTurn(cell: GameCell): boolean {
+    // TODO delete ?
     return this.state.trackDependency(() => this.game.isCellTopRightInTurn(cell));
   }
 

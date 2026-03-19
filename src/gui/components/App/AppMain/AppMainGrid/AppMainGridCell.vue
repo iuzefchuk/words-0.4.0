@@ -47,7 +47,7 @@ const isTileSaturated = computed(() => tile.value != null && matchStore.wasTileU
         :letter="matchStore.getTileLetter(tile)"
         :is-inverted="rackStore.isTileSelected(tile)"
         :is-saturated="isTileSaturated"
-        :is-outlined="rackStore.isTileInItems(tile)"
+        :is-outlined="rackStore.isTileInRack(tile)"
         @click.stop="rackStore.handleClickBoardTile(tile)"
       />
     </Transition>

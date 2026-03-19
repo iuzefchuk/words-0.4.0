@@ -23,7 +23,6 @@
   --tile-bg-inverted: var(--color-purple-dark);
   --tile-bg-saturated: var(--color-pink-saturated);
   --tile-outline-color: var(--color-purple);
-  --tile-outline-color-inverted: transparent;
 }
 
 .app {
@@ -69,26 +68,25 @@
 }
 
 // TODO to variables
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary-color: var(--color-gray-lightest);
-    --primary-bg: rgba(36 36 77 / 1);
-    --primary-border-color: var(--color-gray-lighter);
-    --secondary-color: var(--color-gray-lightest);
-    --cell-color-dw: rgba(10 189 227 / 1);
-    --cell-color-tw: rgba(238 83 83 / 1);
-    --cell-color-dl: rgba(17 172 132 / 1);
-    --cell-color-tl: rgba(255 159 68 / 1);
-    --cell-bg: rgba(25 25 48 / 1);
-    --cell-bg-center: rgba(47 47 95 / 1);
-    --cell-bg-footer: rgba(30 30 58 / 1);
-    --cell-shadow: var(--box-shadow-inner-dark);
-    --cell-shadow-footer: var(--box-shadow-inner-dark);
-    --tile-color-inverted: var(--color-gray-darkest);
-    --tile-bg: rgba(85 50 160 / 1);
-    --tile-bg-inverted: var(--color-gray-faintest);
-    --tile-bg-saturated: rgba(130 70 210 / 1);
-    --tile-outline-color: var(--color-pink);
-    --tile-outline-color-inverted: transparent;
-  }
-}
+// @media (prefers-color-scheme: dark) {
+//   :root {
+//     --primary-color: var(--color-gray-lightest);
+//     --primary-bg: rgba(36 36 77 / 1);
+//     --primary-border-color: var(--color-gray-lighter);
+//     --secondary-color: var(--color-gray-lightest);
+//     --cell-color-dw: rgba(10 189 227 / 1);
+//     --cell-color-tw: rgba(238 83 83 / 1);
+//     --cell-color-dl: rgba(17 172 132 / 1);
+//     --cell-color-tl: rgba(255 159 68 / 1);
+//     --cell-bg: rgba(25 25 48 / 1);
+//     --cell-bg-center: rgba(47 47 95 / 1);
+//     --cell-bg-footer: rgba(30 30 58 / 1);
+//     --cell-shadow: var(--box-shadow-inner-dark);
+//     --cell-shadow-footer: var(--box-shadow-inner-dark);
+//     --tile-color-inverted: var(--color-gray-darkest);
+//     --tile-bg: rgba(85 50 160 / 1);
+//     --tile-bg-inverted: var(--color-gray-faintest);
+//     --tile-bg-saturated: rgba(130 70 210 / 1);
+//     --tile-outline-color: var(--color-pink);
+//   }
+// }

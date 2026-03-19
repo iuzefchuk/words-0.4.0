@@ -107,6 +107,14 @@ export default class Game {
     return this.board.isTilePlaced(tile);
   }
 
+  getCellRowIndex(cell: GameCell): number {
+    return this.board.getRowIndex(cell);
+  }
+
+  getCellColumnIndex(cell: GameCell): number {
+    return this.board.getColumnIndex(cell);
+  }
+
   areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {
     return this.inventory.areTilesEqual(firstTile, secondTile);
   }

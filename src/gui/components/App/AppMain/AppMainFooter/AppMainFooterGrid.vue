@@ -11,12 +11,12 @@ const { tiles } = storeToRefs(rackStore);
 
 <template>
   <ul class="app__width-content app__grid--footer">
-    <li v-for="(tile, idx) in tiles" :key="idx" class="grid__cell" @click.stop="rackStore.handleClickRackCell(idx)">
+    <li v-for="(tile, idx) in tiles" :key="idx" class="grid__cell" @click.stop="rackStore.handleClickFooterCell(idx)">
       <AppTile
         v-if="rackStore.isTileVisible(tile)"
         :letter="matchStore.getTileLetter(tile)"
         :is-inverted="rackStore.isTileSelected(tile)"
-        @click.stop="rackStore.handleClickRackTile(tile)"
+        @click.stop="rackStore.handleClickFooterTile(tile)"
       />
     </li>
     <li class="grid__count">

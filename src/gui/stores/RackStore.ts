@@ -12,12 +12,14 @@ export default class RackStore {
       tiles: store.tilesRef,
       selectedTile: store.selectedTileRef,
       allTilesArePlaced: computed(() => store.allTilesArePlaced),
+      anyTileIsPlaced: computed(() => store.anyTileIsPlaced),
+      placedTilesCoords: computed(() => store.placedTilesCoords),
       initialize: () => store.initialize(matchStore.userTiles),
-      isTileInItems: store.isTileInItems.bind(store),
+      isTileInRack: store.isTileInRack.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       isTileVisible: store.isTileVisible.bind(store),
-      handleClickRackCell: store.handleClickRackCell.bind(store),
-      handleClickRackTile: store.handleClickRackTile.bind(store),
+      handleClickFooterCell: store.handleClickFooterCell.bind(store),
+      handleClickFooterTile: store.handleClickFooterTile.bind(store),
       handleClickBoardCell: store.handleClickBoardCell.bind(store),
       handleClickBoardTile: store.handleClickBoardTile.bind(store),
       deselectTile: store.deselectTile.bind(store),
@@ -50,6 +52,22 @@ export default class RackStore {
     return this.tiles.every(tile => !this.matchStore.isTilePlaced(tile));
   }
 
+  private get anyTileIsPlaced(): boolean {
+    return this.tiles.some(tile => this.matchStore.isTilePlaced(tile));
+  }
+
+  private get placedTilesCoords(): { rows: Array<number>; columns: Array<number> } {
+    const rows = new Set<number>();
+    const columns = new Set<number>();
+    for (const tile of this.tiles) {
+      const cell = this.matchStore.findCellWithTile(tile);
+      if (cell === undefined) continue;
+      rows.add(this.matchStore.getCellRowIndex(cell));
+      columns.add(this.matchStore.getCellColumnIndex(cell));
+    }
+    return { rows: [...rows].sort((a, b) => a - b), columns: [...columns].sort((a, b) => a - b) };
+  }
+
   private get selectedTileIsPlaced(): boolean {
     return this.selectedTile !== null && this.matchStore.isTilePlaced(this.selectedTile);
   }
@@ -67,7 +85,7 @@ export default class RackStore {
     return this.tiles.findIndex(item => this.matchStore.areTilesSame(item, tile));
   }
 
-  private isTileInItems(tile: GameTile): boolean {
+  private isTileInRack(tile: GameTile): boolean {
     return this.getTileIdx(tile) !== -1;
   }
 
@@ -76,7 +94,7 @@ export default class RackStore {
   }
 
   private isTileVisible(tile: GameTile): boolean {
-    return this.isTileInItems(tile) && !this.matchStore.isTilePlaced(tile);
+    return this.isTileInRack(tile) && !this.matchStore.isTilePlaced(tile);
   }
 
   private switchTiles(firstTile: GameTile, secondTile: GameTile): void {
@@ -87,7 +105,7 @@ export default class RackStore {
     triggerRef(this.tilesRef);
   }
 
-  private handleClickRackCell(idx: number): void {
+  private handleClickFooterCell(idx: number): void {
     const tile = this.tiles[idx];
     if (!this.selectedTile) {
       if (this.matchStore.isTilePlaced(tile)) this.matchStore.undoPlaceTile(tile);
@@ -98,7 +116,7 @@ export default class RackStore {
     this.deselectTile();
   }
 
-  private handleClickRackTile(tile: GameTile): void {
+  private handleClickFooterTile(tile: GameTile): void {
     if (!this.selectedTile) {
       this.selectedTile = tile;
       return;
@@ -124,7 +142,7 @@ export default class RackStore {
   }
 
   private handleClickBoardTile(tile: GameTile): void {
-    if (!this.isTileInItems(tile)) return;
+    if (!this.isTileInRack(tile)) return;
     if (this.isTileSelected(tile)) {
       this.deselectTile();
       return;

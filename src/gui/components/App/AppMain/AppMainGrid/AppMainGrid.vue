@@ -25,7 +25,5 @@ const matchStore = MatchStore.INSTANCE();
 <style lang="scss" scoped>
 .grid {
   aspect-ratio: 1 / 1;
-  justify-self: center;
-  align-self: center;
 }
 </style>
