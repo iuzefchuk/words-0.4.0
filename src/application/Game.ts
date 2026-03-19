@@ -115,8 +115,10 @@ export default class Game {
     return this.inventory.getTileLetter(tile);
   }
 
-  isCellLastInTurn(cell: GameCell): boolean {
-    return this.turnDirector.currentTurnCells?.at(-1) === cell;
+  isCellTopRightInTurn(cell: GameCell): boolean {
+    const cells = this.turnDirector.currentTurnCells;
+    if (!cells || cells.length === 0) return false;
+    return cell === this.board.findTopRightCell(cells);
   }
 
   wasTileUsedInPreviousTurn(tile: GameTile): boolean {

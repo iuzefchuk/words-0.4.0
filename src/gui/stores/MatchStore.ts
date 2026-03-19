@@ -36,7 +36,7 @@ export default class MatchStore {
       isTilePlaced: store.isTilePlaced.bind(store),
       areTilesSame: store.areTilesSame.bind(store),
       getTileLetter: store.getTileLetter.bind(store),
-      isCellLastInTurn: store.isCellLastInTurn.bind(store),
+      isCellTopRightInTurn: store.isCellTopRightInTurn.bind(store),
       wasTileUsedInPreviousTurn: store.wasTileUsedInPreviousTurn.bind(store),
       shuffleUserTiles: store.shuffleUserTiles.bind(store),
       placeTile: store.placeTile.bind(store),
@@ -140,8 +140,8 @@ export default class MatchStore {
     return this.game.getTileLetter(tile);
   }
 
-  private isCellLastInTurn(cell: GameCell): boolean {
-    return this.state.trackDependency(() => this.game.isCellLastInTurn(cell));
+  private isCellTopRightInTurn(cell: GameCell): boolean {
+    return this.state.trackDependency(() => this.game.isCellTopRightInTurn(cell));
   }
 
   private wasTileUsedInPreviousTurn(tile: GameTile): boolean {

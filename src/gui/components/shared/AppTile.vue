@@ -29,7 +29,7 @@ defineProps({
   color: var(--tile-color);
   background: var(--tile-bg);
   border-radius: inherit;
-  transition-property: top, left, background, color, box-shadow;
+  transition-property: top, left, background, color, box-shadow, outline;
   transition-duration: var(--transition-duration-half);
   transition-timing-function: var(--transition-timing-function);
   position: relative;

@@ -16,7 +16,7 @@ const matchStore = MatchStore.INSTANCE();
   >
     <AppMainGridCell v-for="cell in matchStore.layoutCells" :key="cell" :cell="cell">
       <Transition name="fade" appear>
-        <AppMainGridTooltip v-if="matchStore.isCellLastInTurn(cell)" />
+        <AppMainGridTooltip v-if="matchStore.isCellTopRightInTurn(cell)" />
       </Transition>
     </AppMainGridCell>
   </ul>

@@ -69,6 +69,17 @@ export default class Board {
     return Layout.getColumnIndex(cell);
   }
 
+  findTopRightCell(cells: ReadonlyArray<CellIndex>): CellIndex | undefined {
+    if (cells.length === 0) return undefined;
+    return cells.reduce((best, current) => {
+      const bestRow = Layout.getRowIndex(best);
+      const currentRow = Layout.getRowIndex(current);
+      if (currentRow < bestRow) return current;
+      if (currentRow === bestRow && Layout.getColumnIndex(current) > Layout.getColumnIndex(best)) return current;
+      return best;
+    });
+  }
+
   getOppositeAxis(axis: Axis): Axis {
     return Layout.getOppositeAxis(axis);
   }
