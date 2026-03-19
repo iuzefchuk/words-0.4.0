@@ -5,8 +5,13 @@ import { DomainEvent, EventCollector } from '@/domain/events.ts';
 import { TurnOutcome, TurnOutcomeType, ValidationError } from '@/domain/models/TurnTracker.ts';
 import Inventory, { TileId } from '@/domain/models/Inventory.ts';
 import { TIME } from '@/shared/constants.ts';
+import { Clock } from '@/shared/ports.ts';
 import GameStateQuery from '@/application/queries/GameState.ts';
 import TurnDirector from '@/application/services/TurnDirector.ts';
+import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
+import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
+import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
+import TurnExecutor from '@/application/services/TurnExecutor.ts';
 
 export enum GameResultType {
   Win = 'Win',
@@ -35,14 +40,14 @@ export type GameState = {
 };
 export type GameTurnResult = Result<{ words: ReadonlyArray<string> }, ValidationError>;
 export type GameResult = { type: GameResultType; player: Player };
-
-import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
-import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
-import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
-import TurnExecutor from '@/application/services/TurnExecutor.ts';
-import IndexedDbDictionaryFactory from '@/infrastructure/IndexedDbDictionaryFactory.ts';
-import IdGenerator from '@/infrastructure/CryptoIdGenerator.ts';
-import Clock from '@/infrastructure/DateApiClock.ts';
+export type GameDependencies = {
+  board: Board;
+  dictionary: Dictionary;
+  inventory: Inventory;
+  turnDirector: TurnDirector;
+  turnExecutor: TurnExecutor;
+  clock: Clock;
+};
 
 export default class Game {
   static readonly BONUSES = Bonus;
@@ -53,27 +58,21 @@ export default class Game {
     [GameResultType.Tie]: DomainEvent.GameTied,
   };
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
-  private static readonly CLOCK = new Clock();
-  private static dictionary: Dictionary;
-  private readonly turnExecutor = new TurnExecutor();
   private readonly events = new EventCollector();
   private readonly resultLog: Array<GameResult> = [];
   private isMutable: boolean = true;
 
   private constructor(
     private board: Board,
+    private dictionary: Dictionary,
     private inventory: Inventory,
     private turnDirector: TurnDirector,
+    private turnExecutor: TurnExecutor,
+    private clock: Clock,
   ) {}
 
-  static async start(): Promise<Game> {
-    if (!Game.dictionary) Game.dictionary = await IndexedDbDictionaryFactory.create();
-    const idGenerator = new IdGenerator();
-    const players = Object.values(Player);
-    const board = Board.create();
-    const inventory = Inventory.create({ players, idGenerator });
-    const turnDirector = TurnDirector.create({ board, idGenerator });
-    return new Game(board, inventory, turnDirector);
+  static create(deps: GameDependencies): Game {
+    return new Game(deps.board, deps.dictionary, deps.inventory, deps.turnDirector, deps.turnExecutor, deps.clock);
   }
 
   get layoutCells(): ReadonlyArray<GameCell> {
@@ -186,7 +185,7 @@ export default class Game {
   private get context(): GameContext {
     return {
       board: this.board,
-      dictionary: Game.dictionary,
+      dictionary: this.dictionary,
       inventory: this.inventory,
       turnDirector: this.turnDirector,
     };
@@ -207,7 +206,7 @@ export default class Game {
   }
 
   private async createOpponentTurn(): Promise<GameTurnResult> {
-    const outcome = await this.setMinimumExecutionTime(() => this.turnExecutor.execute(this.context, Player.Opponent));
+    const outcome = await this.ensureMinimumDuration(() => this.turnExecutor.execute(this.context, Player.Opponent));
     switch (outcome.type) {
       case TurnOutcomeType.Resign:
         this.recordResign();
@@ -250,12 +249,12 @@ export default class Game {
     if (event) this.events.raise(event);
   }
 
-  private async setMinimumExecutionTime<T>(callback: () => Promise<T> | T): Promise<T> {
-    const startTime = Game.CLOCK.now();
+  private async ensureMinimumDuration<T>(callback: () => Promise<T> | T): Promise<T> {
+    const startTime = this.clock.now();
     const result = await callback();
-    const elapsed = Game.CLOCK.now() - startTime;
+    const elapsed = this.clock.now() - startTime;
     const delay = Game.OPPONENT_RESPONSE_MIN_TIME - elapsed;
-    if (delay > 0) await Game.CLOCK.wait(delay);
+    if (delay > 0) await this.clock.wait(delay);
     return result;
   }
 

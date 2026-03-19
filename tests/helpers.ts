@@ -1,9 +1,10 @@
 import { IdGenerator } from '@/shared/ports.ts';
-import Board, { Axis } from '@/domain/models/Board.ts';
+import Board from '@/domain/models/Board.ts';
 import type { CellIndex } from '@/domain/models/Board.ts';
 import Inventory, { type TileId } from '@/domain/models/Inventory.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import TurnDirector from '@/application/services/TurnDirector.ts';
+import TurnValidator from '@/application/services/TurnValidator.ts';
 import { Player, Letter } from '@/domain/enums.ts';
 import type { GameContext } from '@/application/Game.ts';
 
@@ -68,6 +69,39 @@ function buildDictionary(sortedWords: ReadonlyArray<string>): Dictionary {
   const dict = Dictionary.createFromCache(cache);
   if (!dict) throw new Error('Failed to create test dictionary');
   return dict;
+}
+
+export function findTileWithLetter(context: GameContext, player: Player, letter: Letter): TileId | undefined {
+  const tiles = context.inventory.getTilesFor(player);
+  return tiles.find(tile => context.inventory.getTileLetter(tile) === letter);
+}
+
+export function placeAndValidate(
+  context: GameContext,
+  placements: ReadonlyArray<{ cell: CellIndex; tile: TileId }>,
+): void {
+  for (const { cell, tile } of placements) {
+    context.turnDirector.placeTile({ cell, tile });
+  }
+  const tiles = context.turnDirector.currentTurnTiles;
+  const result = TurnValidator.execute(context, tiles);
+  context.turnDirector.setCurrentTurnValidation(result);
+}
+
+export function placeFirstTurn(
+  context: GameContext,
+  player: Player,
+): { tiles: TileId[]; cells: CellIndex[] } {
+  const playerTiles = context.inventory.getTilesFor(player);
+  const tile1 = playerTiles[0];
+  const tile2 = playerTiles[1];
+  const cell1 = cellIndex(112); // center
+  const cell2 = cellIndex(113); // right of center
+  placeAndValidate(context, [
+    { cell: cell1, tile: tile1 },
+    { cell: cell2, tile: tile2 },
+  ]);
+  return { tiles: [tile1, tile2], cells: [cell1, cell2] };
 }
 
 export function createTestContext(options?: {

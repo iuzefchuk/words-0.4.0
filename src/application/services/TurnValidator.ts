@@ -82,7 +82,7 @@ export default class TurnValidator {
     const placementCells = new Set(cells);
     const someCellsAreAnchor = cells.some(cell => {
       if (board.isCellCenter(cell)) return true;
-      if (!turnDirector.historyHasOpponentTurns) return false;
+      if (!turnDirector.hasPriorTurns) return false;
       return board.getAdjacentCells(cell).some(adj => board.isCellOccupied(adj) && !placementCells.has(adj));
     });
     return someCellsAreAnchor

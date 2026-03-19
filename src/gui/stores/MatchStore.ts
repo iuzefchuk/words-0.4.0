@@ -5,11 +5,12 @@ import { DomainEvent } from '@/domain/events.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
 import SoundPlayer, { Sound } from '@/infrastructure/SoundPlayer.ts';
+import GameFactory from '@/infrastructure/GameFactory.ts';
 
 let game: Game;
 
 export async function startGame(): Promise<void> {
-  game = await Game.start();
+  game = await GameFactory.create();
 }
 
 export default class MatchStore {
@@ -81,12 +82,12 @@ export default class MatchStore {
       this.stateRef = shallowRef(this.game.state);
     }
 
-    voidRefBefore<T>(callback: () => T): T {
+    trackDependency<T>(callback: () => T): T {
       void this.stateRef.value;
       return callback();
     }
 
-    triggerRefAfter<T>(callback: () => T): T {
+    mutateAndRefresh<T>(callback: () => T): T {
       const result = callback();
       this.refreshState();
       if (result instanceof Promise) {
@@ -120,15 +121,15 @@ export default class MatchStore {
   }
 
   private findTileOnCell(cell: GameCell): GameTile | undefined {
-    return this.state.voidRefBefore(() => this.game.findTileByCell(cell));
+    return this.state.trackDependency(() => this.game.findTileByCell(cell));
   }
 
   private findCellWithTile(tile: GameTile): GameCell | undefined {
-    return this.state.voidRefBefore(() => this.game.findCellByTile(tile));
+    return this.state.trackDependency(() => this.game.findCellByTile(tile));
   }
 
   private isTilePlaced(tile: GameTile): boolean {
-    return this.state.voidRefBefore(() => this.game.isTilePlaced(tile));
+    return this.state.trackDependency(() => this.game.isTilePlaced(tile));
   }
 
   private areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {
@@ -140,34 +141,34 @@ export default class MatchStore {
   }
 
   private isCellLastConnectionInTurn(cell: GameCell): boolean {
-    return this.state.voidRefBefore(() => this.game.isCellLastConnectionInTurn(cell));
+    return this.state.trackDependency(() => this.game.isCellLastConnectionInTurn(cell));
   }
 
   private wasTileUsedInPreviousTurn(tile: GameTile): boolean {
-    return this.state.voidRefBefore(() => this.game.wasTileUsedInPreviousTurn(tile));
+    return this.state.trackDependency(() => this.game.wasTileUsedInPreviousTurn(tile));
   }
 
   private shuffleUserTiles(): void {
-    this.state.triggerRefAfter(() => this.game.shuffleUserTiles());
+    this.state.mutateAndRefresh(() => this.game.shuffleUserTiles());
     this.handleEvents();
   }
 
   private placeTile(args: { cell: GameCell; tile: GameTile }): void {
-    this.state.triggerRefAfter(() => this.game.placeTile(args));
+    this.state.mutateAndRefresh(() => this.game.placeTile(args));
     this.handleEvents();
   }
 
   private undoPlaceTile(tile: GameTile): void {
-    this.state.triggerRefAfter(() => this.game.undoPlaceTile(tile));
+    this.state.mutateAndRefresh(() => this.game.undoPlaceTile(tile));
     this.handleEvents();
   }
 
   private resetTurn(): void {
-    this.state.triggerRefAfter(() => this.game.resetTurn());
+    this.state.mutateAndRefresh(() => this.game.resetTurn());
   }
 
   private saveTurn(): { result: GameTurnResult; opponentTurn?: Promise<GameTurnResult> } {
-    const { result, opponentTurn } = this.state.triggerRefAfter(() => this.game.saveTurn());
+    const { result, opponentTurn } = this.state.mutateAndRefresh(() => this.game.saveTurn());
     this.handleEvents();
     const resolved = opponentTurn?.then((opponentResult: GameTurnResult) => {
       this.state.refreshState();
@@ -178,7 +179,7 @@ export default class MatchStore {
   }
 
   private passTurn(): { opponentTurn?: Promise<GameTurnResult> } {
-    const { opponentTurn } = this.state.triggerRefAfter(() => this.game.passTurn());
+    const { opponentTurn } = this.state.mutateAndRefresh(() => this.game.passTurn());
     this.handleEvents();
     const resolved = opponentTurn?.then((opponentResult: GameTurnResult) => {
       this.state.refreshState();
@@ -189,7 +190,7 @@ export default class MatchStore {
   }
 
   private resignGame(): void {
-    this.state.triggerRefAfter(() => this.game.resignGame());
+    this.state.mutateAndRefresh(() => this.game.resignGame());
     this.handleEvents();
   }
 

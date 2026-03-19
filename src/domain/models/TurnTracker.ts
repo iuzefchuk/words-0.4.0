@@ -53,7 +53,7 @@ export default class TurnTracker {
     return Object.setPrototypeOf(data, TurnTracker.prototype);
   }
 
-  get hasOpponentTurns(): boolean {
+  get hasPriorTurns(): boolean {
     return this.turns.length > 1;
   }
 
@@ -180,6 +180,7 @@ class Turn {
   }
 
   set outcomeType(type: TurnOutcomeType) {
+    if (this._outcomeType !== undefined) throw new Error(`Outcome already set to ${this._outcomeType}`);
     if (type === TurnOutcomeType.Save && !this.isValid) throw new Error('Can`t log output for invalid turn');
     this._outcomeType = type;
   }

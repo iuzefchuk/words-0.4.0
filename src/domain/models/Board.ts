@@ -113,14 +113,20 @@ export default class Board {
   }
 
   resolvePlacement(tiles: ReadonlyArray<TileId>): Placement {
-    return tiles.map(tile => ({ cell: this.cellByTile.get(tile)!, tile })).sort((a, b) => a.cell - b.cell);
+    return tiles
+      .map(tile => {
+        const cell = this.cellByTile.get(tile);
+        if (cell === undefined) throw new Error(`Tile ${tile} is not placed on the board`);
+        return { cell, tile };
+      })
+      .sort((a, b) => a.cell - b.cell);
   }
 
-  getAnchorCells(historyHasOpponentTurns: boolean): ReadonlySet<CellIndex> {
+  getAnchorCells(hasPriorTurns: boolean): ReadonlySet<CellIndex> {
     return new Set(
       Layout.cells.filter((cell: CellIndex) => {
         const isCenter = Layout.isCellCenter(cell);
-        if (!historyHasOpponentTurns) return isCenter;
+        if (!hasPriorTurns) return isCenter;
         if (this.isCellOccupied(cell)) return false;
         const hasUsedAdjacentCells = Layout.getAdjacentCells(cell).some((adjacentCell: CellIndex) =>
           this.isCellOccupied(adjacentCell),

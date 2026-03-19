@@ -4,7 +4,7 @@ import Inventory, { TileCollection, TileId } from '@/domain/models/Inventory.ts'
 import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
 import { ValidationStatus } from '@/domain/models/TurnTracker.ts';
 import TurnValidator from '@/application/services/TurnValidator.ts';
-import { Player } from '@/domain/enums.ts';
+import { Player, Letter } from '@/domain/enums.ts';
 import { GameContext } from '@/application/Game.ts';
 
 enum GenerationDirection {
@@ -73,9 +73,47 @@ export type ContinueTaskCommand = { type: GenerationCommandType.ContinueExecute;
 export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: TurnGeneratorResult };
 export type StopTaskCommand = { type: GenerationCommandType.StopExecute };
 export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
-export type DispatcherState = { tiles: TileCollection; placement: Array<Link> };
+type MutableTileCollection = Map<Letter, Array<TileId>>;
+export type DispatcherState = { tiles: MutableTileCollection; placement: Array<Link> };
 export type DispatcherComputeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
 
+/**
+ * Generates optimal turns for a given player using a task-based backtracking algorithm.
+ *
+ * The algorithm works by exploring anchor cells on the board (empty cells adjacent to
+ * existing tiles, or the center cell on the first turn). For each anchor, it traverses
+ * the dictionary trie in both directions along each axis, attempting to form valid words
+ * by placing tiles from the player's inventory.
+ *
+ * Execution is driven by a stack of discrete tasks rather than recursive function calls.
+ * This makes the backtracking explicit and avoids deep call stacks:
+ *
+ *   1. EvaluateTraversal — Checks if the current placement forms a valid word. If
+ *      traversing left, queues a right-direction evaluation to explore both sides of
+ *      the anchor. Always queues a ValidateTraversal to continue extending.
+ *
+ *   2. ValidateTraversal — Guards against board edges. If the next position is valid,
+ *      queues a CalculateCandidate.
+ *
+ *   3. CalculateCandidate — Inspects the next cell. If it already has a tile, creates
+ *      a pre-resolved candidate. Otherwise, leaves it unresolved for the next step.
+ *
+ *   4. ResolveCandidate — For occupied cells, follows the existing tile's letter in
+ *      the trie. For empty cells, iterates over all valid letters (filtered by cross-
+ *      checks on the perpendicular axis) and queues Apply → Evaluate → Reverse triples
+ *      for each possibility.
+ *
+ *   5. ApplyResolution — Places a tile on the board and removes it from the player's
+ *      available tiles. This mutates shared state for the duration of the subtree.
+ *
+ *   6. ReverseResolution — Undoes the placement after the subtree has been explored,
+ *      restoring the tile to the player's collection. This is the backtracking step.
+ *
+ * The TaskCommandResolver drives execution: it pops tasks from the stack, dispatches
+ * them to the TaskDispatcher, and handles the returned command (continue with new tasks,
+ * yield a result, or stop the current branch). Results are yielded as a generator,
+ * allowing the caller to take the first valid result or collect all possibilities.
+ */
 export default class TurnGenerator {
   private static TaskCommandResolver = class TaskCommandResolver {
     private constructor(private readonly stack: Array<Task>) {}
@@ -126,7 +164,9 @@ export default class TurnGenerator {
     ) {}
 
     static create({ context, lettersComputer, playerTileCollection, coords }: TurnGeneratorArguments): TaskDispatcher {
-      const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: [] };
+      const tiles: MutableTileCollection = new Map();
+      for (const [letter, tileIds] of playerTileCollection) tiles.set(letter, [...tileIds]);
+      const state: DispatcherState = { tiles, placement: [] };
       const computeds: DispatcherComputeds = {
         axisCells: context.board.getAxisCells(coords),
         oppositeAxis: context.board.getOppositeAxis(coords.axis),
@@ -306,7 +346,7 @@ export default class TurnGenerator {
     const { inventory, board, dictionary, turnDirector } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
-    const anchorCells = board.getAnchorCells(turnDirector.historyHasOpponentTurns);
+    const anchorCells = board.getAnchorCells(turnDirector.hasPriorTurns);
     if (anchorCells.size === 0) return;
     const lettersComputer = new CrossCheckComputer(board, dictionary, inventory);
     for (const cell of anchorCells) {

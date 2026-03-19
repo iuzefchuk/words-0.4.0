@@ -19,7 +19,7 @@ describe('TurnDirector', () => {
 
   it('has no opponent turns initially', () => {
     const { director } = createDirector();
-    expect(director.historyHasOpponentTurns).toBe(false);
+    expect(director.hasPriorTurns).toBe(false);
   });
 
   describe('placeTile / undoPlaceTile', () => {
@@ -73,7 +73,7 @@ describe('TurnDirector', () => {
       director.saveCurrentTurn();
 
       expect(director.currentPlayer).toBe(Player.Opponent);
-      expect(director.historyHasOpponentTurns).toBe(true);
+      expect(director.hasPriorTurns).toBe(true);
     });
   });
 

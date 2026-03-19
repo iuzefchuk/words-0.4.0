@@ -12,7 +12,12 @@ export default class TurnExecutor {
   private readonly worker = new TurnGeneratorWorker();
 
   async execute(context: GameContext, player: Player): Promise<TurnExecutorOutcome> {
-    const generatorResult = await this.worker.execute({ context, player });
+    let generatorResult;
+    try {
+      generatorResult = await this.worker.execute({ context, player });
+    } catch {
+      generatorResult = null;
+    }
     if (generatorResult === null) {
       if (context.turnDirector.willPlayerPassBeResign(player)) return { type: TurnOutcomeType.Resign };
       PassTurnCommand.execute(context);

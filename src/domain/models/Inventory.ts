@@ -3,7 +3,7 @@ import { Letter, Player } from '@/domain/enums.ts';
 import { IdGenerator } from '@/shared/ports.ts';
 
 export type TileId = Brand<string, 'TileId'>;
-export type TileCollection = Map<Letter, Array<TileId>>;
+export type TileCollection = ReadonlyMap<Letter, ReadonlyArray<TileId>>;
 
 export default class Inventory {
   private static readonly PLAYER_POOL_CAPACITY = 7;
@@ -164,11 +164,11 @@ class TilePool {
   }
 
   get tileCollection(): TileCollection {
-    const collection: TileCollection = new Map();
+    const collection = new Map<Letter, ReadonlyArray<TileId>>();
     for (const tile of this.tiles) {
-      const tiles = collection.get(tile.letter);
-      if (tiles) {
-        tiles.push(tile.id);
+      const existing = collection.get(tile.letter);
+      if (existing) {
+        collection.set(tile.letter, [...existing, tile.id]);
       } else {
         collection.set(tile.letter, [tile.id]);
       }

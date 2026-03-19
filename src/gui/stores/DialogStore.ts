@@ -1,9 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { setPromise } from '@/shared/helpers.ts';
 
 export enum DialogStatus {
-  None = 'None',
   Dismissed = 'Dismissed',
   Canceled = 'Canceled',
   Confirmed = 'Confirmed',
@@ -39,7 +37,6 @@ export default class DialogStore {
     };
   });
 
-  private static readonly DEFAULT_STATUS = DialogStatus.None;
   private static readonly DEFAULT_TITLE = '';
   private static readonly DEFAULT_HTML = '';
   private static readonly DEFAULT_CANCEL_TEXT = 'general.cancel';
@@ -47,21 +44,13 @@ export default class DialogStore {
   private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
   private static readonly DEFAULT_CONFIRM_IS_HIDDEN = false;
 
-  private statusRef = ref(DialogStore.DEFAULT_STATUS);
+  private pendingResolve: ((result: DialogResult) => void) | null = null;
   private titleRef = ref(DialogStore.DEFAULT_TITLE);
   private htmlRef = ref(DialogStore.DEFAULT_HTML);
   private cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
   private confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
   private cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
   private confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
-
-  private get status(): DialogStatus {
-    return this.statusRef.value;
-  }
-
-  private set status(newValue: DialogStatus) {
-    this.statusRef.value = newValue;
-  }
 
   private set title(newValue: string) {
     this.titleRef.value = newValue;
@@ -87,14 +76,6 @@ export default class DialogStore {
     this.confirmIsHiddenRef.value = newValue;
   }
 
-  private get result(): DialogResult {
-    return {
-      isDismissed: this.status === DialogStatus.Dismissed,
-      isConfirmed: this.status === DialogStatus.Confirmed,
-      isCanceled: this.status === DialogStatus.Canceled,
-    };
-  }
-
   private async trigger({
     title,
     html,
@@ -109,18 +90,25 @@ export default class DialogStore {
     if (confirmText) this.confirmText = confirmText;
     if (cancelIsHidden !== undefined) this.cancelIsHidden = cancelIsHidden;
     if (confirmIsHidden !== undefined) this.confirmIsHidden = confirmIsHidden;
-    await setPromise(() => this.status !== DialogStatus.None);
-    const result = Object.assign({}, this.result);
+    const result = await new Promise<DialogResult>(resolve => {
+      this.pendingResolve = resolve;
+    });
     this.resetState();
     return result;
   }
 
   private resolve({ status }: { status: DialogStatus }): void {
-    this.status = status;
+    if (this.pendingResolve) {
+      this.pendingResolve({
+        isDismissed: status === DialogStatus.Dismissed,
+        isConfirmed: status === DialogStatus.Confirmed,
+        isCanceled: status === DialogStatus.Canceled,
+      });
+      this.pendingResolve = null;
+    }
   }
 
   private resetState() {
-    this.status = DialogStore.DEFAULT_STATUS;
     this.title = DialogStore.DEFAULT_TITLE;
     this.html = DialogStore.DEFAULT_HTML;
     this.cancelText = DialogStore.DEFAULT_CANCEL_TEXT;

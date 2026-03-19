@@ -68,8 +68,8 @@ export default class TurnDirector {
     return this.tracker.previousTurnTiles;
   }
 
-  get historyHasOpponentTurns(): boolean {
-    return this.tracker.hasOpponentTurns;
+  get hasPriorTurns(): boolean {
+    return this.tracker.hasPriorTurns;
   }
 
   get outcomeHistory(): ReadonlyArray<TurnOutcome> {

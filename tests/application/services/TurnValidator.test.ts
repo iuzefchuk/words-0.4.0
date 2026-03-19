@@ -22,7 +22,7 @@ describe('TurnValidator', () => {
 
     context.board.placeTile(cell, tile);
 
-    const result = TurnValidator.execute(context, [{ cell, tile }]);
+    const result = TurnValidator.execute(context, [tile]);
     // Single tile on center: must form a word. Depends on whether the letter is in dictionary.
     // Could be Valid or Invalid depending on the tile's letter
     expect([ValidationStatus.Valid, ValidationStatus.Invalid]).toContain(result.status);
@@ -36,7 +36,7 @@ describe('TurnValidator', () => {
     const cell = cellIndex(0);
     context.board.placeTile(cell, tile);
 
-    const result = TurnValidator.execute(context, [{ cell, tile }]);
+    const result = TurnValidator.execute(context, [tile]);
     expect(result.status).toBe(ValidationStatus.Invalid);
     if (result.status === ValidationStatus.Invalid) {
       expect(result.error).toBe(ValidationError.NoCellsUsableAsFirst);
@@ -55,10 +55,7 @@ describe('TurnValidator', () => {
     context.board.placeTile(cell1, tile1);
     context.board.placeTile(cell2, tile2);
 
-    const result = TurnValidator.execute(context, [
-      { cell: cell1, tile: tile1 },
-      { cell: cell2, tile: tile2 },
-    ]);
+    const result = TurnValidator.execute(context, [tile1, tile2]);
 
     // The formed word may or may not be in dictionary — depends on tile letters
     // But we verify the validator runs the full pipeline without crashing
@@ -83,7 +80,7 @@ describe('TurnValidator', () => {
 
     singleLetterContext.board.placeTile(cell, singleTile);
 
-    const result = TurnValidator.execute(singleLetterContext, [{ cell, tile: singleTile }]);
+    const result = TurnValidator.execute(singleLetterContext, [singleTile]);
 
     if (result.status === ValidationStatus.Valid) {
       expect(result.score).toBeGreaterThanOrEqual(0);
