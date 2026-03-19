@@ -1,6 +1,6 @@
 import { ref, computed, watch, inject } from 'vue';
 import UseCounter from '@/gui/composables/UseCounter.ts';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
+import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
 import Game from '@/application/Game.ts';
 
 export default class UseLoader {
@@ -27,7 +27,7 @@ export default class UseLoader {
     private readonly props: { isActive: boolean },
     private readonly emit: (event: 'derendered') => void,
   ) {
-    const transitionDurationMs = inject(transitionDurationMsKey, 0);
+    const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY, 0);
     this.counter = new UseCounter(transitionDurationMs);
     watch(
       () => this.props.isActive,

@@ -3,7 +3,7 @@ import TurnValidator from '@/application/services/TurnValidator.ts';
 import PassTurnCommand from '@/application/commands/PassTurn.ts';
 import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
 import type { GameContext } from '@/application/Game.ts';
-import TurnGeneratorWorker from '@/infrastructure/TurnGeneratorWorker/index.ts';
+import TurnGeneratorWorker from '@/infrastructure/TurnGeneratorWorker/TurnGeneratorWorker.ts';
 import { TurnOutcome, TurnOutcomeType } from '@/domain/models/TurnTracker.ts';
 
 export type TurnExecutorOutcome = TurnOutcome | { type: TurnOutcomeType.Resign };

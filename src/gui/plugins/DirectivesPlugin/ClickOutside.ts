@@ -1,5 +1,5 @@
 import { DirectiveBinding } from 'vue';
-import Directive from '@/gui/plugins/directives/Directive.ts';
+import Directive from './DirectiveClass.ts';
 
 type ClickOutsideHtmlElement = HTMLElement & { _clickOutside: (event: Event) => void };
 type BindingValue = { callback: () => void };

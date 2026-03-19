@@ -1,5 +1,5 @@
 import { DirectiveBinding } from 'vue';
-import Directive from '@/gui/plugins/directives/Directive.ts';
+import Directive from './DirectiveClass.ts';
 
 type AnimatedHtmlElement = HTMLElement & { _animationFrameRequestId?: number };
 type BindingValue = { number: number; animationDelay?: number; animationDuration?: number };

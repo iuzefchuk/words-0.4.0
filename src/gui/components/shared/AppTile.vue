@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { getLetterSvgHtml } from '@/gui/mappings.ts';
 import { ref, watch, inject } from 'vue';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
-const transitionDurationMs = inject(transitionDurationMsKey);
+import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
+const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const transitionIsDisabled = ref(false);
 const props = defineProps({
   letter: { type: String, required: true },

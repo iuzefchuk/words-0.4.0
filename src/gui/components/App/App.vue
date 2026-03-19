@@ -6,12 +6,12 @@ import AppLoader from '@/gui/components/App/AppLoader.vue';
 import { onMounted, ref, inject } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import { storeToRefs } from 'pinia';
-import { transitionDurationMsKey } from '@/gui/plugins/provides/index.ts';
+import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
 const matchStore = MatchStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(matchStore);
 const loaderIsActive = ref(true);
 const mainIsRendered = ref(false);
-const transitionDurationMs = inject(transitionDurationMsKey);
+const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 
 onMounted(() => {
   loaderIsActive.value = false;

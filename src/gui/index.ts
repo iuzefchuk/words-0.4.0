@@ -1,9 +1,9 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from '@/gui/components/App/App.vue';
-import directives from '@/gui/plugins/directives/index.ts';
-import provides from '@/gui/plugins/provides/index.ts';
-import LocalesPlugin from '@/gui/plugins/locales/index.ts';
+import DirectivesPlugin from '@/gui/plugins/DirectivesPlugin/DirectivesPlugin.ts';
+import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
+import LocalesPlugin from '@/gui/plugins/LocalesPlugin/LocalesPlugin.ts';
 import { startGame } from '@/gui/stores/MatchStore.ts';
 
 class Application {
@@ -21,8 +21,8 @@ class Application {
 
   private installPlugins(): void {
     this.app.use(createPinia());
-    this.app.use(directives);
-    this.app.use(provides);
+    this.app.use(new DirectivesPlugin());
+    this.app.use(new ProvidesPlugin());
   }
 
   private async installAsyncPlugins(): Promise<void> {

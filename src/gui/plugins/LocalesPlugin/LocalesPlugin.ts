@@ -1,9 +1,28 @@
 import { App, ref, watch, Ref } from 'vue';
-import { LocaleFile, LocaleType, NumberSeparatorType } from '@/gui/plugins/locales/enums.ts';
-import { NUMBER_SEPARATOR_TYPE_FOR_LOCALE } from '@/gui/plugins/locales/constants.ts';
-import { LocaleFileContent, LocaleNumberGetter, LocaleTextGetter } from '@/gui/plugins/locales/types.js';
+
+enum NumberSeparatorType {
+  Dot = 'de-DE',
+  Space = 'fr-FR',
+  Comma = 'en-US',
+}
+
+enum LocaleFile {
+  Game = 'game',
+}
+
+export enum LocaleType {
+  En = 'en',
+}
+
+type LocaleFileContent = Record<LocaleFile, Record<string, string>>;
+export type LocaleTextGetter = (string: string, props?: Record<string, string | number>) => string;
+export type LocaleNumberGetter = (number: number) => string;
 
 export default class LocalesPlugin {
+  private static readonly NUMBER_SEPARATOR_TYPE_FOR_LOCALE = {
+    [LocaleType.En]: NumberSeparatorType.Dot,
+  };
+
   private constructor(
     private type: Ref<LocaleType>,
     private content: Ref<LocaleFileContent>,
@@ -50,8 +69,11 @@ export default class LocalesPlugin {
   };
 
   private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
-    return new Intl.NumberFormat(NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma, {
-      maximumFractionDigits: 2,
-    }).format(Number(number));
+    return new Intl.NumberFormat(
+      LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma,
+      {
+        maximumFractionDigits: 2,
+      },
+    ).format(Number(number));
   };
 }
