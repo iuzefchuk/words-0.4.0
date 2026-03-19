@@ -87,26 +87,22 @@ export default class RackStore {
   }
 
   private handleClickRackCell(idx: number): void {
-    if (!this.selectedTile) return;
+    const tile = this.tiles[idx];
+    if (!this.selectedTile) {
+      if (this.matchStore.isTilePlaced(tile)) this.matchStore.undoPlaceTile(tile);
+      return;
+    }
     if (this.selectedTileIsPlaced) this.matchStore.undoPlaceTile(this.selectedTile);
-    this.switchTiles(this.selectedTile, this.tiles[idx]);
+    this.switchTiles(this.selectedTile, tile);
     this.deselectTile();
   }
 
   private handleClickRackTile(tile: GameTile): void {
-    if (!this.selectedTile) {
-      this.selectedTile = tile;
+    if (this.isTileSelected(tile)) {
+      this.deselectTile();
       return;
     }
-    if (!this.isTileSelected(tile)) {
-      const selectedCell = this.matchStore.findCellWithTile(this.selectedTile);
-      if (selectedCell) {
-        this.matchStore.undoPlaceTile(this.selectedTile);
-        this.matchStore.placeTile({ tile, cell: selectedCell });
-      }
-      this.switchTiles(this.selectedTile, tile);
-    }
-    this.deselectTile();
+    this.selectedTile = tile;
   }
 
   private handleClickBoardCell(cell: GameCell): void {

@@ -162,6 +162,11 @@ export default class Game {
 
   passTurn(): { opponentTurn?: Promise<GameTurnResult> } {
     this.ensureMutability();
+    if (this.turnDirector.willPlayerPassBeResign(Player.User)) {
+      this.recordResign();
+      this.endGame();
+      return {};
+    }
     this.turnDirector.passCurrentTurn();
     this.events.raise(DomainEvent.TurnPassed);
     const opponentTurn = this.turnDirector.currentPlayer !== Player.User ? this.createOpponentTurn() : undefined;

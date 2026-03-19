@@ -12,6 +12,7 @@ export default defineConfig({
       $: fileURLToPath(new URL('./tests', import.meta.url)),
     },
   },
+  cacheDir: fileURLToPath(new URL('./node_modules/.vite', import.meta.url)),
   test: {
     include: ['../../tests/**/*.test.ts'],
     globals: true,

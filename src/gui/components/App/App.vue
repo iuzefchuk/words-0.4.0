@@ -20,7 +20,7 @@ onMounted(() => {
 
 <template>
   <div
-    :class="{ app: true, app__dark: false, 'app--blurred': matchIsFinished }"
+    :class="{ app: true, 'app--blurred': matchIsFinished }"
     :style="{
       ...(transitionDurationMs && {
         '--transition-duration': `${transitionDurationMs}ms`,
