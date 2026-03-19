@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import TurnDirector from '@/application/TurnDirector.ts';
+import TurnDirector from '@/application/services/TurnDirector.ts';
 import Board from '@/domain/models/Board.ts';
 import { Player } from '@/domain/enums.ts';
 import { ValidationStatus } from '@/domain/models/TurnTracker.ts';
@@ -65,8 +65,8 @@ describe('TurnDirector', () => {
       director.placeTile({ cell: cellIndex(112), tile: tileId('t1') });
       director.setCurrentTurnValidation({
         status: ValidationStatus.Valid,
-        sequences: { cell: [cellIndex(112)] },
-        computedTiles: [[{ cell: cellIndex(112), tile: tileId('t1') }]],
+        cells: [cellIndex(112)],
+        placements: [[{ cell: cellIndex(112), tile: tileId('t1') }]],
         words: ['A'],
         score: 1,
       });
@@ -91,16 +91,6 @@ describe('TurnDirector', () => {
     });
   });
 
-  describe('resignCurrentTurn', () => {
-    it('records loss for current player and win for other', () => {
-      const { director } = createDirector();
-      // User resigns
-      director.resignCurrentTurn();
-      // willPlayerPassBeResign won't be true since resign records Won/Lost not Passed
-      expect(director.willPlayerPassBeResign(Player.User)).toBe(false);
-    });
-  });
-
   describe('getScoreFor', () => {
     it('returns 0 initially', () => {
       const { director } = createDirector();
@@ -122,8 +112,8 @@ describe('TurnDirector', () => {
       const { director } = createDirector();
       director.setCurrentTurnValidation({
         status: ValidationStatus.Valid,
-        sequences: { cell: [cellIndex(112)] },
-        computedTiles: [[{ cell: cellIndex(112), tile: tileId('t1') }]],
+        cells: [cellIndex(112)],
+        placements: [[{ cell: cellIndex(112), tile: tileId('t1') }]],
         words: ['TEST'],
         score: 10,
       });
@@ -133,12 +123,4 @@ describe('TurnDirector', () => {
     });
   });
 
-  describe('endGameByTileDepletion', () => {
-    it('records tied when scores are equal', () => {
-      const { director } = createDirector();
-      // Both have 0 score
-      director.endGameByTileDepletion([Player.User, Player.Opponent]);
-      // No direct accessor for Won/Lost/Tied, but it should not throw
-    });
-  });
 });

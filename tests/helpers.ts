@@ -3,7 +3,7 @@ import Board, { Axis } from '@/domain/models/Board.ts';
 import type { CellIndex } from '@/domain/models/Board.ts';
 import Inventory, { type TileId } from '@/domain/models/Inventory.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
-import TurnDirector from '@/application/TurnDirector.ts';
+import TurnDirector from '@/application/services/TurnDirector.ts';
 import { Player, Letter } from '@/domain/enums.ts';
 import type { GameContext } from '@/application/types.ts';
 

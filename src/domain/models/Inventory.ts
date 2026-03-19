@@ -1,7 +1,6 @@
 import { shuffleArrayWithFisherYates } from '@/shared/helpers.ts';
 import { Letter, Player } from '@/domain/enums.ts';
 import { IdGenerator } from '@/shared/ports.ts';
-import { Brand } from '@/shared/brand.ts';
 
 export type TileId = Brand<string, 'TileId'>;
 export type TileCollection = Map<Letter, Array<TileId>>;

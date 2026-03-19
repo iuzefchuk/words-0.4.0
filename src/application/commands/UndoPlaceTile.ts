@@ -5,7 +5,7 @@ import { TileId } from '@/domain/models/Inventory.ts';
 export default class UndoPlaceTile {
   static execute(context: GameContext, { tile }: { tile: TileId }): void {
     context.turnDirector.undoPlaceTile({ tile });
-    const result = TurnValidator.execute(context, context.turnDirector.currentTurnPlacement);
+    const result = TurnValidator.execute(context, context.turnDirector.currentTurnTiles);
     context.turnDirector.setCurrentTurnValidation(result);
   }
 }

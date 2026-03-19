@@ -87,8 +87,8 @@ describe('TurnTracker', () => {
       history.createNewTurnFor(Player.User);
       history.setCurrentTurnValidation({
         status: ValidationStatus.Valid,
-        sequences: { cell: [cellIndex(112)] },
-        computedTiles: [[{ cell: cellIndex(112), tile: tileId('t1') }]],
+        cells: [cellIndex(112)],
+        placements: [[{ cell: cellIndex(112), tile: tileId('t1') }]],
         words: ['CAT'],
         score: 5,
       });

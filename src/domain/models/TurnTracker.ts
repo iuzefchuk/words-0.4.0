@@ -6,6 +6,7 @@ import { IdGenerator } from '@/shared/ports.ts';
 export enum TurnOutcomeType {
   Save = 'Save',
   Pass = 'Pass',
+  Resign = 'Resign',
 }
 
 export enum ValidationStatus {

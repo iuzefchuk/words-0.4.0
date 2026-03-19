@@ -27,13 +27,13 @@ enum GenerationCommandType {
   ReturnResult = 'ReturnResult',
 }
 
-export type GeneratorArguments = {
+export type TurnGeneratorArguments = {
   context: GameContext;
   lettersComputer: CrossCheckComputer;
   playerTileCollection: TileCollection;
   coords: AnchorCoordinates;
 };
-export type GeneratorResult = { tiles: ReadonlyArray<TileId> };
+export type TurnGeneratorResult = { tiles: ReadonlyArray<TileId>; cells: ReadonlyArray<CellIndex> };
 export type Traversal = { position: number; direction: GenerationDirection; node: NodeId };
 export type Candidate = { position: number; cell: CellIndex; resolution?: Resolution };
 export type Resolution = { tile: TileId };
@@ -70,7 +70,7 @@ export type ReverseTask = {
 };
 export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | ApplyTask | ReverseTask;
 export type ContinueTaskCommand = { type: GenerationCommandType.ContinueExecute; newTasks: Array<Task> };
-export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: GeneratorResult };
+export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: TurnGeneratorResult };
 export type StopTaskCommand = { type: GenerationCommandType.StopExecute };
 export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
 export type DispatcherState = { tiles: TileCollection; placement: Array<Link> };
@@ -93,11 +93,11 @@ export default class TurnGenerator {
       return { type: GenerationCommandType.StopExecute };
     }
 
-    static returnResult(result: GeneratorResult): ReturnTaskCommand {
+    static returnResult(result: TurnGeneratorResult): ReturnTaskCommand {
       return { type: GenerationCommandType.ReturnResult, result };
     }
 
-    *execute(dispatcher: (task: Task) => TaskCommand): Generator<GeneratorResult> {
+    *execute(dispatcher: (task: Task) => TaskCommand): Generator<TurnGeneratorResult> {
       while (this.stack.length > 0) {
         const task = this.popFromStack();
         const command = dispatcher(task);
@@ -125,7 +125,7 @@ export default class TurnGenerator {
       public computeds: DispatcherComputeds,
     ) {}
 
-    static create({ context, lettersComputer, playerTileCollection, coords }: GeneratorArguments): TaskDispatcher {
+    static create({ context, lettersComputer, playerTileCollection, coords }: TurnGeneratorArguments): TaskDispatcher {
       const state: DispatcherState = { tiles: new Map(playerTileCollection), placement: [] };
       const computeds: DispatcherComputeds = {
         axisCells: context.board.getAxisCells(coords),
@@ -177,7 +177,7 @@ export default class TurnGenerator {
       return TurnGenerator.TaskCommandResolver.stopExecute();
     }
 
-    private emitReturn(result: GeneratorResult): ReturnTaskCommand {
+    private emitReturn(result: TurnGeneratorResult): ReturnTaskCommand {
       return TurnGenerator.TaskCommandResolver.returnResult(result);
     }
 
@@ -190,7 +190,7 @@ export default class TurnGenerator {
         const validationResult = TurnValidator.execute(this.context, tiles);
         if (validationResult.status === ValidationStatus.Valid) {
           for (const link of placement) this.board.undoPlaceTile(link.tile);
-          return this.emitReturn({ tiles });
+          return this.emitReturn({ tiles, cells: placement.map(link => link.cell) });
         }
       }
       const nextTasks: Array<Task> = [];
@@ -302,7 +302,7 @@ export default class TurnGenerator {
     }
   };
 
-  static *execute(context: GameContext, player: Player): Generator<GeneratorResult> {
+  static *execute(context: GameContext, player: Player): Generator<TurnGeneratorResult> {
     const { inventory, board, dictionary, turnDirector } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
@@ -317,7 +317,7 @@ export default class TurnGenerator {
     }
   }
 
-  static *generate(args: GeneratorArguments): Generator<GeneratorResult> {
+  static *generate(args: TurnGeneratorArguments): Generator<TurnGeneratorResult> {
     const { context, coords } = args;
     const { dictionary } = context;
     const dispatcher = TurnGenerator.TaskDispatcher.create(args);

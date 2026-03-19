@@ -1,5 +1,4 @@
 import { TileId } from '@/domain/models/Inventory.ts';
-import { Brand } from '@/shared/brand.ts';
 
 export enum Bonus {
   DoubleWord = 'DoubleWord',

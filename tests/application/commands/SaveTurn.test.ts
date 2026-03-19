@@ -28,8 +28,8 @@ describe('SaveTurn', () => {
     context.turnDirector.placeTile({ cell: cellIndex(112), tile });
     context.turnDirector.setCurrentTurnValidation({
       status: ValidationStatus.Valid,
-      sequences: { cell: [cellIndex(112)] },
-      computedTiles: [[{ cell: cellIndex(112), tile }]],
+      cells: [cellIndex(112)],
+      placements: [[{ cell: cellIndex(112), tile }]],
       words: ['A'],
       score: 1,
     });
@@ -49,8 +49,8 @@ describe('SaveTurn', () => {
     context.turnDirector.placeTile({ cell: cellIndex(112), tile });
     context.turnDirector.setCurrentTurnValidation({
       status: ValidationStatus.Valid,
-      sequences: { cell: [cellIndex(112)] },
-      computedTiles: [[{ cell: cellIndex(112), tile }]],
+      cells: [cellIndex(112)],
+      placements: [[{ cell: cellIndex(112), tile }]],
       words: ['A'],
       score: 1,
     });
@@ -71,8 +71,8 @@ describe('SaveTurn', () => {
     context.turnDirector.placeTile({ cell: cellIndex(112), tile });
     context.turnDirector.setCurrentTurnValidation({
       status: ValidationStatus.Valid,
-      sequences: { cell: [cellIndex(112)] },
-      computedTiles: [[{ cell: cellIndex(112), tile }]],
+      cells: [cellIndex(112)],
+      placements: [[{ cell: cellIndex(112), tile }]],
       words: ['A'],
       score: 1,
     });

@@ -8,19 +8,16 @@ import TurnTracker, {
   ValidationResult,
 } from '@/domain/models/TurnTracker.ts';
 import { IdGenerator } from '@/shared/ports.ts';
-import { GameResult } from '@/application/types.ts';
-import { GameResultType } from '@/application/enums.ts';
 
 export default class TurnDirector {
   private constructor(
     private readonly board: Board,
     private readonly tracker: TurnTracker,
-    private readonly _gameResultLog: Array<GameResult>,
   ) {}
 
   static create({ board, idGenerator }: { board: Board; idGenerator: IdGenerator }): TurnDirector {
     const tracker = TurnTracker.create({ idGenerator });
-    const director = new TurnDirector(board, tracker, []);
+    const director = new TurnDirector(board, tracker);
     director.startTurnForNextPlayer();
     return director;
   }
@@ -33,6 +30,10 @@ export default class TurnDirector {
 
   get currentPlayer(): Player {
     return this.tracker.currentPlayer;
+  }
+
+  get nextPlayer(): Player {
+    return this.tracker.nextPlayer;
   }
 
   get currentTurnCells(): ReadonlyArray<CellIndex> | undefined {
@@ -83,13 +84,6 @@ export default class TurnDirector {
     return this.tracker.willPlayerPassBeResign(player);
   }
 
-  getGameResultFor(player: Player): GameResult | undefined {
-    for (let i = this._gameResultLog.length - 1; i >= 0; i--) {
-      if (this._gameResultLog[i].player === player) return this._gameResultLog[i];
-    }
-    return undefined;
-  }
-
   placeTile({ cell, tile }: { cell: CellIndex; tile: TileId }): void {
     this.board.placeTile(cell, tile);
     this.tracker.placeTileInCurrentTurn(tile);
@@ -105,9 +99,7 @@ export default class TurnDirector {
   }
 
   resetCurrentTurn(): void {
-    for (const tile of this.tracker.currentTurnTiles) {
-      this.board.undoPlaceTile(tile);
-    }
+    for (const tile of this.tracker.currentTurnTiles) this.board.undoPlaceTile(tile);
     this.tracker.resetCurrentTurn();
   }
 
@@ -120,26 +112,6 @@ export default class TurnDirector {
   passCurrentTurn(): void {
     this.tracker.recordCurrentTurnOutcome(TurnOutcomeType.Pass);
     this.startTurnForNextPlayer();
-  }
-
-  resignCurrentTurn(): void {
-    const loser = this.tracker.currentPlayer;
-    const winner = this.tracker.nextPlayer;
-    this._gameResultLog.push({ type: GameResultType.Lose, player: loser });
-    this._gameResultLog.push({ type: GameResultType.Win, player: winner });
-  }
-
-  endGameByTileDepletion(players: ReadonlyArray<Player>): void {
-    const scores = players.map(player => ({ player, score: this.getScoreFor(player) }));
-    const maxScore = Math.max(...scores.map(s => s.score));
-    const allTied = scores.every(s => s.score === maxScore);
-    if (allTied) {
-      for (const { player } of scores) this._gameResultLog.push({ type: GameResultType.Tie, player });
-    } else {
-      for (const { player, score } of scores) {
-        this._gameResultLog.push({ type: score === maxScore ? GameResultType.Win : GameResultType.Lose, player });
-      }
-    }
   }
 
   private startTurnForNextPlayer(): void {
