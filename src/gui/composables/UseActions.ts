@@ -46,6 +46,11 @@ export default class UseActions {
   }
 
   private async triggerResignDialog() {
-    return await this.dialogStore.trigger({ html: 'resigning', title: 'u sure?' });
+    return await this.dialogStore.trigger({
+      title: window.t('game.dialog_title'),
+      html: window.t('game.dialog_html'),
+      confirmText: window.t('game.dialog_confirm'),
+      cancelText: window.t('game.dialog_cancel'),
+    });
   }
 }

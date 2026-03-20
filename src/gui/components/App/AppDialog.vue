@@ -2,26 +2,36 @@
 import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
 import DialogStore, { DialogStatus } from '@/gui/stores/DialogStore.ts';
 import { storeToRefs } from 'pinia';
-import { ref, inject } from 'vue';
+import { ref, inject, watch } from 'vue';
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const dialogStore = DialogStore.INSTANCE();
 const { title, html, cancelText, confirmText, cancelIsHidden, confirmIsHidden } = storeToRefs(dialogStore);
-const { resolve } = dialogStore;
 const exitAnimation = ref(false);
+const isRendered = ref(false);
+
 function toggleExitAnimation() {
   exitAnimation.value = true;
   setTimeout(() => {
     exitAnimation.value = false;
   }, transitionDurationMs);
 }
+
+function respond(status: DialogStatus): void {
+  isRendered.value = false;
+  dialogStore.resolve({ status });
+}
+
+watch(title, newValue => {
+  if (newValue) isRendered.value = true;
+});
 </script>
 
 <template>
   <Transition name="fade">
-    <div v-if="title" class="dialog" @mousedown="toggleExitAnimation">
+    <div v-if="isRendered" class="dialog" @mousedown="toggleExitAnimation">
       <Transition tag="div" name="fade-down-up" appear>
         <div
-          v-on-click-outside="{ callback: () => resolve({ status: DialogStatus.Dismissed }) }"
+          v-on-click-outside="{ callback: () => respond(DialogStatus.Dismissed) }"
           :class="{ dialog__window: true, 'dialog__window--shaking': exitAnimation, 'app__width-content': true }"
           @mousedown.stop
         >
@@ -30,10 +40,10 @@ function toggleExitAnimation() {
             <p v-html="html" />
           </div>
           <div class="dialog__footer">
-            <button v-if="!confirmIsHidden" class="dialog__button" @click="resolve({ status: DialogStatus.Confirmed })">
+            <button v-if="!confirmIsHidden" class="dialog__button" @click="respond(DialogStatus.Confirmed)">
               {{ confirmText }}
             </button>
-            <button v-if="!cancelIsHidden" class="dialog__button" @click="resolve({ status: DialogStatus.Canceled })">
+            <button v-if="!cancelIsHidden" class="dialog__button" @click="respond(DialogStatus.Canceled)">
               {{ cancelText }}
             </button>
           </div>

@@ -48,6 +48,7 @@ export type GameDependencies = {
   turnExecutor: TurnExecutor;
   clock: Clock;
 };
+export type GameOutcome = { isSave: boolean; isUser: boolean; words?: string; score?: number };
 
 export default class Game {
   static readonly BONUSES = Bonus;
@@ -83,8 +84,18 @@ export default class Game {
     return GameStateQuery.execute(this.context, this.isMutable);
   }
 
-  get outcomeHistory(): ReadonlyArray<TurnOutcome> {
-    return this.turnDirector.outcomeHistory;
+  get outcomeHistory(): ReadonlyArray<GameOutcome> {
+    return this.turnDirector.outcomeHistory.map(outcome => {
+      const isSave = outcome.type === TurnOutcomeType.Save;
+      return {
+        isSave,
+        isUser: outcome.player === Player.User,
+        ...(isSave && {
+          words: outcome.words.join(', '),
+          score: outcome.score,
+        }),
+      };
+    });
   }
 
   isCellInCenterOfLayout(cell: GameCell): boolean {

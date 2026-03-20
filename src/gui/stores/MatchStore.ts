@@ -1,6 +1,4 @@
-import Game from '@/application/Game.ts';
-import { GameCell, GameTile, GameState, GameTurnResult } from '@/application/Game.ts';
-import { TurnOutcome } from '@/domain/models/TurnTracker.ts';
+import Game, { GameCell, GameTile, GameState, GameTurnResult, GameOutcome } from '@/application/Game.ts';
 import { DomainEvent } from '@/domain/events.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
@@ -73,7 +71,7 @@ export default class MatchStore {
     readonly currentTurnIsValid = computed(() => this.state.currentTurnIsValid);
     readonly currentPlayerIsUser = computed(() => this.state.currentPlayerIsUser);
     readonly userPassWillBeResign = computed(() => this.state.userPassWillBeResign);
-    readonly outcomeHistory = computed<ReadonlyArray<TurnOutcome>>(() => {
+    readonly outcomeHistory = computed<ReadonlyArray<GameOutcome>>(() => {
       void this.stateRef.value;
       return [...this.game.outcomeHistory];
     });

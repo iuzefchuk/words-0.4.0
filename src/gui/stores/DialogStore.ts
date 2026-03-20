@@ -39,8 +39,8 @@ export default class DialogStore {
 
   private static readonly DEFAULT_TITLE = '';
   private static readonly DEFAULT_HTML = '';
-  private static readonly DEFAULT_CANCEL_TEXT = 'general.cancel';
-  private static readonly DEFAULT_CONFIRM_TEXT = 'general.ok';
+  private static readonly DEFAULT_CANCEL_TEXT = '';
+  private static readonly DEFAULT_CONFIRM_TEXT = '';
   private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
   private static readonly DEFAULT_CONFIRM_IS_HIDDEN = false;
 

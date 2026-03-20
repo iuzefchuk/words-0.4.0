@@ -1,4 +1,7 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+// TODO add one of the texts depending on gameResult:
+// t('game.end_win'), t('game.end_lose'), t('game.end_tie')
+</script>
 
 <template>
   <div class="endscreen">END</div>

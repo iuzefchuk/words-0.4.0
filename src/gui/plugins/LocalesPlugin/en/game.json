@@ -11,10 +11,15 @@
   "action_clear": "Clear",
   "action_play": "Play",
   "action_shuffle": "Shuffle",
-  "error_cell_2": "cell placement is invalid",
-  "error_cell_3": "none of the cells are useable as first",
-  "error_tile_1": "can't form tile sequence",
-  "error_tile_2": "no tile sequences found",
-  "error_tile_3": "tile sequence is invalid",
-  "error_tile_4": "{word} not in dictionary"
+  "outcome_save_user": "You played <em>{words}</em> for {score} pts",
+  "outcome_save_opponent": "Opponent played <em>{words}</em> for {score} pts",
+  "outcome_pass_user": "You passed",
+  "outcome_pass_opponent": "Opponent passed",
+  "dialog_title": "Resignation",
+  "dialog_html": "Are you sure you want to resign?",
+  "dialog_confirm": "Resign",
+  "dialog_cancel": "Cancel",
+  "end_win": "You won 🏆",
+  "end_lose": "You lost 🦨",
+  "end_tie": "It's a tie 👔"
 }

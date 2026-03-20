@@ -17,10 +17,10 @@ export enum ValidationStatus {
 }
 
 export enum ValidationError {
-  InvalidTilePlacement = 'error_tile_1',
-  InvalidCellPlacement = 'error_cell_2',
-  NoCellsUsableAsFirst = 'error_cell_3',
-  WordNotInDictionary = 'error_tile_4',
+  InvalidTilePlacement = 'InvalidTilePlacement',
+  InvalidCellPlacement = 'InvalidCellPlacement',
+  NoCellsUsableAsFirst = 'NoCellsUsableAsFirst',
+  WordNotInDictionary = 'WordNotInDictionary',
 }
 
 export type ComputedCells = { cells: ReadonlyArray<CellIndex> };

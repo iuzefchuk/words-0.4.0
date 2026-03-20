@@ -1,25 +1,33 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
+import { GameOutcome } from '@/application/Game.ts';
 const MAX_LENGTH = 3;
 const matchStore = MatchStore.INSTANCE();
 const messages = computed(() => {
   const history = matchStore.outcomeHistory;
   const start = Math.max(0, history.length - MAX_LENGTH);
-  return history.slice(start).map((message, i) => ({
-    ...('words' in message && { words: message.words, score: message.score }),
+  return history.slice(start).map((outcome, i) => ({
     key: start + i,
+    html: convertOutcomeToHtml(outcome),
   }));
 });
-function convertMessageToHtml(words: ReadonlyArray<string> | undefined, score: number | undefined): string {
-  if (words && score) return `<em>${words.join(', ')}</em> for ${score}pts`;
-  else return 'passed';
+function convertOutcomeToHtml(outcome: GameOutcome): string {
+  const { isSave, isUser } = outcome;
+  if (isSave) {
+    return window.t(isUser ? 'game.outcome_save_user' : 'game.outcome_save_opponent', {
+      words: outcome.words!,
+      score: outcome.score!,
+    });
+  } else {
+    return window.t(isUser ? 'game.outcome_pass_user' : 'game.outcome_pass_opponent');
+  }
 }
 </script>
 
 <template>
   <TransitionGroup v-if="messages.length > 0" name="fade-from-left" tag="ul" class="annotation" appear>
-    <li v-for="{ words, score, key } in messages" :key="key" v-html="convertMessageToHtml(words, score)" />
+    <li v-for="{ key, html } in messages" :key="key" v-html="html" />
   </TransitionGroup>
 </template>
 
