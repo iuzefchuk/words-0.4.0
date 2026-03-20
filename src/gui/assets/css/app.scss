@@ -74,29 +74,28 @@
   }
 }
 
-// TODO to variables
 @media (prefers-color-scheme: dark) {
   :root {
     --primary-color: var(--color-gray-lightest);
-    --primary-bg: rgba(36 36 77);
+    --primary-bg: var(--color-navy-dark);
     --primary-border-color: var(--color-gray-lighter);
     --secondary-color: var(--color-gray-lightest);
-    --cell-color-dw: rgba(10 189 227);
-    --cell-color-tw: rgba(238 83 83);
-    --cell-color-dl: rgba(17 172 132);
-    --cell-color-tl: rgba(255 159 68);
-    --cell-bg: rgba(25 25 48);
-    --cell-bg-center: rgba(47 47 95);
-    --cell-bg-footer: rgb(31, 31, 60);
+    --cell-color-dw: var(--color-cyan);
+    --cell-color-tw: var(--color-red);
+    --cell-color-dl: var(--color-green);
+    --cell-color-tl: var(--color-orange);
+    --cell-bg: var(--color-navy-darkest);
+    --cell-bg-center: var(--color-navy);
+    --cell-bg-footer: var(--color-navy-darker);
     --cell-shadow: var(--box-shadow-inner-dark);
     --cell-shadow-footer: var(--box-shadow-inner-dark);
     --tile-color-inverted: var(--color-gray-darkest);
-    --tile-bg: rgba(85 50 160);
+    --tile-bg: var(--color-purple-darkest);
     --tile-bg-inverted: var(--color-gray-faintest);
-    --tile-bg-saturated: rgb(142, 74, 231);
+    --tile-bg-saturated: var(--color-purple-vivid);
     --tile-outline-color: var(--color-pink);
-    --button-bg-hover: rgb(55, 55, 103);
-    --button-bg-active: rgb(22, 22, 48);
+    --button-bg-hover: var(--color-navy-light);
+    --button-bg-active: var(--color-navy-darkest);
     --dialog-color: var(--color-gray-darkest);
     --dialog-bg: var(--color-gray-fainter);
     --dialog-button-border: 1px solid var(--color-gray-darkest);
