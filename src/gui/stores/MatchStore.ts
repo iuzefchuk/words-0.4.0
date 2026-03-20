@@ -149,7 +149,6 @@ export default class MatchStore {
   }
 
   private isCellTopRightInTurn(cell: GameCell): boolean {
-    // TODO delete ?
     return this.state.trackDependency(() => this.game.isCellTopRightInTurn(cell));
   }
 

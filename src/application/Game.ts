@@ -2,7 +2,7 @@ import Board, { Bonus, CellIndex } from '@/domain/models/Board.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import { Letter, Player } from '@/domain/enums.ts';
 import { DomainEvent, EventCollector } from '@/domain/events.ts';
-import { TurnOutcome, TurnOutcomeType, ValidationError } from '@/domain/models/TurnTracker.ts';
+import { TurnOutcomeType, ValidationError } from '@/domain/models/TurnTracker.ts';
 import Inventory, { TileId } from '@/domain/models/Inventory.ts';
 import { TIME } from '@/shared/constants.ts';
 import { Clock } from '@/shared/ports.ts';
