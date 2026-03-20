@@ -5,20 +5,16 @@ import Game from '@/application/Game.ts';
 
 export default class UseLoader {
   static readonly WORD = [Game.LETTERS.W, Game.LETTERS.O, Game.LETTERS.R, Game.LETTERS.D, Game.LETTERS.S];
-
   readonly isRendered = computed({
     get: () => this.isRenderedRef.value,
     set: (newValue: boolean) => {
       this.isRenderedRef.value = newValue;
     },
   });
-
   readonly allTilesAreSaturated = computed(() => this.counter.value > 0 && this.remainingCounterValue.value === 0);
-
   private readonly counter;
   private readonly isRenderedRef = ref(false);
   private readonly remainingCounterValue = computed(() => this.counter.value % (UseLoader.WORD.length + 1));
-
   private readonly onlyFirstTileIsElevated = computed(() =>
     UseLoader.WORD.every((_, idx) => (idx === 0 ? this.isTileElevated(idx) : !this.isTileElevated(idx))),
   );

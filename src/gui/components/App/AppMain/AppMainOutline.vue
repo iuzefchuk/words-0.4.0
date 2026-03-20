@@ -1,28 +1,21 @@
 <script lang="ts" setup>
 import RackStore from '@/gui/stores/RackStore.ts';
-import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+import type { OutlineGroup } from '@/gui/composables/UseOutline.ts';
 const rackStore = RackStore.INSTANCE();
-const { placedTilesCoords: coords } = storeToRefs(rackStore);
 const cellStep = 'calc((100% + var(--cell-tile-gap)) / var(--cell-count-per-axis))';
-const style = computed(() => {
-  const { rows, columns } = coords.value;
-  if (!rows.length || !columns.length) return {};
-  const firstRow = rows[0];
-  const firstCol = columns[0];
-  const rowSpan = rows[rows.length - 1] - firstRow + 1;
-  const colSpan = columns[columns.length - 1] - firstCol + 1;
+
+function toStyle(group: OutlineGroup) {
   return {
-    top: `calc(${cellStep} * ${firstRow})`,
-    left: `calc(${cellStep} * ${firstCol})`,
-    width: `calc(${cellStep} * ${colSpan} - var(--cell-tile-gap) - 1px)`,
-    height: `calc(${cellStep} * ${rowSpan} - var(--cell-tile-gap) - 1px)`,
+    top: `calc(${cellStep} * ${group.row})`,
+    left: `calc(${cellStep} * ${group.col})`,
+    width: `calc(${cellStep} * ${group.colSpan} - var(--cell-tile-gap) - 1px)`,
+    height: `calc(${cellStep} * ${group.rowSpan} - var(--cell-tile-gap) - 1px)`,
   };
-});
+}
 </script>
 
 <template>
-  <div v-if="rackStore.anyTileIsPlaced" class="outline" :style="style" />
+  <div v-for="(group, i) in rackStore.outlineGroups" :key="i" class="outline" :style="toStyle(group)" />
 </template>
 
 <style lang="scss" scoped>

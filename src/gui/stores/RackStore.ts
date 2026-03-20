@@ -2,6 +2,7 @@ import { GameCell, GameTile } from '@/application/Game.ts';
 import { defineStore } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
+import UseOutline from '@/gui/composables/UseOutline.ts';
 
 export default class RackStore {
   static readonly INSTANCE = defineStore('items', () => {
@@ -13,7 +14,7 @@ export default class RackStore {
       selectedTile: store.selectedTileRef,
       allTilesArePlaced: computed(() => store.allTilesArePlaced),
       anyTileIsPlaced: computed(() => store.anyTileIsPlaced),
-      placedTilesCoords: computed(() => store.placedTilesCoords),
+      outlineGroups: computed(() => store.outlineGroups),
       initialize: () => store.initialize(matchStore.userTiles),
       isTileInRack: store.isTileInRack.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
@@ -25,6 +26,8 @@ export default class RackStore {
       deselectTile: store.deselectTile.bind(store),
     };
   });
+
+  private readonly outline = new UseOutline();
 
   private constructor(
     private matchStore: ReturnType<typeof MatchStore.INSTANCE>,
@@ -56,16 +59,8 @@ export default class RackStore {
     return this.tiles.some(tile => this.matchStore.isTilePlaced(tile));
   }
 
-  private get placedTilesCoords(): { rows: Array<number>; columns: Array<number> } {
-    const rows = new Set<number>();
-    const columns = new Set<number>();
-    for (const tile of this.tiles) {
-      const cell = this.matchStore.findCellWithTile(tile);
-      if (cell === undefined) continue;
-      rows.add(this.matchStore.getCellRowIndex(cell));
-      columns.add(this.matchStore.getCellColumnIndex(cell));
-    }
-    return { rows: [...rows].sort((a, b) => a - b), columns: [...columns].sort((a, b) => a - b) };
+  private get outlineGroups(): ReadonlyArray<{ row: number; col: number; rowSpan: number; colSpan: number }> {
+    return this.outline.collectGroups(this.tiles);
   }
 
   private get selectedTileIsPlaced(): boolean {
