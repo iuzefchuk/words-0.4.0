@@ -1,4 +1,4 @@
-import type { GameTile } from '@/application/Game.ts';
+import type { GameTile } from '@/application/index.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 
 export type OutlineGroup = { row: number; col: number; rowSpan: number; colSpan: number };

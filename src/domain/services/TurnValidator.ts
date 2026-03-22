@@ -1,8 +1,7 @@
-import { GameContext } from '@/application/Game.ts';
-import { AnchorCoordinates, Placement } from '@/domain/models/Board.ts';
+import Board, { AnchorCoordinates, Placement } from '@/domain/models/Board.ts';
 import PlacementBuilder from '@/domain/services/PlacementBuilder.ts';
 import ScoreCalculator from '@/domain/services/ScoreCalculator.ts';
-import {
+import TurnTracker, {
   ValidationStatus,
   ValidationError,
   ComputedValue,
@@ -14,11 +13,18 @@ import {
   InvalidResult,
   ValidResult,
 } from '@/domain/models/TurnTracker.ts';
-import { TileId } from '@/domain/models/Inventory.ts';
+import Inventory, { TileId } from '@/domain/models/Inventory.ts';
+import Dictionary from '@/domain/models/Dictionary.ts';
 
+export type ValidatorContext = {
+  board: Board;
+  dictionary: Dictionary;
+  inventory: Inventory;
+  turnTracker: TurnTracker;
+};
 export type ValidatorArguments = { tiles: ReadonlyArray<TileId> };
 export type PendingResult<State> = { status: ValidationStatus.Pending; state: State };
-export type PipelineInput = { context: GameContext } & ValidatorArguments;
+export type PipelineInput = { context: ValidatorContext } & ValidatorArguments;
 export type PipelineThroughput<State> =
   | PendingResult<State>
   | { status: ValidationStatus.Invalid; error: ValidationError };
@@ -35,7 +41,7 @@ export default class TurnValidator {
   private static Pipeline = class Pipeline<State extends PipelineInput> {
     private constructor(private throughput: PipelineThroughput<State>) {}
 
-    static start(context: GameContext, args: ValidatorArguments): Pipeline<PipelineInput> {
+    static start(context: ValidatorContext, args: ValidatorArguments): Pipeline<PipelineInput> {
       return new Pipeline({ status: ValidationStatus.Pending, state: { context, ...args } });
     }
 
@@ -64,7 +70,7 @@ export default class TurnValidator {
     }
   };
 
-  static execute(context: GameContext, tiles: ReadonlyArray<TileId>): ValidationResult {
+  static execute(context: ValidatorContext, tiles: ReadonlyArray<TileId>): ValidationResult {
     const args: ValidatorArguments = { tiles };
     return this.Pipeline.start(context, args)
       .continue(state => this.computeAndValidateCells(state))
@@ -78,11 +84,11 @@ export default class TurnValidator {
     if (state.tiles.length === 0) return this.Pipeline.fail(ValidationError.InvalidTilePlacement);
     const placement = state.context.board.resolvePlacement(state.tiles);
     const cells = placement.map(link => link.cell);
-    const { board, turnDirector } = state.context;
+    const { board, turnTracker } = state.context;
     const placementCells = new Set(cells);
     const someCellsAreAnchor = cells.some(cell => {
       if (board.isCellCenter(cell)) return true;
-      if (!turnDirector.hasPriorTurns) return false;
+      if (!turnTracker.hasPriorTurns) return false;
       return board.getAdjacentCells(cell).some(adj => board.isCellOccupied(adj) && !placementCells.has(adj));
     });
     return someCellsAreAnchor

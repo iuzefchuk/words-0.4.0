@@ -35,7 +35,8 @@ export type ValidResult = { status: ValidationStatus.Valid } & AllComputeds;
 export type ValidationResult = UnvalidatedResult | InvalidResult | ValidResult;
 export type TurnOutcome =
   | ({ type: TurnOutcomeType.Save; player: Player } & ComputedWords & ComputedScore)
-  | { type: TurnOutcomeType.Pass; player: Player };
+  | { type: TurnOutcomeType.Pass; player: Player }
+  | { type: TurnOutcomeType.Resign; player: Player };
 
 export default class TurnTracker {
   private static readonly FIRST_PLAYER: Player = Player.User;

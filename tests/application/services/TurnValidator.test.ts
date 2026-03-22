@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import TurnValidator from '@/application/services/TurnValidator.ts';
+import TurnValidator from '@/domain/services/TurnValidator.ts';
 import { createTestContext, cellIndex } from '$/helpers.ts';
-import { Player } from '@/domain/enums.ts';
-import { ValidationStatus, ValidationError } from '@/domain/models/TurnTracker.ts';
+import { Player, ValidationStatus, ValidationError } from '@/domain/index.ts';
 
 describe('TurnValidator', () => {
   it('fails with InvalidTilePlacement for empty placement links', () => {

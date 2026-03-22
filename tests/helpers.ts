@@ -1,19 +1,13 @@
 import { IdGenerator } from '@/shared/ports.ts';
-import Board from '@/domain/models/Board.ts';
-import type { CellIndex } from '@/domain/models/Board.ts';
-import Inventory, { type TileId } from '@/domain/models/Inventory.ts';
-import Dictionary from '@/domain/models/Dictionary.ts';
-import TurnDirector from '@/application//TurnDirector.ts';
-import TurnValidator from '@/application/services/TurnValidator.ts';
-import { Player, Letter } from '@/domain/enums.ts';
-import type { GameContext } from '@/application/Game.ts';
+import Domain, { Dictionary, type GameContext, type GameCell, type GameTile, Player, Letter } from '@/domain/index.ts';
+import TurnValidator from '@/domain/services/TurnValidator.ts';
 
-export function tileId(value: string): TileId {
-  return value as TileId;
+export function tileId(value: string): GameTile {
+  return value as GameTile;
 }
 
-export function cellIndex(value: number): CellIndex {
-  return value as CellIndex;
+export function cellIndex(value: number): GameCell {
+  return value as GameCell;
 }
 
 export class TestIdGenerator implements IdGenerator {
@@ -71,27 +65,27 @@ function buildDictionary(sortedWords: ReadonlyArray<string>): Dictionary {
   return dict;
 }
 
-export function findTileWithLetter(context: GameContext, player: Player, letter: Letter): TileId | undefined {
+export function findTileWithLetter(context: GameContext, player: Player, letter: Letter): GameTile | undefined {
   const tiles = context.inventory.getTilesFor(player);
   return tiles.find(tile => context.inventory.getTileLetter(tile) === letter);
 }
 
 export function placeAndValidate(
   context: GameContext,
-  placements: ReadonlyArray<{ cell: CellIndex; tile: TileId }>,
+  placements: ReadonlyArray<{ cell: GameCell; tile: GameTile }>,
 ): void {
   for (const { cell, tile } of placements) {
-    context.turnDirector.placeTile({ cell, tile });
+    context.game.placeTile({ cell, tile });
   }
-  const tiles = context.turnDirector.currentTurnTiles;
+  const tiles = context.game.currentTurnTiles;
   const result = TurnValidator.execute(context, tiles);
-  context.turnDirector.setCurrentTurnValidation(result);
+  context.game.setCurrentTurnValidation(result);
 }
 
 export function placeFirstTurn(
   context: GameContext,
   player: Player,
-): { tiles: TileId[]; cells: CellIndex[] } {
+): { tiles: GameTile[]; cells: GameCell[] } {
   const playerTiles = context.inventory.getTilesFor(player);
   const tile1 = playerTiles[0];
   const tile2 = playerTiles[1];
@@ -108,10 +102,7 @@ export function createTestContext(options?: {
   words?: ReadonlyArray<string>;
 }): GameContext {
   const idGenerator = new TestIdGenerator();
-  const players = [Player.User, Player.Opponent];
-  const board = Board.create();
-  const inventory = Inventory.create({ players, idGenerator });
-  const turnDirector = TurnDirector.create({ board, idGenerator });
   const dictionary = createTestDictionary(options?.words ?? ['CAT', 'DOG', 'CAR', 'CARD', 'CATS', 'DO', 'AT']);
-  return { board, inventory, turnDirector, dictionary };
+  const game = Domain.create({ dictionary, idGenerator });
+  return game.context;
 }

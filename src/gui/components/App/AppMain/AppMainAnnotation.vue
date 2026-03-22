@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
-import { GameOutcome } from '@/application/Game.ts';
+import { GameOutcome } from '@/application/index.ts';
 const MAX_LENGTH = 3;
 const matchStore = MatchStore.INSTANCE();
 const messages = computed(() => {

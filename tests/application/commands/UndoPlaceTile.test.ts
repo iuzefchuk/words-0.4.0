@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import PlaceTile from '@/application/commands/PlaceTile.ts';
 import UndoPlaceTile from '@/application/commands/UndoPlaceTile.ts';
 import { createTestContext, cellIndex } from '$/helpers.ts';
-import { Player } from '@/domain/enums.ts';
+import { Player } from '@/domain/index.ts';
 
 describe('UndoPlaceTile', () => {
   it('removes a placed tile and re-validates', () => {
@@ -15,7 +15,7 @@ describe('UndoPlaceTile', () => {
 
     UndoPlaceTile.execute(context, { tile });
     expect(context.board.isTilePlaced(tile)).toBe(false);
-    expect(context.turnDirector.currentTurnPlacement).toHaveLength(0);
+    expect(context.game.currentTurnPlacement).toHaveLength(0);
   });
 
   it('re-validates after undo', () => {
@@ -27,6 +27,6 @@ describe('UndoPlaceTile', () => {
 
     UndoPlaceTile.execute(context, { tile: userTiles[1] });
     // Only one tile left, validation re-runs
-    expect(context.turnDirector.currentTurnPlacement).toHaveLength(1);
+    expect(context.game.currentTurnPlacement).toHaveLength(1);
   });
 });

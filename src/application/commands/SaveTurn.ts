@@ -1,17 +1,9 @@
-import { GameContext, GameTurnResult } from '@/application/Game.ts';
-import { TileId } from '@/domain/models/Inventory.ts';
+import { Domain, DomainTurnResult } from '@/domain/types.ts';
 
-export default class SaveTurn {
-  static execute(context: GameContext): GameTurnResult {
-    const { turnDirector, inventory } = context;
-    if (turnDirector.currentTurnError) return { ok: false, error: turnDirector.currentTurnError };
-    const player = turnDirector.currentPlayer;
-    const tiles = turnDirector.currentTurnTiles;
-    const words = turnDirector.currentTurnWords;
-    if (!words) throw new Error('Current turn words do not exist');
-    turnDirector.saveCurrentTurn();
-    tiles.forEach((tile: TileId) => inventory.discardTile({ player, tile }));
-    inventory.replenishTilesFor(player);
+export default class SaveTurnCommand {
+  static execute(domain: Domain): DomainTurnResult {
+    if (domain.currentTurnError) return { ok: false, error: domain.currentTurnError };
+    const { words } = domain.saveCurrentTurn();
     return { ok: true, value: { words } };
   }
 }

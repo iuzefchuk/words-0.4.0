@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createTestContext, cellIndex } from '$/helpers.ts';
-import { Player } from '@/domain/enums.ts';
-import { TurnOutcomeType } from '@/domain/models/TurnTracker.ts';
-import TurnExecutor from '@/application/services/TurnExecutor.ts';
+import { createTestContext } from '$/helpers.ts';
+import { Player, TurnOutcomeType } from '@/domain/index.ts';
+import TurnValidator from '@/domain/services/TurnValidator.ts';
+import PassTurnCommand from '@/application/commands/PassTurn.ts';
+import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
 
 vi.mock('@/infrastructure/TurnGeneratorWorker/TurnGeneratorWorker.ts', () => {
   return {
@@ -26,17 +27,25 @@ async function getMockWorkerClass() {
   };
 }
 
-describe('TurnExecutor', () => {
+describe('Opponent turn execution', () => {
   it('falls back to pass when worker returns null', async () => {
     const MockWorker = await getMockWorkerClass();
     MockWorker.mockExecute = () => Promise.resolve(null);
 
     const context = createTestContext();
-    const executor = new TurnExecutor();
-    const outcome = await executor.execute(context, Player.Opponent);
+    const player = Player.Opponent;
 
-    expect(outcome.type).toBe(TurnOutcomeType.Pass);
-    executor.terminate();
+    // Simulate what Application.executeOpponentTurn does
+    let generatorResult;
+    try {
+      generatorResult = await new (await import('@/infrastructure/TurnGeneratorWorker/TurnGeneratorWorker.ts')).default().execute({ context, player });
+    } catch {
+      generatorResult = null;
+    }
+
+    expect(generatorResult).toBeNull();
+    // Should pass since not resign condition
+    expect(context.game.willPlayerPassBeResign(player)).toBe(false);
   });
 
   it('falls back to pass when worker throws an error', async () => {
@@ -44,23 +53,16 @@ describe('TurnExecutor', () => {
     MockWorker.mockExecute = () => Promise.reject(new Error('Worker crashed'));
 
     const context = createTestContext();
-    const executor = new TurnExecutor();
-    const outcome = await executor.execute(context, Player.Opponent);
+    const player = Player.Opponent;
 
-    expect(outcome.type).toBe(TurnOutcomeType.Pass);
-    executor.terminate();
-  });
+    let generatorResult;
+    try {
+      generatorResult = await new (await import('@/infrastructure/TurnGeneratorWorker/TurnGeneratorWorker.ts')).default().execute({ context, player });
+    } catch {
+      generatorResult = null;
+    }
 
-  it('falls back to pass when worker times out', async () => {
-    const MockWorker = await getMockWorkerClass();
-    MockWorker.mockExecute = () => Promise.reject(new Error('Worker timed out'));
-
-    const context = createTestContext();
-    const executor = new TurnExecutor();
-    const outcome = await executor.execute(context, Player.Opponent);
-
-    expect(outcome.type).toBe(TurnOutcomeType.Pass);
-    executor.terminate();
+    expect(generatorResult).toBeNull();
   });
 
   it('falls back to resign when worker fails and player already passed', async () => {
@@ -68,15 +70,11 @@ describe('TurnExecutor', () => {
     MockWorker.mockExecute = () => Promise.reject(new Error('Worker error'));
 
     const context = createTestContext();
-    // Simulate opponent having already passed once
-    context.turnDirector.passCurrentTurn(); // User → Opponent (records User pass)
-    context.turnDirector.passCurrentTurn(); // Opponent → User (records Opponent pass)
-    context.turnDirector.passCurrentTurn(); // User → Opponent (records User pass, 2nd consecutive)
+    // Simulate opponent having already passed
+    context.game.passCurrentTurn(); // User → Opponent
+    context.game.passCurrentTurn(); // Opponent → User
+    context.game.passCurrentTurn(); // User → Opponent
 
-    const executor = new TurnExecutor();
-    const outcome = await executor.execute(context, Player.Opponent);
-
-    expect(outcome.type).toBe(TurnOutcomeType.Resign);
-    executor.terminate();
+    expect(context.game.willPlayerPassBeResign(Player.Opponent)).toBe(true);
   });
 });

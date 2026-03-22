@@ -10,7 +10,7 @@ export enum DomainEvent {
   OpponentTurnGenerated = 'OpponentTurnGenerated',
 }
 
-export class EventCollector {
+export class DomainEventCollector {
   private events: Array<DomainEvent> = [];
 
   raise(event: DomainEvent): void {

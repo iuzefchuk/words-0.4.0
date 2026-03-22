@@ -1,14 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import SaveTurn from '@/application/commands/SaveTurn.ts';
 import { createTestContext, cellIndex } from '$/helpers.ts';
-import { Player } from '@/domain/enums.ts';
-import { ValidationStatus, ValidationError } from '@/domain/models/TurnTracker.ts';
+import { Player, ValidationStatus, ValidationError } from '@/domain/index.ts';
 
 describe('SaveTurn', () => {
   it('returns error when turn has validation error', () => {
     const context = createTestContext();
     // Set an invalid validation result
-    context.turnDirector.setCurrentTurnValidation({
+    context.game.setCurrentTurnValidation({
       status: ValidationStatus.Invalid,
       error: ValidationError.InvalidTilePlacement,
     });
@@ -25,8 +24,8 @@ describe('SaveTurn', () => {
     const userTiles = context.inventory.getTilesFor(Player.User);
     const tile = userTiles[0];
 
-    context.turnDirector.placeTile({ cell: cellIndex(112), tile });
-    context.turnDirector.setCurrentTurnValidation({
+    context.game.placeTile({ cell: cellIndex(112), tile });
+    context.game.setCurrentTurnValidation({
       status: ValidationStatus.Valid,
       cells: [cellIndex(112)],
       placements: [[{ cell: cellIndex(112), tile }]],
@@ -46,8 +45,8 @@ describe('SaveTurn', () => {
     const userTiles = context.inventory.getTilesFor(Player.User);
     const tile = userTiles[0];
 
-    context.turnDirector.placeTile({ cell: cellIndex(112), tile });
-    context.turnDirector.setCurrentTurnValidation({
+    context.game.placeTile({ cell: cellIndex(112), tile });
+    context.game.setCurrentTurnValidation({
       status: ValidationStatus.Valid,
       cells: [cellIndex(112)],
       placements: [[{ cell: cellIndex(112), tile }]],
@@ -68,8 +67,8 @@ describe('SaveTurn', () => {
     const userTiles = context.inventory.getTilesFor(Player.User);
     const tile = userTiles[0];
 
-    context.turnDirector.placeTile({ cell: cellIndex(112), tile });
-    context.turnDirector.setCurrentTurnValidation({
+    context.game.placeTile({ cell: cellIndex(112), tile });
+    context.game.setCurrentTurnValidation({
       status: ValidationStatus.Valid,
       cells: [cellIndex(112)],
       placements: [[{ cell: cellIndex(112), tile }]],
@@ -78,6 +77,6 @@ describe('SaveTurn', () => {
     });
 
     SaveTurn.execute(context);
-    expect(context.turnDirector.currentPlayer).toBe(Player.Opponent);
+    expect(context.game.currentPlayer).toBe(Player.Opponent);
   });
 });

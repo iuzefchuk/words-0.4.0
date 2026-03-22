@@ -1,28 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import { EventCollector, DomainEvent } from '@/domain/events.ts';
+import { DomainEventCollector, DomainEvent } from '@/domain/events.ts';
 
-describe('EventCollector', () => {
+describe('DomainEventCollector', () => {
   it('starts empty', () => {
-    const collector = new EventCollector();
+    const collector = new DomainEventCollector();
     expect(collector.drain()).toEqual([]);
   });
 
   it('collects raised events', () => {
-    const collector = new EventCollector();
+    const collector = new DomainEventCollector();
     collector.raise(DomainEvent.TilePlaced);
     collector.raise(DomainEvent.TurnSaved);
     expect(collector.drain()).toEqual([DomainEvent.TilePlaced, DomainEvent.TurnSaved]);
   });
 
   it('drain clears events', () => {
-    const collector = new EventCollector();
+    const collector = new DomainEventCollector();
     collector.raise(DomainEvent.TilePlaced);
     collector.drain();
     expect(collector.drain()).toEqual([]);
   });
 
   it('preserves order', () => {
-    const collector = new EventCollector();
+    const collector = new DomainEventCollector();
     collector.raise(DomainEvent.TilesShuffled);
     collector.raise(DomainEvent.TurnPassed);
     collector.raise(DomainEvent.GameWon);

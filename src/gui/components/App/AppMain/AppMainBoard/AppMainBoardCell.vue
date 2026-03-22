@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AppTile from '@/gui/components/shared/AppTile.vue';
-import { GameCell } from '@/application/Game.ts';
+import { GameCell } from '@/application/index.ts';
 import { PropType, computed } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';

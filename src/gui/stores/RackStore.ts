@@ -1,4 +1,4 @@
-import { GameCell, GameTile } from '@/application/Game.ts';
+import { GameCell, GameTile } from '@/application/index.ts';
 import { defineStore } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';

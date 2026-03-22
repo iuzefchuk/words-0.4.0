@@ -1,25 +1,24 @@
-import Game, { GameCell, GameTile, GameState, GameTurnResult, GameOutcome } from '@/application/Game.ts';
-import { DomainEvent } from '@/domain/events.ts';
+import Application from '@/application/index.ts';
+import { AppCell, AppTile, AppState, AppTurnResult, AppTurnOutcomeHistory } from '@/application/types.ts';
+import { DomainEvent } from '@/domain/types.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
 import SoundPlayer, { Sound } from '@/infrastructure/SoundPlayer.ts';
-import GameFactory from '@/infrastructure/GameFactory.ts';
+import ApplicationFactory from '@/infrastructure/ApplicationFactory.ts';
 
-let game: Game;
+let application: Application;
 
 export async function startGame(): Promise<void> {
-  game = await GameFactory.create();
+  application = await ApplicationFactory.create();
 }
 
 export default class MatchStore {
   static readonly INSTANCE = defineStore('game', () => {
-    const store = new MatchStore(game);
+    const store = new MatchStore(application);
     return {
-      bonuses: Game.BONUSES,
-      letters: Game.LETTERS,
-      layoutCells: game.layoutCells,
+      layoutCells: application.layoutCells,
       matchIsFinished: store.state.isFinished,
-      matchResult: store.state.gameResult,
+      matchResult: store.state.matchResult,
       tilesRemaining: store.state.tilesRemaining,
       userTiles: store.state.userTiles,
       currentTurnScore: store.state.currentTurnScore,
@@ -64,7 +63,7 @@ export default class MatchStore {
 
   private static ReactiveState = class {
     readonly isFinished = computed(() => this.state.isFinished);
-    readonly gameResult = computed(() => this.state.gameResult);
+    readonly matchResult = computed(() => this.state.matchResult);
     readonly tilesRemaining = computed(() => this.state.tilesRemaining);
     readonly userTiles = computed(() => this.state.userTiles);
     readonly currentTurnScore = computed(() => this.state.currentTurnScore);
@@ -73,15 +72,15 @@ export default class MatchStore {
     readonly currentTurnIsValid = computed(() => this.state.currentTurnIsValid);
     readonly currentPlayerIsUser = computed(() => this.state.currentPlayerIsUser);
     readonly userPassWillBeResign = computed(() => this.state.userPassWillBeResign);
-    readonly outcomeHistory = computed<ReadonlyArray<GameOutcome>>(() => {
+    readonly outcomeHistory = computed<AppTurnOutcomeHistory>(() => {
       void this.stateRef.value;
-      return [...this.game.outcomeHistory];
+      return [...this.application.turnOutcomeHistory];
     });
 
-    private readonly stateRef: Ref<GameState>;
+    private readonly stateRef: Ref<AppState>;
 
-    constructor(private readonly game: Game) {
-      this.stateRef = shallowRef(this.game.state);
+    constructor(private readonly application: Application) {
+      this.stateRef = shallowRef(this.application.state);
     }
 
     trackDependency<T>(callback: () => T): T {
@@ -99,10 +98,10 @@ export default class MatchStore {
     }
 
     refreshState(): void {
-      this.stateRef.value = this.game.state;
+      this.stateRef.value = this.application.state;
     }
 
-    private get state(): GameState {
+    private get state(): AppState {
       return this.stateRef.value;
     }
   };
@@ -110,77 +109,77 @@ export default class MatchStore {
   private readonly soundPlayer = new SoundPlayer();
   private readonly state: InstanceType<typeof MatchStore.ReactiveState>;
 
-  private constructor(private readonly game: Game) {
-    this.state = new MatchStore.ReactiveState(game);
+  private constructor(private readonly application: Application) {
+    this.state = new MatchStore.ReactiveState(application);
   }
 
-  private isCellInCenterOfLayout(cell: GameCell): boolean {
-    return this.game.isCellInCenterOfLayout(cell);
+  private isCellInCenterOfLayout(cell: AppCell): boolean {
+    return this.application.isCellInCenterOfLayout(cell);
   }
 
-  private getCellBonus(cell: GameCell): string | null {
-    return this.game.getCellBonus(cell);
+  private getCellBonus(cell: AppCell): string | null {
+    return this.application.getCellBonus(cell);
   }
 
-  private findTileOnCell(cell: GameCell): GameTile | undefined {
-    return this.state.trackDependency(() => this.game.findTileByCell(cell));
+  private findTileOnCell(cell: AppCell): AppTile | undefined {
+    return this.state.trackDependency(() => this.application.findTileByCell(cell));
   }
 
-  private findCellWithTile(tile: GameTile): GameCell | undefined {
-    return this.state.trackDependency(() => this.game.findCellByTile(tile));
+  private findCellWithTile(tile: AppTile): AppCell | undefined {
+    return this.state.trackDependency(() => this.application.findCellByTile(tile));
   }
 
-  private isTilePlaced(tile: GameTile): boolean {
-    return this.state.trackDependency(() => this.game.isTilePlaced(tile));
+  private isTilePlaced(tile: AppTile): boolean {
+    return this.state.trackDependency(() => this.application.isTilePlaced(tile));
   }
 
-  private getCellRowIndex(cell: GameCell): number {
-    return this.game.getCellRowIndex(cell);
+  private getCellRowIndex(cell: AppCell): number {
+    return this.application.getCellRowIndex(cell);
   }
 
-  private getCellColumnIndex(cell: GameCell): number {
-    return this.game.getCellColumnIndex(cell);
+  private getCellColumnIndex(cell: AppCell): number {
+    return this.application.getCellColumnIndex(cell);
   }
 
-  private areTilesSame(firstTile: GameTile, secondTile: GameTile): boolean {
-    return this.game.areTilesSame(firstTile, secondTile);
+  private areTilesSame(firstTile: AppTile, secondTile: AppTile): boolean {
+    return this.application.areTilesSame(firstTile, secondTile);
   }
 
-  private getTileLetter(tile: GameTile): string {
-    return this.game.getTileLetter(tile);
+  private getTileLetter(tile: AppTile): string {
+    return this.application.getTileLetter(tile);
   }
 
-  private isCellTopRightInTurn(cell: GameCell): boolean {
-    return this.state.trackDependency(() => this.game.isCellTopRightInTurn(cell));
+  private isCellTopRightInTurn(cell: AppCell): boolean {
+    return this.state.trackDependency(() => this.application.isCellTopRightInTurn(cell));
   }
 
-  private wasTileUsedInPreviousTurn(tile: GameTile): boolean {
-    return this.state.trackDependency(() => this.game.wasTileUsedInPreviousTurn(tile));
+  private wasTileUsedInPreviousTurn(tile: AppTile): boolean {
+    return this.state.trackDependency(() => this.application.wasTileUsedInPreviousTurn(tile));
   }
 
   private shuffleUserTiles(): void {
-    this.state.mutateAndRefresh(() => this.game.shuffleUserTiles());
+    this.state.mutateAndRefresh(() => this.application.shuffleUserTiles());
     this.handleEvents();
   }
 
-  private placeTile(args: { cell: GameCell; tile: GameTile }): void {
-    this.state.mutateAndRefresh(() => this.game.placeTile(args));
+  private placeTile(args: { cell: AppCell; tile: AppTile }): void {
+    this.state.mutateAndRefresh(() => this.application.placeTile(args));
     this.handleEvents();
   }
 
-  private undoPlaceTile(tile: GameTile): void {
-    this.state.mutateAndRefresh(() => this.game.undoPlaceTile(tile));
+  private undoPlaceTile(tile: AppTile): void {
+    this.state.mutateAndRefresh(() => this.application.undoPlaceTile(tile));
     this.handleEvents();
   }
 
   private resetTurn(): void {
-    this.state.mutateAndRefresh(() => this.game.resetTurn());
+    this.state.mutateAndRefresh(() => this.application.resetTurn());
   }
 
-  private saveTurn(): { result: GameTurnResult; opponentTurn?: Promise<GameTurnResult> } {
-    const { result, opponentTurn } = this.state.mutateAndRefresh(() => this.game.saveTurn());
+  private saveTurn(): { result: AppTurnResult; opponentTurn?: Promise<AppTurnResult> } {
+    const { result, opponentTurn } = this.state.mutateAndRefresh(() => this.application.saveTurn());
     this.handleEvents();
-    const resolved = opponentTurn?.then((opponentResult: GameTurnResult) => {
+    const resolved = opponentTurn?.then((opponentResult: AppTurnResult) => {
       this.state.refreshState();
       this.handleEvents();
       return opponentResult;
@@ -188,10 +187,10 @@ export default class MatchStore {
     return { result, opponentTurn: resolved };
   }
 
-  private passTurn(): { opponentTurn?: Promise<GameTurnResult> } {
-    const { opponentTurn } = this.state.mutateAndRefresh(() => this.game.passTurn());
+  private passTurn(): { opponentTurn?: Promise<AppTurnResult> } {
+    const { opponentTurn } = this.state.mutateAndRefresh(() => this.application.passTurn());
     this.handleEvents();
-    const resolved = opponentTurn?.then((opponentResult: GameTurnResult) => {
+    const resolved = opponentTurn?.then((opponentResult: AppTurnResult) => {
       this.state.refreshState();
       this.handleEvents();
       return opponentResult;
@@ -200,11 +199,11 @@ export default class MatchStore {
   }
 
   private resignGame(): void {
-    this.state.mutateAndRefresh(() => this.game.resignGame());
+    this.state.mutateAndRefresh(() => this.application.resignMatch());
     this.handleEvents();
   }
 
   private handleEvents(): void {
-    for (const event of this.game.drainEvents()) this.soundPlayer.play(MatchStore.EVENT_SOUNDS[event]);
+    for (const event of this.application.drainEvents()) this.soundPlayer.play(MatchStore.EVENT_SOUNDS[event]);
   }
 }

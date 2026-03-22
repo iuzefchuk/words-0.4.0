@@ -1,7 +1,7 @@
-import { GameContext } from '@/application/Game.ts';
+import { Domain } from '@/domain/types.ts';
 
-export default class PassTurn {
-  static execute(context: GameContext): void {
-    context.turnDirector.passCurrentTurn();
+export default class PassTurnCommand {
+  static execute(domain: Domain): void {
+    domain.passCurrentTurn();
   }
 }

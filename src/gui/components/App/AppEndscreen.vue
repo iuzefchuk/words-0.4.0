@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import MatchStore from '@/gui/stores/MatchStore.ts';
-import { getGameResultText } from '@/gui/mappings.ts';
+import { getMatchResultText } from '@/gui/mappings.ts';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 const { matchResult } = storeToRefs(MatchStore.INSTANCE());
-const text = computed(() => (matchResult.value && getGameResultText(matchResult.value)) || '');
+const text = computed(() => (matchResult.value && getMatchResultText(matchResult.value)) || '');
 </script>
 
 <template>

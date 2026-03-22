@@ -1,10 +1,16 @@
 import { ref, computed, watch, inject } from 'vue';
 import UseCounter from '@/gui/composables/UseCounter.ts';
 import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
-import Game from '@/application/Game.ts';
+import Application from '@/application/index.ts';
 
 export default class UseLoader {
-  static readonly WORD = [Game.LETTERS.W, Game.LETTERS.O, Game.LETTERS.R, Game.LETTERS.D, Game.LETTERS.S];
+  static readonly WORD = [
+    Application.LETTERS.W,
+    Application.LETTERS.O,
+    Application.LETTERS.R,
+    Application.LETTERS.D,
+    Application.LETTERS.S,
+  ];
   readonly isRendered = computed({
     get: () => this.isRenderedRef.value,
     set: (newValue: boolean) => {

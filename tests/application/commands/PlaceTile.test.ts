@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import PlaceTile from '@/application/commands/PlaceTile.ts';
 import { createTestContext, cellIndex } from '$/helpers.ts';
-import { Player } from '@/domain/enums.ts';
+import { Player } from '@/domain/index.ts';
 
 describe('PlaceTile', () => {
   it('places a tile and runs validation', () => {
@@ -12,10 +12,10 @@ describe('PlaceTile', () => {
     PlaceTile.execute(context, { cell: cellIndex(112), tile });
 
     expect(context.board.isTilePlaced(tile)).toBe(true);
-    expect(context.turnDirector.currentTurnPlacement).toHaveLength(1);
+    expect(context.game.currentTurnPlacement).toHaveLength(1);
     // Validation should have run (score or error should be set)
     const hasValidation =
-      context.turnDirector.currentTurnError !== undefined || context.turnDirector.currentTurnScore !== undefined;
+      context.game.currentTurnError !== undefined || context.game.currentTurnScore !== undefined;
     expect(hasValidation).toBe(true);
   });
 
@@ -26,6 +26,6 @@ describe('PlaceTile', () => {
     PlaceTile.execute(context, { cell: cellIndex(112), tile: userTiles[0] });
     PlaceTile.execute(context, { cell: cellIndex(113), tile: userTiles[1] });
 
-    expect(context.turnDirector.currentTurnPlacement).toHaveLength(2);
+    expect(context.game.currentTurnPlacement).toHaveLength(2);
   });
 });
