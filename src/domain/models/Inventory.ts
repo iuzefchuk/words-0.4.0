@@ -1,5 +1,6 @@
 import { Letter, Player } from '@/domain/enums.ts';
 import { IdGenerator } from '@/shared/ports.ts';
+import { shuffleWithFisherYates } from '@/shared/utils.ts';
 
 export type TileId = Brand<string, 'TileId'>;
 export type TileCollection = ReadonlyMap<Letter, ReadonlyArray<TileId>>;
@@ -72,11 +73,7 @@ export default class Inventory {
   }
 
   static shuffleTilesWithFisherYates(tiles: Array<Tile>): Array<Tile> {
-    for (let i = tiles.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
-    }
-    return tiles;
+    return shuffleWithFisherYates(tiles);
   }
 
   get unusedTilesCount(): number {

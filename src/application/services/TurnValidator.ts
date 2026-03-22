@@ -103,7 +103,9 @@ export default class TurnValidator {
     const result: Array<Placement> = [primaryPlacement];
     for (const cell of state.cells) {
       const coords: AnchorCoordinates = { axis: board.getOppositeAxis(primaryAxis), cell };
-      const secondaryPlacement = PlacementBuilder.execute(board, { coords, tiles });
+      const tile = board.findTileByCell(cell);
+      if (!tile) continue;
+      const secondaryPlacement = PlacementBuilder.execute(board, { coords, tiles: [tile] });
       if (areLinksUsable(secondaryPlacement)) result.push(secondaryPlacement);
     }
     return this.Pipeline.pass(state, { placements: result });

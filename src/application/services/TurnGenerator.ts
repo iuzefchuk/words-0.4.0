@@ -6,6 +6,7 @@ import { ValidationStatus } from '@/domain/models/TurnTracker.ts';
 import TurnValidator from '@/application/services/TurnValidator.ts';
 import { Player, Letter } from '@/domain/enums.ts';
 import { GameContext } from '@/application/Game.ts';
+import { shuffleWithFisherYates } from '@/shared/utils.ts';
 
 enum GenerationDirection {
   Left = -1,
@@ -319,7 +320,9 @@ export default class TurnGenerator {
         };
         newTasks.push(applyTask, evaluateTask, reverseTask);
       }
-      return newTasks.length === 0 ? this.emitStop() : this.emitContinue(newTasks);
+      if (newTasks.length === 0) return this.emitStop();
+      shuffleWithFisherYates(newTasks, 3);
+      return this.emitContinue(newTasks);
     }
 
     private applyResolution(task: ApplyTask): ContinueTaskCommand {
