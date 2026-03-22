@@ -1,8 +1,9 @@
 export { Player as DomainPlayer, Letter as DomainLetter } from '@/domain/enums.ts';
-export { CellIndex as DomainCell, Bonus as DomainBonus } from '@/domain/models/Board.ts';
-export { TileId as DomainTile } from '@/domain/models/Inventory.ts';
+export type { CellIndex as DomainCell } from '@/domain/models/Board.ts';
+export { Bonus as DomainBonus } from '@/domain/models/Board.ts';
+export type { TileId as DomainTile } from '@/domain/models/Inventory.ts';
+export type { TurnOutcome as DomainTurnOutcome } from '@/domain/models/TurnTracker.ts';
 export {
-  TurnOutcome as DomainTurnOutcome,
   TurnOutcomeType as DomainTurnOutcomeType,
   ValidationStatus as DomainValidationStatus,
 } from '@/domain/models/TurnTracker.ts';

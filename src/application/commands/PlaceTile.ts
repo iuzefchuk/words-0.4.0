@@ -1,4 +1,4 @@
-import { Domain, DomainCell, DomainTile } from '@/domain/types.ts';
+import type { Domain, DomainCell, DomainTile } from '@/domain/types.ts';
 
 export default class PlaceTileCommand {
   static execute(domain: Domain, { cell, tile }: { cell: DomainCell; tile: DomainTile }): void {

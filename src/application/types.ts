@@ -5,10 +5,12 @@ export {
   DomainPlayer as AppPlayer,
   DomainLetter as AppLetter,
   DomainBonus as AppBonus,
+  DomainTurnOutcomeType as AppTurnOutcomeType,
+} from '@/domain/types.ts';
+export type {
   DomainCell as AppCell,
   DomainTile as AppTile,
   DomainTurnResult as AppTurnResult,
-  DomainTurnOutcomeType as AppTurnOutcomeType,
   DomainTurnOutcome as AppTurnOutcome,
   DomainDictionary as AppDictionary,
 } from '@/domain/types.ts';
