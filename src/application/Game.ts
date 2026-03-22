@@ -29,6 +29,7 @@ export type GameCell = CellIndex;
 export type GameTile = TileId;
 export type GameState = {
   isFinished: boolean;
+  gameResult?: GameResultType;
   tilesRemaining: number;
   userTiles: ReadonlyArray<TileId>;
   currentTurnScore?: number;
@@ -81,7 +82,7 @@ export default class Game {
   }
 
   get state(): GameState {
-    return GameStateQuery.execute(this.context, this.isMutable);
+    return GameStateQuery.execute(this.context, this.isMutable, this.getGameResultFor(Player.User)?.type);
   }
 
   get outcomeHistory(): ReadonlyArray<GameOutcome> {

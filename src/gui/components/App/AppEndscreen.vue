@@ -1,10 +1,14 @@
 <script lang="ts" setup>
-// TODO add one of the texts depending on gameResult:
-// t('game.end_win'), t('game.end_lose'), t('game.end_tie')
+import MatchStore from '@/gui/stores/MatchStore.ts';
+import { getGameResultText } from '@/gui/mappings.ts';
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+const { matchResult } = storeToRefs(MatchStore.INSTANCE());
+const text = computed(() => (matchResult.value && getGameResultText(matchResult.value)) || '');
 </script>
 
 <template>
-  <div class="endscreen">END</div>
+  <div class="endscreen">{{ text }}</div>
 </template>
 
 <style lang="scss">

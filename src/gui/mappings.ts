@@ -1,4 +1,4 @@
-import Game from '@/application/Game.ts';
+import Game, { GameResultType } from '@/application/Game.ts';
 const { BONUSES: bonuses, LETTERS: letters } = Game;
 
 export function getBonusName(cellBonus: string): string {
@@ -9,6 +9,16 @@ export function getBonusName(cellBonus: string): string {
       [bonuses.DoubleLetter]: window.t('game.bonus_dl'),
       [bonuses.TripleLetter]: window.t('game.bonus_tl'),
     }[cellBonus] || ''
+  );
+}
+
+export function getGameResultText(gameResult: GameResultType): string {
+  return (
+    {
+      [GameResultType.Win]: window.t('game.end_win'),
+      [GameResultType.Lose]: window.t('game.end_lose'),
+      [GameResultType.Tie]: window.t('game.end_tie'),
+    }[gameResult] || ''
   );
 }
 

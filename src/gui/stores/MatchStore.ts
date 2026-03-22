@@ -19,6 +19,7 @@ export default class MatchStore {
       letters: Game.LETTERS,
       layoutCells: game.layoutCells,
       matchIsFinished: store.state.isFinished,
+      matchResult: store.state.gameResult,
       tilesRemaining: store.state.tilesRemaining,
       userTiles: store.state.userTiles,
       currentTurnScore: store.state.currentTurnScore,
@@ -63,6 +64,7 @@ export default class MatchStore {
 
   private static ReactiveState = class {
     readonly isFinished = computed(() => this.state.isFinished);
+    readonly gameResult = computed(() => this.state.gameResult);
     readonly tilesRemaining = computed(() => this.state.tilesRemaining);
     readonly userTiles = computed(() => this.state.userTiles);
     readonly currentTurnScore = computed(() => this.state.currentTurnScore);
