@@ -1,9 +1,9 @@
 import { Domain, DomainPlayer } from '@/domain/types.ts';
-import { AppMatchResult } from '@/application/enums.ts';
+import { MatchResult } from '@/application/enums.ts';
 import { AppState } from '@/application/types.ts';
 
 export default class StateQuery {
-  static execute(domain: Domain, isMutable: boolean, userMatchResult?: AppMatchResult): AppState {
+  static execute(domain: Domain, isMutable: boolean, userMatchResult?: MatchResult): AppState {
     return {
       isFinished: !isMutable,
       matchResult: userMatchResult,

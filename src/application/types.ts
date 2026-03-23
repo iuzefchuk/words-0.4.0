@@ -1,27 +1,29 @@
-import { DomainTile } from '@/domain/types.ts';
-import { AppMatchResult } from '@/application/enums.ts';
+import { MatchResult } from '@/application/enums.ts';
+import { IdGenerator, Clock, TurnGenerationWorker, SoundPlayer } from '@/shared/ports.ts';
+import { Sound } from '@/application/enums.ts';
+import { DomainDictionary, DomainPlayer, DomainCell, DomainTile } from '@/domain/types.ts';
+
+export { DomainEvent } from '@/domain/types.ts';
 
 export {
   DomainPlayer as AppPlayer,
   DomainLetter as AppLetter,
   DomainBonus as AppBonus,
-  DomainTurnOutcomeType as AppTurnOutcomeType,
+  DomainTurnResolutionType as AppTurnResolutionType,
   DomainDictionary as AppDictionary,
-  DomainHydrator as AppDomainHydrator,
-  DomainTurnGenerator as AppTurnGenerator,
 } from '@/domain/types.ts';
+
 export type {
   Domain as AppDomain,
   DomainCell as AppCell,
   DomainTile as AppTile,
-  DomainTurnResult as AppTurnResult,
-  DomainTurnOutcome as AppTurnOutcome,
-  DomainDictionaryCache as AppDictionaryCache,
+  DomainTurnResolution as AppTurnResolution,
+  DomainDictionaryProps as AppDictionaryProps,
 } from '@/domain/types.ts';
 
 export type AppState = {
   isFinished: boolean;
-  matchResult?: AppMatchResult;
+  matchResult?: MatchResult;
   tilesRemaining: number;
   userTiles: ReadonlyArray<DomainTile>;
   currentTurnScore?: number;
@@ -32,4 +34,19 @@ export type AppState = {
   userPassWillBeResign: boolean;
 };
 
-export type AppTurnOutcomeHistory = ReadonlyArray<{ isSave: boolean; isUser: boolean; words?: string; score?: number }>;
+export type AppTurnResolutionHistory = ReadonlyArray<{
+  isSave: boolean;
+  isUser: boolean;
+  words?: string;
+  score?: number;
+}>;
+
+export type AppDependencies = {
+  dictionary: DomainDictionary;
+  idGenerator: IdGenerator;
+  clock: Clock;
+  turnGenerationWorker: TurnGenerationWorker<DomainPlayer, DomainTile, DomainCell>;
+  soundPlayer: SoundPlayer<Sound>;
+};
+
+export type AppTurnExecutionResult = Result<{ words: ReadonlyArray<string> }, string>;

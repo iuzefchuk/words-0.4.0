@@ -1,14 +1,5 @@
-export enum Sound {
-  ActionGood = 'ActionGood',
-  ActionNeutral = 'ActionNeutral',
-  ActionNeutralReverse = 'ActionNeutralReverse',
-  ActionBad = 'ActionBad',
-  ActionMix = 'ActionMix',
-  AltActionGood = 'AltActionGood',
-  EndGood = 'EndGood',
-  EndNeutral = 'EndNeutral',
-  EndBad = 'EndBad',
-}
+import { Sound } from '@/application/enums.ts';
+import { SoundPlayer } from '@/shared/ports.ts';
 
 type SoundDefinition = {
   frequency: number;
@@ -18,7 +9,7 @@ type SoundDefinition = {
   ramp?: number;
 };
 
-export default class SoundPlayer {
+export default class AudioSoundPlayer implements SoundPlayer<Sound> {
   private static readonly DEFINITIONS: Record<Sound, ReadonlyArray<SoundDefinition>> = {
     [Sound.ActionGood]: [
       { frequency: 523, duration: 0.08, type: 'sine', gain: 0.12 },
@@ -64,7 +55,7 @@ export default class SoundPlayer {
   private queueEnd: number = 0;
 
   play(sound: Sound): void {
-    const notes = SoundPlayer.DEFINITIONS[sound];
+    const notes = AudioSoundPlayer.DEFINITIONS[sound];
     if (notes.length === 0) return;
     setTimeout(() => this.scheduleSound(notes), 0);
   }
@@ -97,7 +88,7 @@ export default class SoundPlayer {
     osc.type = note.type;
     osc.frequency.value = note.frequency;
     gainNode.gain.setValueAtTime(note.gain, start);
-    gainNode.gain.setValueAtTime(note.gain, end - SoundPlayer.FADE_OUT);
+    gainNode.gain.setValueAtTime(note.gain, end - AudioSoundPlayer.FADE_OUT);
     gainNode.gain.linearRampToValueAtTime(0.001, end);
     osc.connect(gainNode);
     gainNode.connect(ctx.destination);

@@ -1,68 +1,50 @@
 import Domain from '@/domain/index.ts';
-import { DomainEvent, DomainEventCollector } from '@/domain/types.ts';
 import {
   AppPlayer,
   AppLetter,
   AppBonus,
+  AppTurnResolutionType,
   AppCell,
   AppTile,
-  AppTurnResult,
-  AppTurnOutcomeType,
-  AppTurnOutcome,
+  AppTurnResolution,
   AppState,
-  AppTurnOutcomeHistory,
-  AppDictionary,
+  AppTurnResolutionHistory,
+  AppTurnExecutionResult,
 } from '@/application/types.ts';
-import { TIME } from '@/shared/constants.ts';
-import { IdGenerator, Clock } from '@/shared/ports.ts';
+import { MatchResult, Event, Sound } from '@/application/enums.ts';
+import { MATCH_RESULT_EVENTS, DOMAIN_EVENT_SOUNDS, EVENT_SOUNDS } from '@/application/constants.ts';
 import StateQuery from '@/application/queries/State.ts';
 import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
 import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
 import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
 import PassTurnCommand from '@/application/commands/PassTurn.ts';
-import { AppMatchResult } from '@/application/enums.ts';
+import { TIME } from '@/shared/constants.ts';
+import { Clock, TurnGenerationWorker, SoundPlayer } from '@/shared/ports.ts';
+import AppDependenciesFactory from '@/infrastructure/factories/AppDependenciesFactory.ts';
 
-export type TurnGenerationWorker = {
-  // TODO move ?
-  execute(request: {
-    domain: Domain;
-    player: AppPlayer;
-  }): Promise<{ tiles: ReadonlyArray<AppTile>; cells: ReadonlyArray<AppCell> } | null>;
-  terminate(): void;
-};
+type AppTurnGenerationWorker = TurnGenerationWorker<AppPlayer, AppTile, AppCell>;
+type AppSoundPlayer = SoundPlayer<Sound>;
 
 export default class Application {
   static readonly BONUSES = AppBonus;
   static readonly LETTERS = AppLetter;
-  private static readonly RESULT_EVENTS: Partial<Record<AppMatchResult, DomainEvent>> = {
-    [AppMatchResult.Win]: DomainEvent.GameWon,
-    [AppMatchResult.Lose]: DomainEvent.GameLost,
-    [AppMatchResult.Tie]: DomainEvent.GameTied,
-  };
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
-  private readonly eventCollector = new DomainEventCollector(); // TODO
-  private matchResults: Map<AppPlayer, AppMatchResult | undefined> = new Map();
+  private readonly events: Array<Event> = [];
+  private matchResults: Map<AppPlayer, MatchResult | undefined> = new Map();
   private isMutable: boolean = true;
 
   private constructor(
     private readonly domain: Domain,
-    private readonly turnGenerationWorker: TurnGenerationWorker,
+    private readonly turnGenerationWorker: AppTurnGenerationWorker,
     private readonly clock: Clock,
+    private readonly soundPlayer: AppSoundPlayer,
   ) {}
 
-  static create({
-    dictionary,
-    idGenerator,
-    clock,
-    turnGenerationWorker,
-  }: {
-    dictionary: AppDictionary;
-    idGenerator: IdGenerator;
-    clock: Clock;
-    turnGenerationWorker: TurnGenerationWorker;
-  }): Application {
+  static async create(): Promise<Application> {
+    const { dictionary, idGenerator, turnGenerationWorker, clock, soundPlayer } =
+      await AppDependenciesFactory.execute();
     const domain = Domain.create({ dictionary, idGenerator });
-    return new Application(domain, turnGenerationWorker, clock);
+    return new Application(domain, turnGenerationWorker, clock, soundPlayer);
   }
 
   get layoutCells(): ReadonlyArray<AppCell> {
@@ -73,15 +55,15 @@ export default class Application {
     return StateQuery.execute(this.domain, this.isMutable, this.matchResults.get(AppPlayer.User));
   }
 
-  get turnOutcomeHistory(): AppTurnOutcomeHistory {
-    return this.domain.turnOutcomeHistory.map(outcome => {
-      const isSave = outcome.type === AppTurnOutcomeType.Save;
+  get turnResolutionHistory(): AppTurnResolutionHistory {
+    return this.domain.turnResolutionHistory.map(resolution => {
+      const isSave = resolution.type === AppTurnResolutionType.Save;
       return {
         isSave,
-        isUser: outcome.player === AppPlayer.User,
+        isUser: resolution.player === AppPlayer.User,
         ...(isSave && {
-          words: outcome.words.join(', '),
-          score: outcome.score,
+          words: resolution.words.join(', '),
+          score: resolution.score,
         }),
       };
     });
@@ -138,19 +120,17 @@ export default class Application {
   shuffleUserTiles(): void {
     this.ensureMutability();
     this.domain.shuffleTilesFor(AppPlayer.User);
-    this.eventCollector.raise(DomainEvent.TilesShuffled);
+    this.events.push(Event.TilesShuffled);
   }
 
   placeTile({ cell, tile }: { cell: AppCell; tile: AppTile }): void {
     this.ensureMutability();
     PlaceTileCommand.execute(this.domain, { cell, tile });
-    this.eventCollector.raise(DomainEvent.TilePlaced);
   }
 
   undoPlaceTile(tile: AppTile): void {
     this.ensureMutability();
     UndoPlaceTileCommand.execute(this.domain, tile);
-    this.eventCollector.raise(DomainEvent.TileUndoPlaced);
   }
 
   resetTurn(): void {
@@ -158,41 +138,39 @@ export default class Application {
     this.domain.resetCurrentTurn();
   }
 
-  saveTurn(): { result: AppTurnResult; opponentTurn?: Promise<AppTurnResult> } {
+  saveTurn(): { result: AppTurnExecutionResult; opponentTurn?: Promise<AppTurnExecutionResult> } {
     this.ensureMutability();
     const player = this.domain.currentPlayer;
     const result = SaveTurnCommand.execute(this.domain);
     if (!result.ok) return { result };
-    this.eventCollector.raise(DomainEvent.TurnSaved);
     this.checkTileDepletionFor(player);
     if (!this.domain.hasTilesFor(player)) return { result };
     const opponentTurn = this.domain.currentPlayer !== AppPlayer.User ? this.handleOpponentTurn() : undefined;
     return { result, opponentTurn };
   }
 
-  passTurn(): { opponentTurn?: Promise<AppTurnResult> } {
+  passTurn(): { opponentTurn?: Promise<AppTurnExecutionResult> } {
     this.ensureMutability();
     if (this.domain.willPlayerPassBeResign(AppPlayer.User)) {
       this.resignMatch();
       return {};
     }
     this.domain.passCurrentTurn();
-    this.eventCollector.raise(DomainEvent.TurnPassed);
     const opponentTurn = this.domain.currentPlayer !== AppPlayer.User ? this.handleOpponentTurn() : undefined;
     return { opponentTurn };
   }
 
   endMatch(winner: AppPlayer, loser: AppPlayer): void {
     this.ensureMutability();
-    this.matchResults.set(winner, AppMatchResult.Win);
-    this.matchResults.set(loser, AppMatchResult.Lose);
+    this.matchResults.set(winner, MatchResult.Win);
+    this.matchResults.set(loser, MatchResult.Lose);
     this.logMatchEnd();
   }
 
   tieMatch(): void {
     this.ensureMutability();
-    this.matchResults.set(this.domain.currentPlayer, AppMatchResult.Tie);
-    this.matchResults.set(this.domain.nextPlayer, AppMatchResult.Tie);
+    this.matchResults.set(this.domain.currentPlayer, MatchResult.Tie);
+    this.matchResults.set(this.domain.nextPlayer, MatchResult.Tie);
     this.logMatchEnd();
   }
 
@@ -200,29 +178,36 @@ export default class Application {
     this.endMatch(this.domain.nextPlayer, this.domain.currentPlayer);
   }
 
-  drainEvents(): Array<DomainEvent> {
-    return this.eventCollector.drain();
+  playPendingSounds(): void {
+    for (const event of this.domain.drainEvents()) {
+      const sound = DOMAIN_EVENT_SOUNDS[event];
+      if (sound) this.soundPlayer.play(sound);
+    }
+    for (const event of this.events) {
+      const sound = EVENT_SOUNDS[event];
+      if (sound) this.soundPlayer.play(sound);
+    }
+    this.events.length = 0;
   }
 
-  private async handleOpponentTurn(): Promise<AppTurnResult> {
-    const outcome = await this.ensureMinimumDuration(() => this.createOpponentTurn());
-    switch (outcome.type) {
-      case AppTurnOutcomeType.Resign:
+  private async handleOpponentTurn(): Promise<AppTurnExecutionResult> {
+    const resolution = await this.ensureMinimumDuration(() => this.createOpponentTurn());
+    switch (resolution.type) {
+      case AppTurnResolutionType.Resign:
         this.resignMatch();
         return { ok: true, value: { words: [] } };
-      case AppTurnOutcomeType.Pass:
-        this.eventCollector.raise(DomainEvent.TurnPassed);
+      case AppTurnResolutionType.Pass:
         return { ok: true, value: { words: [] } };
-      case AppTurnOutcomeType.Save:
+      case AppTurnResolutionType.Save:
         this.checkTileDepletionFor(AppPlayer.Opponent);
-        this.eventCollector.raise(DomainEvent.OpponentTurnGenerated);
-        return { ok: true, value: { words: outcome.words } };
+        this.events.push(Event.OpponentTurnGenerated);
+        return { ok: true, value: { words: resolution.words } };
       default:
-        throw new Error(`Unexpected outcome type: ${(outcome as { type: string }).type}`);
+        throw new Error(`Unexpected resolution type: ${(resolution as { type: string }).type}`);
     }
   }
 
-  private async createOpponentTurn(): Promise<AppTurnOutcome> {
+  private async createOpponentTurn(): Promise<AppTurnResolution> {
     const player = AppPlayer.Opponent;
     let generatorResult;
     try {
@@ -231,9 +216,10 @@ export default class Application {
       generatorResult = null;
     }
     if (generatorResult === null) {
-      if (this.domain.willPlayerPassBeResign(player)) return { type: AppTurnOutcomeType.Resign, player };
+      if (this.domain.willPlayerPassBeResign(player)) return { type: AppTurnResolutionType.Resign, player };
       PassTurnCommand.execute(this.domain);
-      return { type: AppTurnOutcomeType.Pass, player };
+      this.domain.drainEvents();
+      return { type: AppTurnResolutionType.Pass, player };
     }
     for (let i = 0; i < generatorResult.tiles.length; i++) {
       this.domain.placeTile({ cell: generatorResult.cells[i], tile: generatorResult.tiles[i] });
@@ -242,7 +228,8 @@ export default class Application {
     const words = this.domain.currentTurnWords ?? [];
     const score = this.domain.currentTurnScore ?? 0;
     SaveTurnCommand.execute(this.domain);
-    return { type: AppTurnOutcomeType.Save, player, words, score };
+    this.domain.drainEvents();
+    return { type: AppTurnResolutionType.Save, player, words, score };
   }
 
   private checkTileDepletionFor(player: AppPlayer) {
@@ -264,9 +251,9 @@ export default class Application {
     if (userMatchResult === undefined) throw new Error('Match result was not logged');
     this.turnGenerationWorker.terminate();
     this.isMutable = false;
-    const event = Application.RESULT_EVENTS[userMatchResult];
+    const event = MATCH_RESULT_EVENTS[userMatchResult];
     if (event === undefined) throw new Error('Match result event not found');
-    this.eventCollector.raise(event);
+    this.events.push(event);
   }
 
   private async ensureMinimumDuration<T>(callback: () => Promise<T> | T): Promise<T> {

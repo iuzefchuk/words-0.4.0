@@ -1,8 +1,9 @@
 import { Letter, Player } from '@/domain/enums.ts';
 import { IdGenerator } from '@/shared/ports.ts';
-import { shuffleWithFisherYates } from '@/shared/utils.ts';
+import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export type TileId = Brand<string, 'TileId'>;
+
 export type TileCollection = ReadonlyMap<Letter, ReadonlyArray<TileId>>;
 
 export default class Inventory {
@@ -44,6 +45,20 @@ export default class Inventory {
     private readonly tileById: Map<TileId, Tile>,
   ) {
     this.initializePlayerPools();
+  }
+
+  static hydrate(data: unknown): Inventory {
+    const inventory = Object.setPrototypeOf(data, Inventory.prototype) as {
+      drawPool: unknown;
+      poolByPlayer: Map<unknown, unknown>;
+      discardPool: unknown;
+      tileById: Map<unknown, unknown>;
+    };
+    TilePool.hydrate(inventory.drawPool);
+    for (const pool of inventory.poolByPlayer.values()) TilePool.hydrate(pool);
+    TilePool.hydrate(inventory.discardPool);
+    for (const tile of inventory.tileById.values()) Tile.hydrate(tile);
+    return inventory as unknown as Inventory;
   }
 
   static create({ players, idGenerator }: { players: ReadonlyArray<Player>; idGenerator: IdGenerator }): Inventory {
@@ -134,7 +149,7 @@ export default class Inventory {
   }
 }
 
-export class TilePool {
+class TilePool {
   private constructor(
     private readonly capacity: number | undefined,
     private readonly tiles: Array<Tile>,
@@ -142,6 +157,12 @@ export class TilePool {
 
   static create({ capacity, tiles }: { capacity?: number; tiles?: Array<Tile> } = {}): TilePool {
     return new TilePool(capacity, tiles ?? []);
+  }
+
+  static hydrate(data: unknown): TilePool {
+    const pool = Object.setPrototypeOf(data, TilePool.prototype) as { tiles: Array<unknown> };
+    for (const tile of pool.tiles) Tile.hydrate(tile);
+    return pool as unknown as TilePool;
   }
 
   get tileCount(): number {
@@ -199,7 +220,7 @@ export class TilePool {
   }
 }
 
-export class Tile {
+class Tile {
   private constructor(
     readonly id: TileId,
     readonly letter: Letter,
@@ -208,6 +229,10 @@ export class Tile {
   static create({ letter, idGenerator }: { letter: Letter; idGenerator: IdGenerator }): Tile {
     const id = idGenerator.execute() as TileId;
     return new Tile(id, letter);
+  }
+
+  static hydrate(data: unknown): Tile {
+    return Object.setPrototypeOf(data, Tile.prototype) as Tile;
   }
 
   equals(other: Tile): boolean {

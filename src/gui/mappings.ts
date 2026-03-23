@@ -1,5 +1,5 @@
 import Application from '@/application/index.ts';
-import { AppMatchResult } from '@/application/enums.ts';
+import { MatchResult } from '@/application/enums.ts';
 const { BONUSES, LETTERS } = Application;
 
 export function getBonusName(cellBonus: string): string {
@@ -13,12 +13,12 @@ export function getBonusName(cellBonus: string): string {
   );
 }
 
-export function getMatchResultText(result: AppMatchResult): string {
+export function getMatchResultText(result: MatchResult): string {
   return (
     {
-      [AppMatchResult.Win]: window.t('game.end_win'),
-      [AppMatchResult.Lose]: window.t('game.end_lose'),
-      [AppMatchResult.Tie]: window.t('game.end_tie'),
+      [MatchResult.Win]: window.t('game.end_win'),
+      [MatchResult.Lose]: window.t('game.end_lose'),
+      [MatchResult.Tie]: window.t('game.end_tie'),
     }[result] || ''
   );
 }

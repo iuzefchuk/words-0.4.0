@@ -1,15 +1,12 @@
 import Application from '@/application/index.ts';
-import { AppCell, AppTile, AppState, AppTurnResult, AppTurnOutcomeHistory } from '@/application/types.ts';
-import { DomainEvent } from '@/domain/types.ts';
+import { AppCell, AppTile, AppState, AppTurnExecutionResult, AppTurnResolutionHistory } from '@/application/types.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
-import SoundPlayer, { Sound } from '@/infrastructure/SoundPlayer.ts';
-import ApplicationFactory from '@/infrastructure/factories/ApplicationFactory.ts';
 
 let application: Application;
 
 export async function startGame(): Promise<void> {
-  application = await ApplicationFactory.execute();
+  application = await Application.create();
 }
 
 export default class MatchStore {
@@ -45,23 +42,11 @@ export default class MatchStore {
       saveTurn: store.saveTurn.bind(store),
       passTurn: store.passTurn.bind(store),
       resignGame: store.resignGame.bind(store),
-      outcomeHistory: store.state.outcomeHistory,
+      resolutionHistory: store.state.resolutionHistory,
     };
   });
 
-  private static readonly EVENT_SOUNDS: Record<DomainEvent, Sound> = {
-    [DomainEvent.TilePlaced]: Sound.ActionNeutral,
-    [DomainEvent.TileUndoPlaced]: Sound.ActionNeutralReverse,
-    [DomainEvent.TurnSaved]: Sound.ActionGood,
-    [DomainEvent.TurnPassed]: Sound.ActionBad,
-    [DomainEvent.TilesShuffled]: Sound.ActionMix,
-    [DomainEvent.GameWon]: Sound.EndGood,
-    [DomainEvent.GameTied]: Sound.EndNeutral,
-    [DomainEvent.GameLost]: Sound.EndBad,
-    [DomainEvent.OpponentTurnGenerated]: Sound.AltActionGood,
-  };
-
-  private static ReactiveState = class {
+  private static StateReactivityWrapper = class {
     readonly isFinished = computed(() => this.state.isFinished);
     readonly matchResult = computed(() => this.state.matchResult);
     readonly tilesRemaining = computed(() => this.state.tilesRemaining);
@@ -72,9 +57,9 @@ export default class MatchStore {
     readonly currentTurnIsValid = computed(() => this.state.currentTurnIsValid);
     readonly currentPlayerIsUser = computed(() => this.state.currentPlayerIsUser);
     readonly userPassWillBeResign = computed(() => this.state.userPassWillBeResign);
-    readonly outcomeHistory = computed<AppTurnOutcomeHistory>(() => {
+    readonly resolutionHistory = computed<AppTurnResolutionHistory>(() => {
       void this.stateRef.value;
-      return [...this.application.turnOutcomeHistory];
+      return [...this.application.turnResolutionHistory];
     });
 
     private readonly stateRef: Ref<AppState>;
@@ -106,11 +91,10 @@ export default class MatchStore {
     }
   };
 
-  private readonly soundPlayer = new SoundPlayer();
-  private readonly state: InstanceType<typeof MatchStore.ReactiveState>;
+  private readonly state: InstanceType<typeof MatchStore.StateReactivityWrapper>;
 
   private constructor(private readonly application: Application) {
-    this.state = new MatchStore.ReactiveState(application);
+    this.state = new MatchStore.StateReactivityWrapper(application);
   }
 
   private isCellInCenterOfLayout(cell: AppCell): boolean {
@@ -159,40 +143,40 @@ export default class MatchStore {
 
   private shuffleUserTiles(): void {
     this.state.mutateAndRefresh(() => this.application.shuffleUserTiles());
-    this.handleEvents();
+    this.application.playPendingSounds();
   }
 
   private placeTile(args: { cell: AppCell; tile: AppTile }): void {
     this.state.mutateAndRefresh(() => this.application.placeTile(args));
-    this.handleEvents();
+    this.application.playPendingSounds();
   }
 
   private undoPlaceTile(tile: AppTile): void {
     this.state.mutateAndRefresh(() => this.application.undoPlaceTile(tile));
-    this.handleEvents();
+    this.application.playPendingSounds();
   }
 
   private resetTurn(): void {
     this.state.mutateAndRefresh(() => this.application.resetTurn());
   }
 
-  private saveTurn(): { result: AppTurnResult; opponentTurn?: Promise<AppTurnResult> } {
+  private saveTurn(): { result: AppTurnExecutionResult; opponentTurn?: Promise<AppTurnExecutionResult> } {
     const { result, opponentTurn } = this.state.mutateAndRefresh(() => this.application.saveTurn());
-    this.handleEvents();
-    const resolved = opponentTurn?.then((opponentResult: AppTurnResult) => {
+    this.application.playPendingSounds();
+    const resolved = opponentTurn?.then((opponentResult: AppTurnExecutionResult) => {
       this.state.refreshState();
-      this.handleEvents();
+      this.application.playPendingSounds();
       return opponentResult;
     });
     return { result, opponentTurn: resolved };
   }
 
-  private passTurn(): { opponentTurn?: Promise<AppTurnResult> } {
+  private passTurn(): { opponentTurn?: Promise<AppTurnExecutionResult> } {
     const { opponentTurn } = this.state.mutateAndRefresh(() => this.application.passTurn());
-    this.handleEvents();
-    const resolved = opponentTurn?.then((opponentResult: AppTurnResult) => {
+    this.application.playPendingSounds();
+    const resolved = opponentTurn?.then((opponentResult: AppTurnExecutionResult) => {
       this.state.refreshState();
-      this.handleEvents();
+      this.application.playPendingSounds();
       return opponentResult;
     });
     return { opponentTurn: resolved };
@@ -200,10 +184,6 @@ export default class MatchStore {
 
   private resignGame(): void {
     this.state.mutateAndRefresh(() => this.application.resignMatch());
-    this.handleEvents();
-  }
-
-  private handleEvents(): void {
-    for (const event of this.application.drainEvents()) this.soundPlayer.play(MatchStore.EVENT_SOUNDS[event]);
+    this.application.playPendingSounds();
   }
 }

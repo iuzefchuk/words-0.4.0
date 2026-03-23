@@ -5,7 +5,7 @@ import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
 import TurnTracker, { ValidationStatus } from '@/domain/models/TurnTracker.ts';
 import TurnValidator, { ValidatorContext } from '@/domain/services/TurnValidator.ts';
 import { Player, Letter } from '@/domain/enums.ts';
-import { shuffleWithFisherYates } from '@/shared/utils.ts';
+import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 enum GenerationDirection {
   Left = -1,
@@ -27,40 +27,33 @@ enum GenerationCommandType {
   ReturnResult = 'ReturnResult',
 }
 
-export type GeneratorContext = {
-  board: Board;
-  dictionary: Dictionary;
-  inventory: Inventory;
-  turnTracker: TurnTracker;
-};
+export type GeneratorContext = { board: Board; dictionary: Dictionary; inventory: Inventory; turnTracker: TurnTracker };
+
 export type GeneratorArguments = {
   context: GeneratorContext;
   lettersComputer: CrossCheckComputer;
   playerTileCollection: TileCollection;
   coords: AnchorCoordinates;
 };
+
 export type GeneratorResult = { tiles: ReadonlyArray<TileId>; cells: ReadonlyArray<CellIndex> };
+
 export type Traversal = { position: number; direction: GenerationDirection; node: NodeId };
+
 export type Candidate = { position: number; cell: CellIndex; resolution?: Resolution };
+
 export type Resolution = { tile: TileId };
+
 export type ResolutionComputeds = { letterTiles: Array<TileId> };
-export type EvaluateTask = {
-  type: GenerationTask.EvaluateTraversal;
-  traversal: Traversal;
-};
-export type ValidateTask = {
-  type: GenerationTask.ValidateTraversal;
-  traversal: Traversal;
-};
-export type CalculateTask = {
-  type: GenerationTask.CalculateCandidate;
-  traversal: Traversal;
-};
-export type ResolveTask = {
-  type: GenerationTask.ResolveCandidate;
-  traversal: Traversal;
-  candidate: Candidate;
-};
+
+export type EvaluateTask = { type: GenerationTask.EvaluateTraversal; traversal: Traversal };
+
+export type ValidateTask = { type: GenerationTask.ValidateTraversal; traversal: Traversal };
+
+export type CalculateTask = { type: GenerationTask.CalculateCandidate; traversal: Traversal };
+
+export type ResolveTask = { type: GenerationTask.ResolveCandidate; traversal: Traversal; candidate: Candidate };
+
 export type ApplyTask = {
   type: GenerationTask.ApplyResolution;
   traversal: Traversal;
@@ -68,19 +61,28 @@ export type ApplyTask = {
   resolution: Resolution;
   resolutionComputeds: ResolutionComputeds;
 };
+
 export type ReverseTask = {
   type: GenerationTask.ReverseResolution;
   traversal: Traversal;
   resolution: Resolution;
   resolutionComputeds: ResolutionComputeds;
 };
+
 export type Task = EvaluateTask | ValidateTask | CalculateTask | ResolveTask | ApplyTask | ReverseTask;
+
 export type ContinueTaskCommand = { type: GenerationCommandType.ContinueExecute; newTasks: Array<Task> };
+
 export type ReturnTaskCommand = { type: GenerationCommandType.ReturnResult; result: GeneratorResult };
+
 export type StopTaskCommand = { type: GenerationCommandType.StopExecute };
+
 export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
+
 export type MutableTileCollection = Map<Letter, Array<TileId>>;
+
 export type DispatcherState = { tiles: MutableTileCollection; placement: Array<Link> };
+
 export type DispatcherComputeds = { axisCells: ReadonlyArray<CellIndex>; oppositeAxis: Axis };
 
 export default class TurnGenerator {

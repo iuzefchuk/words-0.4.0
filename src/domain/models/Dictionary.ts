@@ -2,27 +2,29 @@ import { Letter } from '@/domain/enums.ts';
 import { DICTIONARY_DATA } from '@/domain/constants.ts';
 
 export type NodeId = number;
+
 export type NextNodeGenerator = Generator<[Letter, NodeId]>;
-export type DictionaryCache = {
+
+export type DictionaryProps = {
   rootNode: FrozenNode;
   nodeById: ReadonlyMap<NodeId, FrozenNode>;
   allLetters: ReadonlySet<Letter>;
 };
+
 type Transition = { parentNode: Node; childLetter: Letter; childNode: Node };
+
 type Node = { id: NodeId; isFinal: boolean; children: Map<Letter, Node> };
+
 type FrozenNode = {
   readonly id: NodeId;
   readonly isFinal: boolean;
   readonly children: ReadonlyMap<Letter, FrozenNode>;
 };
+
 type NodeGenerator = Generator<Node, Node>;
 
 export default class Dictionary {
-  private constructor(
-    private readonly rootNode: FrozenNode,
-    private readonly nodeById: ReadonlyMap<NodeId, FrozenNode>,
-    public readonly allLetters: ReadonlySet<Letter>,
-  ) {}
+  private constructor(readonly props: DictionaryProps) {}
 
   static create(): Dictionary {
     const rootNode = DictionaryTreeBuilder.execute(DICTIONARY_DATA);
@@ -30,17 +32,22 @@ export default class Dictionary {
     const allLetters = new Set<Letter>();
     this.freezeTree(rootNode);
     this.traverseNode(nodeById, allLetters, rootNode);
-    return new Dictionary(rootNode, nodeById, allLetters);
+    const props = { rootNode, nodeById, allLetters } as DictionaryProps;
+    return new Dictionary(props);
   }
 
-  static createFromCache(cache: DictionaryCache): Dictionary | null {
-    if (!(cache.nodeById instanceof Map) || !(cache.allLetters instanceof Set)) return null;
-    this.freezeTree(cache.rootNode);
-    return new Dictionary(cache.rootNode, cache.nodeById, cache.allLetters);
+  static hydrate(data: unknown): Dictionary {
+    return Object.setPrototypeOf(data, Dictionary.prototype) as Dictionary;
   }
 
-  get cache(): DictionaryCache {
-    return { rootNode: this.rootNode, nodeById: this.nodeById, allLetters: this.allLetters };
+  static restoreFromProps(props: DictionaryProps): Dictionary | null {
+    if (!(props.nodeById instanceof Map) || !(props.allLetters instanceof Set)) return null;
+    this.freezeTree(props.rootNode);
+    return new Dictionary(props);
+  }
+
+  get allLetters(): ReadonlySet<Letter> {
+    return this.props.allLetters;
   }
 
   get firstNode(): NodeId {
@@ -87,6 +94,14 @@ export default class Dictionary {
       allLetters.add(childLetter);
       this.traverseNode(nodeById, allLetters, childNode);
     }
+  }
+
+  private get rootNode(): FrozenNode {
+    return this.props.rootNode;
+  }
+
+  private get nodeById(): ReadonlyMap<NodeId, FrozenNode> {
+    return this.props.nodeById;
   }
 
   private findNodeForWord(word: string, startNodeId: NodeId = this.rootNode.id): FrozenNode | null {

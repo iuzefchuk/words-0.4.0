@@ -3,7 +3,7 @@ import { type CellIndex, type Placement } from '@/domain/models/Board.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
 import { IdGenerator } from '@/shared/ports.ts';
 
-export enum TurnOutcomeType {
+export enum ResolutionType {
   Save = 'Save',
   Pass = 'Pass',
   Resign = 'Resign',
@@ -24,19 +24,32 @@ export enum ValidationError {
 }
 
 export type ComputedCells = { cells: ReadonlyArray<CellIndex> };
+
 export type ComputedPlacements = { placements: ReadonlyArray<Placement> };
+
 export type ComputedWords = { words: ReadonlyArray<string> };
+
 export type ComputedScore = { score: number };
+
 export type ComputedValue = ComputedCells | ComputedPlacements | ComputedWords | ComputedScore;
+
 export type AllComputeds = ComputedCells & ComputedPlacements & ComputedWords & ComputedScore;
+
 export type UnvalidatedResult = { status: ValidationStatus.Unvalidated };
+
 export type InvalidResult = { status: ValidationStatus.Invalid; error: ValidationError };
+
 export type ValidResult = { status: ValidationStatus.Valid } & AllComputeds;
+
 export type ValidationResult = UnvalidatedResult | InvalidResult | ValidResult;
-export type TurnOutcome =
-  | ({ type: TurnOutcomeType.Save; player: Player } & ComputedWords & ComputedScore)
-  | { type: TurnOutcomeType.Pass; player: Player }
-  | { type: TurnOutcomeType.Resign; player: Player };
+
+export type ResolutionSave = { type: ResolutionType.Save; player: Player } & ComputedWords & ComputedScore;
+
+export type ResolutionPass = { type: ResolutionType.Pass; player: Player };
+
+export type ResolutionResign = { type: ResolutionType.Resign; player: Player };
+
+export type Resolution = ResolutionSave | ResolutionPass | ResolutionResign;
 
 export default class TurnTracker {
   private static readonly FIRST_PLAYER: Player = Player.User;
@@ -48,6 +61,12 @@ export default class TurnTracker {
 
   static create({ idGenerator }: { idGenerator: IdGenerator }): TurnTracker {
     return new TurnTracker(idGenerator, []);
+  }
+
+  static hydrate(data: unknown): TurnTracker {
+    const tracker = Object.setPrototypeOf(data, TurnTracker.prototype) as { turns: Array<unknown> };
+    for (const turn of tracker.turns) Turn.hydrate(turn);
+    return tracker as unknown as TurnTracker;
   }
 
   get hasPriorTurns(): boolean {
@@ -91,8 +110,8 @@ export default class TurnTracker {
     return this.turns.at(-2)?.tiles;
   }
 
-  get outcomeHistory(): ReadonlyArray<TurnOutcome> {
-    return this.turns.map(turn => turn.outcome).filter(turn => turn !== undefined);
+  get resolutionHistory(): ReadonlyArray<Resolution> {
+    return this.turns.map(turn => turn.resolution).filter(turn => turn !== undefined);
   }
 
   getScoreFor(player: Player): number {
@@ -103,11 +122,11 @@ export default class TurnTracker {
 
   willPlayerPassBeResign(player: Player): boolean {
     const lastTurn = this.completedTurns.findLast(turn => turn.player === player);
-    return lastTurn?.outcomeType === TurnOutcomeType.Pass;
+    return lastTurn?.resolutionType === ResolutionType.Pass;
   }
 
-  recordCurrentTurnOutcome(type: TurnOutcomeType): void {
-    this.currentTurn.outcomeType = type;
+  recordCurrentTurnResolution(type: ResolutionType): void {
+    this.currentTurn.resolutionType = type;
   }
 
   placeTileInCurrentTurn(tile: TileId): void {
@@ -142,13 +161,13 @@ export default class TurnTracker {
   }
 }
 
-export class Turn {
+class Turn {
   private constructor(
     readonly id: string,
     readonly player: Player,
     private _tiles: Array<TileId>,
     private _validationResult: ValidationResult,
-    private _outcomeType: TurnOutcomeType | undefined,
+    private _resolutionType: ResolutionType | undefined,
   ) {}
 
   static create({ player, idGenerator }: { player: Player; idGenerator: IdGenerator }): Turn {
@@ -157,30 +176,34 @@ export class Turn {
     return new Turn(id, player, [], validationResult, undefined);
   }
 
-  get outcome(): TurnOutcome | undefined {
-    if (this._outcomeType === TurnOutcomeType.Save) {
+  static hydrate(data: unknown): Turn {
+    return Object.setPrototypeOf(data, Turn.prototype) as Turn;
+  }
+
+  get resolution(): Resolution | undefined {
+    if (this._resolutionType === ResolutionType.Save) {
       if (this._validationResult.status !== ValidationStatus.Valid) {
         throw new Error('Can`t log output for invalid turn');
       }
       return {
-        type: TurnOutcomeType.Save,
+        type: ResolutionType.Save,
         player: this.player,
         words: this._validationResult.words,
         score: this._validationResult.score,
       };
     }
-    if (this._outcomeType === TurnOutcomeType.Pass) return { type: TurnOutcomeType.Pass, player: this.player };
-    if (this._outcomeType === TurnOutcomeType.Resign) return { type: TurnOutcomeType.Resign, player: this.player };
+    if (this._resolutionType === ResolutionType.Pass) return { type: ResolutionType.Pass, player: this.player };
+    if (this._resolutionType === ResolutionType.Resign) return { type: ResolutionType.Resign, player: this.player };
   }
 
-  get outcomeType(): TurnOutcomeType | undefined {
-    return this._outcomeType;
+  get resolutionType(): ResolutionType | undefined {
+    return this._resolutionType;
   }
 
-  set outcomeType(type: TurnOutcomeType) {
-    if (this._outcomeType !== undefined) throw new Error(`Outcome already set to ${this._outcomeType}`);
-    if (type === TurnOutcomeType.Save && !this.isValid) throw new Error('Can`t log output for invalid turn');
-    this._outcomeType = type;
+  set resolutionType(type: ResolutionType) {
+    if (this._resolutionType !== undefined) throw new Error(`Resolution already set to ${this._resolutionType}`);
+    if (type === ResolutionType.Save && !this.isValid) throw new Error('Can`t log output for invalid turn');
+    this._resolutionType = type;
   }
 
   set validationResult(result: ValidationResult) {

@@ -3,6 +3,13 @@ export enum Player {
   Opponent = 'Opponent',
 }
 
+export enum Event {
+  TilePlaced = 'TilePlaced',
+  TileUndoPlaced = 'TileUndoPlaced',
+  TurnSaved = 'TurnSaved',
+  TurnPassed = 'TurnPassed',
+}
+
 export enum Letter {
   A = 'A',
   B = 'B',

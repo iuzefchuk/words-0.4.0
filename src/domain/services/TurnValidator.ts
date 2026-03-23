@@ -16,25 +16,26 @@ import TurnTracker, {
 import Inventory, { TileId } from '@/domain/models/Inventory.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 
-export type ValidatorContext = {
-  board: Board;
-  dictionary: Dictionary;
-  inventory: Inventory;
-  turnTracker: TurnTracker;
-};
+export type ValidatorContext = { board: Board; dictionary: Dictionary; inventory: Inventory; turnTracker: TurnTracker };
+
 export type ValidatorArguments = { tiles: ReadonlyArray<TileId> };
+
 export type PendingResult<State> = { status: ValidationStatus.Pending; state: State };
+
 export type PipelineInput = { context: ValidatorContext } & ValidatorArguments;
-export type PipelineThroughput<State> =
-  | PendingResult<State>
-  | { status: ValidationStatus.Invalid; error: ValidationError };
+
+export type PipelineThroughput<State> = PendingResult<State> | InvalidResult;
+
 export type PipelineState<Output extends ComputedValue> = PipelineInput & Output;
-export type PipelineOutput =
-  | { status: ValidationStatus.Invalid; error: ValidationError }
-  | ({ status: ValidationStatus.Valid } & ComputedCells & ComputedPlacements & ComputedWords & ComputedScore);
+
+export type PipelineOutput = InvalidResult | ValidResult;
+
 export type SequencesOutput = ComputedCells;
+
 export type ComputedTilesOutput = SequencesOutput & ComputedPlacements;
+
 export type WordsOutput = ComputedTilesOutput & ComputedWords;
+
 export type ScoreOutput = WordsOutput & ComputedScore;
 
 export default class TurnValidator {

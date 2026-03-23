@@ -3,11 +3,20 @@ import Inventory from '@/domain/models/Inventory.ts';
 import TurnTracker from '@/domain/models/TurnTracker.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import { IdGenerator } from '@/shared/ports.ts';
-import { DomainCell, DomainTile, DomainPlayer, DomainTurnOutcome, DomainTurnOutcomeType } from '@/domain/types.ts';
+import {
+  DomainCell,
+  DomainTile,
+  DomainPlayer,
+  DomainTurnResolution,
+  DomainTurnResolutionType,
+} from '@/domain/types.ts';
+import { Event } from '@/domain/enums.ts';
 import TurnValidator, { ValidatorContext } from '@/domain/services/TurnValidator.ts';
-import { GeneratorContext } from '@/domain/services/TurnGenerator.ts';
+import TurnGenerator, { GeneratorResult } from '@/domain/services/TurnGenerator.ts';
 
 export default class Domain {
+  private readonly events: Array<Event> = [];
+
   private constructor(
     private readonly board: Board,
     private readonly dictionary: Dictionary,
@@ -23,6 +32,20 @@ export default class Domain {
     const domain = new Domain(board, dictionary, inventory, tracker);
     domain.startTurnForNextPlayer();
     return domain;
+  }
+
+  static hydrate(data: unknown): Domain {
+    const domain = Object.setPrototypeOf(data, Domain.prototype) as {
+      board: unknown;
+      dictionary: unknown;
+      inventory: unknown;
+      turnTracker: unknown;
+    };
+    Board.hydrate(domain.board);
+    Dictionary.hydrate(domain.dictionary);
+    Inventory.hydrate(domain.inventory);
+    TurnTracker.hydrate(domain.turnTracker);
+    return domain as unknown as Domain;
   }
 
   get currentPlayer(): DomainPlayer {
@@ -61,8 +84,8 @@ export default class Domain {
     return this.turnTracker.hasPriorTurns;
   }
 
-  get turnOutcomeHistory(): ReadonlyArray<DomainTurnOutcome> {
-    return [...this.turnTracker.outcomeHistory];
+  get turnResolutionHistory(): ReadonlyArray<DomainTurnResolution> {
+    return [...this.turnTracker.resolutionHistory];
   }
 
   get unusedTilesCount(): number {
@@ -77,14 +100,22 @@ export default class Domain {
     return this.turnTracker.getScoreFor(player);
   }
 
+  drainEvents(): Array<Event> {
+    const copy = [...this.events];
+    this.events.length = 0;
+    return copy;
+  }
+
   placeTile({ cell, tile }: { cell: DomainCell; tile: DomainTile }): void {
     this.board.placeTile(cell, tile);
     this.turnTracker.placeTileInCurrentTurn(tile);
+    this.events.push(Event.TilePlaced);
   }
 
   undoPlaceTile({ tile }: { tile: DomainTile }): void {
     this.turnTracker.undoPlaceTileInCurrentTurn({ tile });
     this.board.undoPlaceTile(tile);
+    this.events.push(Event.TileUndoPlaced);
   }
 
   validateCurrentTurn(): void {
@@ -111,16 +142,18 @@ export default class Domain {
     const tiles = this.currentTurnTiles;
     const words = this.currentTurnWords;
     if (!words) throw new Error('Current turn words do not exist');
-    this.turnTracker.recordCurrentTurnOutcome(DomainTurnOutcomeType.Save);
+    this.turnTracker.recordCurrentTurnResolution(DomainTurnResolutionType.Save);
     tiles.forEach((tile: DomainTile) => this.inventory.discardTile({ player, tile }));
     this.inventory.replenishTilesFor(player);
     this.startTurnForNextPlayer();
+    this.events.push(Event.TurnSaved);
     return { words };
   }
 
   passCurrentTurn(): void {
-    this.turnTracker.recordCurrentTurnOutcome(DomainTurnOutcomeType.Pass);
+    this.turnTracker.recordCurrentTurnResolution(DomainTurnResolutionType.Pass);
     this.startTurnForNextPlayer();
+    this.events.push(Event.TurnPassed);
   }
 
   willPlayerPassBeResign(player: DomainPlayer): boolean {
@@ -179,14 +212,14 @@ export default class Domain {
     this.inventory.shuffleTilesFor(player);
   }
 
-  toGeneratorContext(): GeneratorContext {
-    // TODO wft
-    return {
+  *generateTurnFor(player: DomainPlayer): Generator<GeneratorResult> {
+    const context = {
       board: this.board,
       dictionary: this.dictionary,
       inventory: this.inventory,
       turnTracker: this.turnTracker,
     };
+    yield* TurnGenerator.execute(context, player);
   }
 
   private startTurnForNextPlayer(): void {

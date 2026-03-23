@@ -1,26 +1,26 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
-import { AppTurnOutcomeHistory } from '@/application/types.ts';
+import { AppTurnResolutionHistory } from '@/application/types.ts';
 const MAX_LENGTH = 3;
 const matchStore = MatchStore.INSTANCE();
 const messages = computed(() => {
-  const history = matchStore.outcomeHistory;
+  const history = matchStore.resolutionHistory;
   const start = Math.max(0, history.length - MAX_LENGTH);
-  return history.slice(start).map((outcome, i) => ({
+  return history.slice(start).map((resolution, i) => ({
     key: start + i,
-    html: convertOutcomeToHtml(outcome),
+    html: convertResolutionToHtml(resolution),
   }));
 });
-function convertOutcomeToHtml(outcome: AppTurnOutcomeHistory[number]): string {
-  const { isSave, isUser } = outcome;
+function convertResolutionToHtml(resolution: AppTurnResolutionHistory[number]): string {
+  const { isSave, isUser } = resolution;
   if (isSave) {
-    return window.t(isUser ? 'game.outcome_save_user' : 'game.outcome_save_opponent', {
-      words: outcome.words!,
-      score: outcome.score!,
+    return window.t(isUser ? 'game.resolution_save_user' : 'game.resolution_save_opponent', {
+      words: resolution.words!,
+      score: resolution.score!,
     });
   } else {
-    return window.t(isUser ? 'game.outcome_pass_user' : 'game.outcome_pass_opponent');
+    return window.t(isUser ? 'game.resolution_pass_user' : 'game.resolution_pass_opponent');
   }
 }
 </script>

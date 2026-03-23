@@ -13,8 +13,11 @@ export enum Axis {
 }
 
 export type CellIndex = Brand<number, 'CellIndex'>;
+
 export type AnchorCoordinates = { readonly axis: Axis; readonly cell: CellIndex };
+
 export type Link = { readonly cell: CellIndex; readonly tile: TileId };
+
 export type Placement = ReadonlyArray<Link>;
 
 export default class Board {
@@ -27,6 +30,10 @@ export default class Board {
 
   static create(): Board {
     return new Board(new Map(), new Map());
+  }
+
+  static hydrate(data: unknown): Board {
+    return Object.setPrototypeOf(data, Board.prototype) as Board;
   }
 
   get cells(): ReadonlyArray<CellIndex> {
