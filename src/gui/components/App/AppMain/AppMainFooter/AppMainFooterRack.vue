@@ -44,7 +44,7 @@ const { allActionsAreDisabled } = actions;
     border-radius: calc(var(--primary-border-radius) * 2);
     box-shadow: var(--cell-shadow-footer);
     &--disabled {
-      opacity: 0.7;
+      opacity: var(--opacity-disabled);
       cursor: not-allowed;
       & > * {
         pointer-events: none;

@@ -6,7 +6,7 @@ import { reactive } from 'vue';
 import { storeToRefs } from 'pinia';
 const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
-const { allTilesArePlaced } = storeToRefs(rackStore);
+const { anyTileIsPlaced } = storeToRefs(rackStore);
 const actions = new UseActions();
 const { allActionsAreDisabled } = actions;
 const buttons = reactive([
@@ -25,13 +25,13 @@ const buttons = reactive([
   {
     name: window.t('game.action_shuffle'),
     action: () => actions.handleShuffle(),
-    isRendered: () => allTilesArePlaced.value,
+    isRendered: () => !anyTileIsPlaced.value,
     isDisabled: () => allActionsAreDisabled.value,
   },
   {
     name: window.t('game.action_clear'),
     action: () => actions.handleClear(),
-    isRendered: () => !allTilesArePlaced.value,
+    isRendered: () => anyTileIsPlaced.value,
     isDisabled: () => allActionsAreDisabled.value,
   },
   {
@@ -93,7 +93,7 @@ const buttons = reactive([
     }
     &:disabled {
       border-color: transparent;
-      opacity: 0.7;
+      opacity: var(--opacity-disabled);
       cursor: not-allowed;
     }
   }

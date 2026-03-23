@@ -5,7 +5,6 @@ export enum MatchResult {
 }
 
 export enum Event {
-  TilesShuffled = 'TilesShuffled',
   GameWon = 'GameWon',
   GameTied = 'GameTied',
   GameLost = 'GameLost',

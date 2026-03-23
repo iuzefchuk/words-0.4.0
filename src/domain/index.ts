@@ -208,10 +208,6 @@ export default class Domain {
     return this.inventory.hasTilesFor(player);
   }
 
-  shuffleTilesFor(player: DomainPlayer): void {
-    this.inventory.shuffleTilesFor(player);
-  }
-
   *generateTurnFor(player: DomainPlayer): Generator<GeneratorResult> {
     const context = {
       board: this.board,

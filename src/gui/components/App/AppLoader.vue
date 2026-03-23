@@ -20,7 +20,6 @@ const { isRendered, allTilesAreSaturated } = loader;
           />
         </template>
       </div>
-      <!-- <AppOutline /> -->
     </div>
   </Transition>
 </template>

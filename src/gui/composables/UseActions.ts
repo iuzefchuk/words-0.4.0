@@ -1,4 +1,5 @@
 import { computed } from 'vue';
+import { Sound } from '@/application/enums.ts';
 import DialogStore from '@/gui/stores/DialogStore.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
@@ -21,8 +22,8 @@ export default class UseActions {
   }
 
   handleShuffle(): void {
-    this.matchStore.shuffleUserTiles();
-    this.rackStore.initialize();
+    this.rackStore.shuffle();
+    this.matchStore.playSound(Sound.ActionMix);
   }
 
   handleClear(): void {

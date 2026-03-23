@@ -6,7 +6,9 @@ export { ResolutionType as DomainTurnResolutionType } from '@/domain/models/Turn
 
 export { Event as DomainEvent } from '@/domain/enums.ts';
 
-export { default as DomainDictionary, DictionaryProps as DomainDictionaryProps } from '@/domain/models/Dictionary.ts';
+export { default as DomainDictionary } from '@/domain/models/Dictionary.ts';
+
+export type { DictionaryProps as DomainDictionaryProps } from '@/domain/models/Dictionary.ts';
 
 export type { CellIndex as DomainCell } from '@/domain/models/Board.ts';
 

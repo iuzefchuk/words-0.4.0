@@ -121,10 +121,6 @@ export default class Inventory {
     this.discardPool.addTile(removedTile);
   }
 
-  shuffleTilesFor(player: Player): void {
-    this.getTilePoolFor(player).shuffle();
-  }
-
   private initializePlayerPools(): void {
     this.poolByPlayer.forEach(pool => this.replenishPlayerPool(pool));
   }
@@ -184,10 +180,6 @@ class TilePool {
       }
     }
     return collection;
-  }
-
-  shuffle(): void {
-    Inventory.shuffleTilesWithFisherYates(this.tiles);
   }
 
   addTile(tile: Tile): void {

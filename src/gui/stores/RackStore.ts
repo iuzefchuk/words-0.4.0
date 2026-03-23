@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import UseOutline from '@/gui/composables/UseOutline.ts';
+import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export default class RackStore {
   static readonly INSTANCE = defineStore('items', () => {
@@ -12,10 +13,10 @@ export default class RackStore {
     return {
       tiles: store.tilesRef,
       selectedTile: store.selectedTileRef,
-      allTilesArePlaced: computed(() => store.allTilesArePlaced),
       anyTileIsPlaced: computed(() => store.anyTileIsPlaced),
       outlineGroups: computed(() => store.outlineGroups),
       initialize: () => store.initialize(matchStore.userTiles),
+      shuffle: () => store.shuffle(),
       isTileInRack: store.isTileInRack.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       isTileVisible: store.isTileVisible.bind(store),
@@ -51,10 +52,6 @@ export default class RackStore {
     this.selectedTileRef.value = newValue;
   }
 
-  private get allTilesArePlaced(): boolean {
-    return this.tiles.every(tile => this.matchStore.isTilePlaced(tile));
-  }
-
   private get anyTileIsPlaced(): boolean {
     return this.tiles.some(tile => this.matchStore.isTilePlaced(tile));
   }
@@ -70,6 +67,11 @@ export default class RackStore {
   private initialize(userTiles: ReadonlyArray<AppTile>): void {
     this.tiles = [...userTiles];
     this.selectedTile = null;
+  }
+
+  private shuffle(): void {
+    shuffleWithFisherYates(this.tiles);
+    triggerRef(this.tilesRef);
   }
 
   private deselectTile(): void {

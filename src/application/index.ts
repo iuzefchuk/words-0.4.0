@@ -117,12 +117,6 @@ export default class Application {
     return previousTurnTiles.includes(tile);
   }
 
-  shuffleUserTiles(): void {
-    this.ensureMutability();
-    this.domain.shuffleTilesFor(AppPlayer.User);
-    this.events.push(Event.TilesShuffled);
-  }
-
   placeTile({ cell, tile }: { cell: AppCell; tile: AppTile }): void {
     this.ensureMutability();
     PlaceTileCommand.execute(this.domain, { cell, tile });
@@ -176,6 +170,10 @@ export default class Application {
 
   resignMatch(): void {
     this.endMatch(this.domain.nextPlayer, this.domain.currentPlayer);
+  }
+
+  playSound(sound: Sound): void {
+    this.soundPlayer.play(sound);
   }
 
   playPendingSounds(): void {

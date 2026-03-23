@@ -15,7 +15,6 @@ export const DOMAIN_EVENT_SOUNDS: Partial<Record<DomainEvent, Sound>> = {
 };
 
 export const EVENT_SOUNDS: Partial<Record<Event, Sound>> = {
-  [Event.TilesShuffled]: Sound.ActionMix,
   [Event.GameWon]: Sound.EndGood,
   [Event.GameTied]: Sound.EndNeutral,
   [Event.GameLost]: Sound.EndBad,

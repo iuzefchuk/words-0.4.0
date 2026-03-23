@@ -1,4 +1,5 @@
 import Application from '@/application/index.ts';
+import { Sound } from '@/application/enums.ts';
 import { AppCell, AppTile, AppState, AppTurnExecutionResult, AppTurnResolutionHistory } from '@/application/types.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
@@ -35,7 +36,7 @@ export default class MatchStore {
       getTileLetter: store.getTileLetter.bind(store),
       isCellTopRightInTurn: store.isCellTopRightInTurn.bind(store),
       wasTileUsedInPreviousTurn: store.wasTileUsedInPreviousTurn.bind(store),
-      shuffleUserTiles: store.shuffleUserTiles.bind(store),
+      playSound: store.playSound.bind(store),
       placeTile: store.placeTile.bind(store),
       undoPlaceTile: store.undoPlaceTile.bind(store),
       resetTurn: store.resetTurn.bind(store),
@@ -141,9 +142,8 @@ export default class MatchStore {
     return this.state.trackDependency(() => this.application.wasTileUsedInPreviousTurn(tile));
   }
 
-  private shuffleUserTiles(): void {
-    this.state.mutateAndRefresh(() => this.application.shuffleUserTiles());
-    this.application.playPendingSounds();
+  private playSound(sound: Sound): void {
+    this.application.playSound(sound);
   }
 
   private placeTile(args: { cell: AppCell; tile: AppTile }): void {
