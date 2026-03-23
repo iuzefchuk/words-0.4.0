@@ -4,12 +4,12 @@ import { DomainEvent } from '@/domain/types.ts';
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
 import SoundPlayer, { Sound } from '@/infrastructure/SoundPlayer.ts';
-import ApplicationFactory from '@/infrastructure/ApplicationFactory.ts';
+import ApplicationFactory from '@/infrastructure/factories/ApplicationFactory.ts';
 
 let application: Application;
 
 export async function startGame(): Promise<void> {
-  application = await ApplicationFactory.create();
+  application = await ApplicationFactory.execute();
 }
 
 export default class MatchStore {

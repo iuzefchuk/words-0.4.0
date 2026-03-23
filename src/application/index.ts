@@ -20,8 +20,16 @@ import PlaceTileCommand from '@/application/commands/PlaceTile.ts';
 import SaveTurnCommand from '@/application/commands/SaveTurn.ts';
 import UndoPlaceTileCommand from '@/application/commands/UndoPlaceTile.ts';
 import PassTurnCommand from '@/application/commands/PassTurn.ts';
-import TurnGeneratorWorker from '@/infrastructure/TurnGeneratorWorker/TurnGeneratorWorker.ts';
 import { AppMatchResult } from '@/application/enums.ts';
+
+export type TurnGenerationWorker = {
+  // TODO move ?
+  execute(request: {
+    domain: Domain;
+    player: AppPlayer;
+  }): Promise<{ tiles: ReadonlyArray<AppTile>; cells: ReadonlyArray<AppCell> } | null>;
+  terminate(): void;
+};
 
 export default class Application {
   static readonly BONUSES = AppBonus;
@@ -38,7 +46,7 @@ export default class Application {
 
   private constructor(
     private readonly domain: Domain,
-    private readonly turnGenerationWorker: TurnGeneratorWorker,
+    private readonly turnGenerationWorker: TurnGenerationWorker,
     private readonly clock: Clock,
   ) {}
 
@@ -46,14 +54,15 @@ export default class Application {
     dictionary,
     idGenerator,
     clock,
+    turnGenerationWorker,
   }: {
     dictionary: AppDictionary;
     idGenerator: IdGenerator;
     clock: Clock;
+    turnGenerationWorker: TurnGenerationWorker;
   }): Application {
     const domain = Domain.create({ dictionary, idGenerator });
-    const worker = new TurnGeneratorWorker();
-    return new Application(domain, worker, clock);
+    return new Application(domain, turnGenerationWorker, clock);
   }
 
   get layoutCells(): ReadonlyArray<AppCell> {

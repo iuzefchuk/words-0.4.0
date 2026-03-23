@@ -6,13 +6,15 @@ export {
   DomainLetter as AppLetter,
   DomainBonus as AppBonus,
   DomainTurnOutcomeType as AppTurnOutcomeType,
+  DomainDictionary as AppDictionary,
 } from '@/domain/types.ts';
 export type {
+  Domain as AppDomain,
   DomainCell as AppCell,
   DomainTile as AppTile,
   DomainTurnResult as AppTurnResult,
   DomainTurnOutcome as AppTurnOutcome,
-  DomainDictionary as AppDictionary,
+  DomainDictionaryCache as AppDictionaryCache,
 } from '@/domain/types.ts';
 
 export type AppState = {
