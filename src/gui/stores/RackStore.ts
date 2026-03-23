@@ -24,6 +24,7 @@ export default class RackStore {
       handleClickFooterTile: store.handleClickFooterTile.bind(store),
       handleClickBoardCell: store.handleClickBoardCell.bind(store),
       handleClickBoardTile: store.handleClickBoardTile.bind(store),
+      handleDoubleClickBoardTile: store.handleDoubleClickBoardTile.bind(store),
       deselectTile: store.deselectTile.bind(store),
     };
   });
@@ -136,6 +137,12 @@ export default class RackStore {
     if (this.selectedTileIsPlaced) this.matchStore.undoPlaceTile(this.selectedTile);
     this.matchStore.placeTile({ tile: this.selectedTile, cell });
     this.deselectTile();
+  }
+
+  private handleDoubleClickBoardTile(tile: AppTile): void {
+    if (!this.isTileInRack(tile)) return;
+    this.deselectTile();
+    this.matchStore.undoPlaceTile(tile);
   }
 
   private handleClickBoardTile(tile: AppTile): void {

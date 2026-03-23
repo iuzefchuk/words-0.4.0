@@ -9,8 +9,8 @@ import {
 import IdGenerator from '@/infrastructure/CryptoIdGenerator.ts';
 import DateApiClock from '@/infrastructure/DateApiClock.ts';
 import IndexedDb from '@/infrastructure/IndexedDb.ts';
-import AudioSoundPlayer from '@/infrastructure/SoundPlayer.ts';
 import WebWorker from '@/infrastructure/WebWorker.ts';
+import AudioSoundPlayer from '@/infrastructure/SoundPlayer.ts';
 import { TurnGenerationWorker } from '@/shared/ports.ts';
 
 export default class AppDependenciesFactory {
