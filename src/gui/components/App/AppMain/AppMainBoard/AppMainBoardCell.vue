@@ -1,15 +1,14 @@
 <script lang="ts" setup>
 import { PropType, computed } from 'vue';
-import { DomainCell } from '@/application/types.ts';
-import DomainTile from '@/gui/components/shared/DomainTile.vue';
-import { getBonusName } from '@/gui/mappings.ts';
+import { DomainCell, DomainBonus } from '@/application/types.ts';
+import DomainTile from '@/gui/components/shared/AppTile.vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
 const props = defineProps({ cell: { type: Number as unknown as PropType<DomainCell>, required: true } });
 const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
 const bonus = computed(() => matchStore.getCellBonus(props.cell));
-const bonusName = computed(() => (bonus.value ? getBonusName(bonus.value) : ''));
+const bonusName = computed(() => (bonus.value ? matchStore.getBonusName(bonus.value) : ''));
 const tile = computed(() => matchStore.findTileOnCell(props.cell));
 const isTileSaturated = computed(() => tile.value != null && matchStore.wasTileUsedInPreviousTurn(tile.value));
 </script>
@@ -28,10 +27,10 @@ const isTileSaturated = computed(() => tile.value != null && matchStore.wasTileU
         v-if="bonus"
         :class="{
           cell__bonus: true,
-          'cell__bonus--dw': bonus === matchStore.bonuses.DoubleWord,
-          'cell__bonus--tw': bonus === matchStore.bonuses.TripleWord,
-          'cell__bonus--dl': bonus === matchStore.bonuses.DoubleLetter,
-          'cell__bonus--tl': bonus === matchStore.bonuses.TripleLetter,
+          'cell__bonus--dw': bonus === DomainBonus.DoubleWord,
+          'cell__bonus--tw': bonus === DomainBonus.TripleWord,
+          'cell__bonus--dl': bonus === DomainBonus.DoubleLetter,
+          'cell__bonus--tl': bonus === DomainBonus.TripleLetter,
         }"
         class="cell__bonus"
         viewBox="0 0 40 40"

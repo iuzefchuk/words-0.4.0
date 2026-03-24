@@ -10,7 +10,7 @@ export default class UseActions {
   async handleResign(): Promise<void> {
     const { isConfirmed } = await this.triggerResignDialog();
     if (!isConfirmed) return;
-    this.matchStore.resignGame();
+    this.matchStore.resignMatch();
   }
 
   async handlePass(): Promise<void> {

@@ -1,4 +1,4 @@
-import { AppConfig, AppState, AppTurnResponse } from '@/application/types.ts';
+import { AppConfig, AppState, AppTurnResponse, AppTurnResolution } from '@/application/types.ts';
 import Domain from '@/domain/index.ts';
 import {
   DomainPlayer,
@@ -42,7 +42,7 @@ export default class Application {
       opponentScore: this.domain.getScoreFor(DomainPlayer.Opponent),
       userPassWillBeResign: this.domain.willPlayerPassBeResign(DomainPlayer.User),
       userTiles: this.domain.getTilesFor(DomainPlayer.User),
-      turnResolutionHistory: this.domain.state.turnResolutionHistory,
+      turnResolutionHistory: this.domain.state.turnResolutionHistory.map(r => this.simplifyTurnResolution(r)),
       matchResult: this.domain.getMatchResultFor(DomainPlayer.User),
     };
   }
@@ -109,7 +109,7 @@ export default class Application {
     this.domain.resetCurrentTurn();
   }
 
-  handleSaveTurn(): { userResponse: AppTurnResponse; opponentResponse?: Promise<AppTurnResponse> } {
+  handleSaveTurn(): { userResponse: AppTurnResponse; opponentTurn?: Promise<AppTurnResponse> } {
     const { currentPlayer: player } = this.domain.state;
     const userResponse = this.saveTurn();
     if (!userResponse.ok) {
@@ -123,20 +123,24 @@ export default class Application {
       this.turnGenerationWorker.terminate();
       return { userResponse };
     }
-    const opponentResponse =
+    const opponentTurn =
       this.domain.state.currentPlayer === DomainPlayer.Opponent ? this.executeOpponentTurn() : undefined;
-    return { userResponse, opponentResponse };
+    return { userResponse, opponentTurn };
   }
 
-  handlePassTurn(): { opponentResponse?: Promise<AppTurnResponse> } {
+  handlePassTurn(): { opponentTurn?: Promise<AppTurnResponse> } {
     if (this.domain.willPlayerPassBeResign(DomainPlayer.User)) {
       this.domain.resignMatchForCurrentPlayer();
       return {};
     }
     this.domain.passCurrentTurn();
-    const opponentResponse =
+    const opponentTurn =
       this.domain.state.currentPlayer === DomainPlayer.Opponent ? this.executeOpponentTurn() : undefined;
-    return { opponentResponse };
+    return { opponentTurn };
+  }
+
+  handleResignMatch(): void {
+    this.domain.resignMatchForCurrentPlayer();
   }
 
   clearAllDomainEvents(): Array<DomainEvent> {
@@ -198,5 +202,18 @@ export default class Application {
     const delay = Application.OPPONENT_RESPONSE_MIN_TIME - elapsed;
     if (delay > 0) await this.clock.wait(delay);
     return result;
+  }
+
+  private simplifyTurnResolution(resolution: DomainTurnResolution): AppTurnResolution {
+    const isSave = resolution.type === DomainTurnResolutionType.Save;
+    const isUser = resolution.player === DomainPlayer.User;
+    return {
+      isSave,
+      isUser,
+      ...(isSave && {
+        words: resolution.words.join(', '),
+        score: resolution.score,
+      }),
+    };
   }
 }

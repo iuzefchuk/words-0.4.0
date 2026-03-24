@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import DomainTile from '@/gui/components/shared/DomainTile.vue';
+import DomainTile from '@/gui/components/shared/AppTile.vue';
 import UseActions from '@/gui/composables/UseActions.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';

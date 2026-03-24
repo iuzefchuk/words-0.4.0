@@ -12,15 +12,13 @@ import {
   DomainPlayer,
   DomainTurnResolutionType,
   DomainState,
-  DomainBonus,
-  DomainLetter,
   DomainConfig,
   DomainMatchResult,
 } from '@/domain/types.ts';
 import { IdGenerator } from '@/shared/ports.ts';
 
 export default class Domain {
-  static Events = class {
+  private static Events = class {
     private readonly events: Array<Event> = [];
 
     record(event: Event): void {
@@ -71,8 +69,6 @@ export default class Domain {
 
   get config(): DomainConfig {
     return {
-      bonuses: DomainBonus,
-      letters: DomainLetter,
       boardCells: this.board.cells,
     };
   }

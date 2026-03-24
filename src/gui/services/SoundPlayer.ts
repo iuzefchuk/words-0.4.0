@@ -1,5 +1,3 @@
-import { Event } from '@/domain/enums.ts';
-
 export enum Sound {
   ActionGood = 'ActionGood',
   ActionNeutral = 'ActionNeutral',
@@ -20,19 +18,7 @@ type SoundDefinition = {
   ramp?: number;
 };
 
-export const EVENT_SOUNDS: Partial<Record<Event, Sound>> = {
-  [Event.TilePlaced]: Sound.ActionNeutral,
-  [Event.TileUndoPlaced]: Sound.ActionNeutralReverse,
-  [Event.UserTurnSaved]: Sound.ActionGood,
-  [Event.UserTurnPassed]: Sound.ActionBad,
-  [Event.OpponentTurnSaved]: Sound.AltActionGood,
-  // TODO for pass
-  [Event.MatchWon]: Sound.EndGood,
-  [Event.MatchTied]: Sound.EndNeutral,
-  [Event.MatchLost]: Sound.EndBad,
-};
-
-export default class AudioSoundPlayer {
+export default class SoundPlayer {
   private static readonly DEFINITIONS: Record<Sound, ReadonlyArray<SoundDefinition>> = {
     [Sound.ActionGood]: [
       { frequency: 523, duration: 0.08, type: 'sine', gain: 0.12 },
@@ -78,7 +64,7 @@ export default class AudioSoundPlayer {
   private queueEnd: number = 0;
 
   play(sound: Sound): void {
-    const notes = AudioSoundPlayer.DEFINITIONS[sound];
+    const notes = SoundPlayer.DEFINITIONS[sound];
     if (notes.length === 0) return;
     setTimeout(() => this.scheduleSound(notes), 0);
   }
@@ -111,7 +97,7 @@ export default class AudioSoundPlayer {
     osc.type = note.type;
     osc.frequency.value = note.frequency;
     gainNode.gain.setValueAtTime(note.gain, start);
-    gainNode.gain.setValueAtTime(note.gain, end - AudioSoundPlayer.FADE_OUT);
+    gainNode.gain.setValueAtTime(note.gain, end - SoundPlayer.FADE_OUT);
     gainNode.gain.linearRampToValueAtTime(0.001, end);
     osc.connect(gainNode);
     gainNode.connect(ctx.destination);

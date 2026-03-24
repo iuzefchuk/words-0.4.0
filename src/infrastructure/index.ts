@@ -14,7 +14,6 @@ import { TurnGenerationWorker } from '@/shared/ports.ts';
 
 export default class Infrastructure {
   private static readonly CACHE_VERSION = 1;
-  private static readonly DICTIONARY_WORKER_PATH = './workers/TurnGeneratorWorker.ts';
   private static readonly DICTIONARY_DB_NAME = 'words-dictionary';
   private static readonly DICTIONARY_STORE_NAME = 'props';
   private static readonly DICTIONARY_CACHE_KEY = 'dictionary';
@@ -44,9 +43,10 @@ export default class Infrastructure {
   }
 
   private static createTurnGenerationWorker(): TurnGenerationWorker<DomainPlayer, DomainCell, DomainTile> {
+    const worker = new Worker(new URL('./workers/TurnGeneratorWorker.ts', import.meta.url), { type: 'module' });
     return WebWorker.create<
       { domain: unknown; player: DomainPlayer },
       { tiles: ReadonlyArray<DomainTile>; cells: ReadonlyArray<DomainCell> }
-    >(Infrastructure.DICTIONARY_WORKER_PATH);
+    >(worker);
   }
 }

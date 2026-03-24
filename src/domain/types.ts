@@ -1,33 +1,26 @@
 import { Player as DomainPlayer, Event as DomainEvent, Letter as DomainLetter } from '@/domain/enums.ts';
 import type { default as Domain } from '@/domain/index.ts';
 import { Bonus as DomainBonus } from '@/domain/models/Board.ts';
-import { CellIndex as DomainCell } from '@/domain/models/Board.ts';
-import { default as DomainDictionary, DictionaryProps as DomainDictionaryProps } from '@/domain/models/Dictionary.ts';
-import { TileId as DomainTile } from '@/domain/models/Inventory.ts';
+import type { CellIndex as DomainCell } from '@/domain/models/Board.ts';
+import { default as DomainDictionary } from '@/domain/models/Dictionary.ts';
+import type { DictionaryProps as DomainDictionaryProps } from '@/domain/models/Dictionary.ts';
+import type { TileId as DomainTile } from '@/domain/models/Inventory.ts';
 import { MatchResult as DomainMatchResult } from '@/domain/models/MatchTracker.ts';
-import {
-  Resolution as DomainTurnResolution,
-  ResolutionType as DomainTurnResolutionType,
-} from '@/domain/models/TurnTracker.ts';
+import { ResolutionType as DomainTurnResolutionType } from '@/domain/models/TurnTracker.ts';
+import type { Resolution as DomainTurnResolution } from '@/domain/models/TurnTracker.ts';
 
+export type { Domain, DomainCell, DomainDictionaryProps, DomainTile, DomainTurnResolution };
 export {
   DomainPlayer,
   DomainEvent,
-  Domain,
   DomainLetter,
   DomainBonus,
-  DomainCell,
   DomainDictionary,
-  DomainDictionaryProps,
-  DomainTile,
   DomainMatchResult,
-  DomainTurnResolution,
   DomainTurnResolutionType,
 };
 
 export type DomainConfig = {
-  readonly bonuses: typeof DomainBonus;
-  readonly letters: typeof DomainLetter;
   readonly boardCells: ReadonlyArray<DomainCell>;
 };
 

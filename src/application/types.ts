@@ -3,14 +3,20 @@ import type {
   DomainTile,
   DomainConfig,
   DomainTurnResolution,
-  DomainMatchResult,
   DomainDictionaryProps,
 } from '@/domain/types.ts';
-import { DomainPlayer, DomainDictionary } from '@/domain/types.ts';
+import {
+  DomainBonus,
+  DomainEvent,
+  DomainLetter,
+  DomainPlayer,
+  DomainMatchResult,
+  DomainDictionary,
+} from '@/domain/types.ts';
 import { IdGenerator, Clock, TurnGenerationWorker } from '@/shared/ports.ts';
 
-export type { DomainCell, DomainTile, DomainDictionaryProps };
-export { DomainPlayer, DomainDictionary };
+export type { DomainCell, DomainTile, DomainTurnResolution, DomainDictionaryProps };
+export { DomainBonus, DomainEvent, DomainLetter, DomainPlayer, DomainMatchResult, DomainDictionary };
 
 export type AppConfig = DomainConfig;
 
@@ -24,7 +30,7 @@ export type AppState = {
   opponentScore: number;
   userPassWillBeResign: boolean;
   userTiles: ReadonlyArray<DomainTile>;
-  turnResolutionHistory: ReadonlyArray<DomainTurnResolution>;
+  turnResolutionHistory: ReadonlyArray<AppTurnResolution>;
   matchResult?: DomainMatchResult;
 };
 
@@ -36,3 +42,5 @@ export type AppDependencies = {
 };
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;
+
+export type AppTurnResolution = { isSave: boolean; isUser: boolean; words?: string; score?: number };

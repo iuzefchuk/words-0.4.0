@@ -1,18 +1,18 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { AppTurnResolutionHistory } from '@/application/types.ts';
+import { AppTurnResolution } from '@/application/types.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 const MAX_LENGTH = 3;
 const matchStore = MatchStore.INSTANCE();
 const messages = computed(() => {
-  const history = matchStore.resolutionHistory;
+  const history = matchStore.turnResolutionHistory;
   const start = Math.max(0, history.length - MAX_LENGTH);
-  return history.slice(start).map((resolution, i) => ({
-    key: start + i,
+  return history.slice(start).map((resolution: AppTurnResolution, idx: number) => ({
+    key: start + idx,
     html: convertResolutionToHtml(resolution),
   }));
 });
-function convertResolutionToHtml(resolution: AppTurnResolutionHistory[number]): string {
+function convertResolutionToHtml(resolution: AppTurnResolution): string {
   const { isSave, isUser } = resolution;
   if (isSave) {
     return window.t(isUser ? 'game.resolution_save_user' : 'game.resolution_save_opponent', {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { getLetterSvgHtml } from '@/gui/mappings.ts';
+import MatchStore from '@/gui/stores/MatchStore.ts';
+const matchStore = MatchStore.INSTANCE();
 defineProps({
   letter: { type: String, required: true },
   isInverted: { type: Boolean, default: false },
@@ -15,7 +16,7 @@ defineProps({
       'tile--saturated': isSaturated,
     }"
     viewBox="0 0 21 21"
-    v-html="getLetterSvgHtml(letter)"
+    v-html="matchStore.getLetterSvgHtml(letter)"
   ></svg>
 </template>
 

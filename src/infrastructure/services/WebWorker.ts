@@ -8,8 +8,7 @@ export default class WebWorker<Request, Response> {
     this.worker = worker;
   }
 
-  static create<Request, Response>(pathToSrc: string): WebWorker<Request, Response> {
-    const worker = new Worker(new URL(pathToSrc, import.meta.url), { type: 'module' });
+  static create<Request, Response>(worker: Worker): WebWorker<Request, Response> {
     return new WebWorker(worker);
   }
 
