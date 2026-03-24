@@ -1,7 +1,7 @@
 import { DomainTile } from '@/application/types.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 
-export type OutlineGroup = { row: number; col: number; rowSpan: number; colSpan: number };
+type OutlineGroup = { row: number; col: number; rowSpan: number; colSpan: number };
 
 type CellKey = string;
 

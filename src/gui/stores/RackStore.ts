@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import { shallowRef, ref, computed, triggerRef } from 'vue';
 import { DomainCell, DomainTile } from '@/application/types.ts';
-import UseOutline from '@/gui/composables/UseOutline.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
@@ -14,7 +13,6 @@ export default class RackStore {
       tiles: store.tilesRef,
       selectedTile: store.selectedTileRef,
       anyTileIsPlaced: computed(() => store.anyTileIsPlaced),
-      outlineGroups: computed(() => store.outlineGroups),
       initialize: () => store.initialize(matchStore.userTiles),
       shuffle: () => store.shuffle(),
       isTileInRack: store.isTileInRack.bind(store),
@@ -28,8 +26,6 @@ export default class RackStore {
       deselectTile: store.deselectTile.bind(store),
     };
   });
-
-  private readonly outline = new UseOutline();
 
   private constructor(
     private matchStore: ReturnType<typeof MatchStore.INSTANCE>,
@@ -55,10 +51,6 @@ export default class RackStore {
 
   private get anyTileIsPlaced(): boolean {
     return this.tiles.some(tile => this.matchStore.isTilePlaced(tile));
-  }
-
-  private get outlineGroups(): ReadonlyArray<{ row: number; col: number; rowSpan: number; colSpan: number }> {
-    return this.outline.collectGroups(this.tiles);
   }
 
   private get selectedTileIsPlaced(): boolean {
