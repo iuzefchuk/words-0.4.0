@@ -4,14 +4,14 @@ import App from '@/gui/components/App/App.vue';
 import DirectivesPlugin from '@/gui/plugins/DirectivesPlugin/DirectivesPlugin.ts';
 import LocalesPlugin from '@/gui/plugins/LocalesPlugin/LocalesPlugin.ts';
 import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
-import { startGame } from '@/gui/stores/MatchStore.ts';
+import { startMatch } from '@/gui/stores/MatchStore.ts';
 
 class Application {
   private app = createApp(App);
 
   async start(): Promise<void> {
     try {
-      await Promise.allSettled([this.installAsyncPlugins(), startGame()]);
+      await Promise.allSettled([this.installAsyncPlugins(), startMatch()]);
       this.installPlugins();
       this.mount();
     } catch (error) {
