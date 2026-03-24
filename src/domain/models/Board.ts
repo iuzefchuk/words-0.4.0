@@ -32,7 +32,7 @@ export default class Board {
     return new Board(new Map(), new Map());
   }
 
-  static hydrate(data: unknown): Board {
+  static reconstruct(data: unknown): Board {
     return Object.setPrototypeOf(data, Board.prototype) as Board;
   }
 

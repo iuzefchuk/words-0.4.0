@@ -1,5 +1,16 @@
-import { Sound } from '@/application/enums.ts';
-import { SoundPlayer } from '@/shared/ports.ts';
+import { Event } from '@/domain/enums.ts';
+
+export enum Sound {
+  ActionGood = 'ActionGood',
+  ActionNeutral = 'ActionNeutral',
+  ActionNeutralReverse = 'ActionNeutralReverse',
+  ActionBad = 'ActionBad',
+  ActionMix = 'ActionMix',
+  AltActionGood = 'AltActionGood',
+  EndGood = 'EndGood',
+  EndNeutral = 'EndNeutral',
+  EndBad = 'EndBad',
+}
 
 type SoundDefinition = {
   frequency: number;
@@ -9,7 +20,19 @@ type SoundDefinition = {
   ramp?: number;
 };
 
-export default class AudioSoundPlayer implements SoundPlayer<Sound> {
+export const EVENT_SOUNDS: Partial<Record<Event, Sound>> = {
+  [Event.TilePlaced]: Sound.ActionNeutral,
+  [Event.TileUndoPlaced]: Sound.ActionNeutralReverse,
+  [Event.UserTurnSaved]: Sound.ActionGood,
+  [Event.UserTurnPassed]: Sound.ActionBad,
+  [Event.OpponentTurnSaved]: Sound.AltActionGood,
+  // TODO for pass
+  [Event.MatchWon]: Sound.EndGood,
+  [Event.MatchTied]: Sound.EndNeutral,
+  [Event.MatchLost]: Sound.EndBad,
+};
+
+export default class AudioSoundPlayer {
   private static readonly DEFINITIONS: Record<Sound, ReadonlyArray<SoundDefinition>> = {
     [Sound.ActionGood]: [
       { frequency: 523, duration: 0.08, type: 'sine', gain: 0.12 },

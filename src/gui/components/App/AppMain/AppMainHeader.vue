@@ -34,11 +34,11 @@ const players = reactive([
   padding: var(--primary-padding);
   justify-self: center;
   align-self: start;
-  height: 5.3rem;
+  height: 6rem;
   &__wrapper {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs);
+    gap: var(--space-s);
   }
   &__player {
     display: flex;

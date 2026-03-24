@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
 import { computed, Ref, shallowRef } from 'vue';
-import { Sound } from '@/application/enums.ts';
 import Application from '@/application/index.ts';
-import { AppCell, AppTile, AppState, AppTurnExecutionResult, AppTurnResolutionHistory } from '@/application/types.ts';
+import { DomainCell, DomainTile, AppState, AppTurnResponse, AppTurnResolutionHistory } from '@/application/types.ts';
+import AudioSoundPlayer, { Sound, EVENT_SOUNDS } from '@/gui/services/SoundPlayer.ts';
 
 let application: Application;
+const soundPlayer = new AudioSoundPlayer();
 
 export async function startGame(): Promise<void> {
   application = await Application.create();
@@ -12,10 +13,12 @@ export async function startGame(): Promise<void> {
 
 export default class MatchStore {
   static readonly INSTANCE = defineStore('game', () => {
-    const store = new MatchStore(application);
+    const store = new MatchStore(application, soundPlayer);
     return {
-      layoutCells: application.layoutCells,
-      matchIsFinished: store.state.isFinished,
+      bonuses: application.config.bonuses,
+      letters: application.config.letters,
+      boardCells: application.config.boardCells,
+      matchIsFinished: store.state.matchIsFinished,
       matchResult: store.state.matchResult,
       tilesRemaining: store.state.tilesRemaining,
       userTiles: store.state.userTiles,
@@ -48,7 +51,7 @@ export default class MatchStore {
   });
 
   private static StateReactivityWrapper = class {
-    readonly isFinished = computed(() => this.state.isFinished);
+    readonly matchIsFinished = computed(() => this.state.matchIsFinished);
     readonly matchResult = computed(() => this.state.matchResult);
     readonly tilesRemaining = computed(() => this.state.tilesRemaining);
     readonly userTiles = computed(() => this.state.userTiles);
@@ -60,7 +63,7 @@ export default class MatchStore {
     readonly userPassWillBeResign = computed(() => this.state.userPassWillBeResign);
     readonly resolutionHistory = computed<AppTurnResolutionHistory>(() => {
       void this.stateRef.value;
-      return [...this.application.turnResolutionHistory];
+      return this.application.state.turnResolutionHistory;
     });
 
     private readonly stateRef: Ref<AppState>;
@@ -94,96 +97,106 @@ export default class MatchStore {
 
   private readonly state: InstanceType<typeof MatchStore.StateReactivityWrapper>;
 
-  private constructor(private readonly application: Application) {
+  private constructor(
+    private readonly application: Application,
+    private readonly soundPlayer: AudioSoundPlayer,
+  ) {
     this.state = new MatchStore.StateReactivityWrapper(application);
   }
 
-  private isCellInCenterOfLayout(cell: AppCell): boolean {
+  private isCellInCenterOfLayout(cell: DomainCell): boolean {
     return this.application.isCellInCenterOfLayout(cell);
   }
 
-  private getCellBonus(cell: AppCell): string | null {
+  private getCellBonus(cell: DomainCell): string | null {
     return this.application.getCellBonus(cell);
   }
 
-  private findTileOnCell(cell: AppCell): AppTile | undefined {
+  private findTileOnCell(cell: DomainCell): DomainTile | undefined {
     return this.state.trackDependency(() => this.application.findTileByCell(cell));
   }
 
-  private findCellWithTile(tile: AppTile): AppCell | undefined {
+  private findCellWithTile(tile: DomainTile): DomainCell | undefined {
     return this.state.trackDependency(() => this.application.findCellByTile(tile));
   }
 
-  private isTilePlaced(tile: AppTile): boolean {
+  private isTilePlaced(tile: DomainTile): boolean {
     return this.state.trackDependency(() => this.application.isTilePlaced(tile));
   }
 
-  private getCellRowIndex(cell: AppCell): number {
+  private getCellRowIndex(cell: DomainCell): number {
     return this.application.getCellRowIndex(cell);
   }
 
-  private getCellColumnIndex(cell: AppCell): number {
+  private getCellColumnIndex(cell: DomainCell): number {
     return this.application.getCellColumnIndex(cell);
   }
 
-  private areTilesSame(firstTile: AppTile, secondTile: AppTile): boolean {
+  private areTilesSame(firstTile: DomainTile, secondTile: DomainTile): boolean {
     return this.application.areTilesSame(firstTile, secondTile);
   }
 
-  private getTileLetter(tile: AppTile): string {
+  private getTileLetter(tile: DomainTile): string {
     return this.application.getTileLetter(tile);
   }
 
-  private isCellTopRightInTurn(cell: AppCell): boolean {
+  private isCellTopRightInTurn(cell: DomainCell): boolean {
     return this.state.trackDependency(() => this.application.isCellTopRightInTurn(cell));
   }
 
-  private wasTileUsedInPreviousTurn(tile: AppTile): boolean {
+  private wasTileUsedInPreviousTurn(tile: DomainTile): boolean {
     return this.state.trackDependency(() => this.application.wasTileUsedInPreviousTurn(tile));
   }
 
   private playSound(sound: Sound): void {
-    this.application.playSound(sound);
+    this.soundPlayer.play(sound);
   }
 
-  private placeTile(args: { cell: AppCell; tile: AppTile }): void {
+  private playPendingSounds(): void {
+    for (const event of this.application.clearAllDomainEvents()) {
+      const sound = EVENT_SOUNDS[event];
+      if (sound) this.soundPlayer.play(sound);
+    }
+  }
+
+  private placeTile(args: { cell: DomainCell; tile: DomainTile }): void {
     this.state.mutateAndRefresh(() => this.application.placeTile(args));
-    this.application.playPendingSounds();
+    this.playPendingSounds();
   }
 
-  private undoPlaceTile(tile: AppTile): void {
+  private undoPlaceTile(tile: DomainTile): void {
     this.state.mutateAndRefresh(() => this.application.undoPlaceTile(tile));
-    this.application.playPendingSounds();
+    this.playPendingSounds();
   }
 
   private resetTurn(): void {
     this.state.mutateAndRefresh(() => this.application.resetTurn());
   }
 
-  private saveTurn(): { result: AppTurnExecutionResult; opponentTurn?: Promise<AppTurnExecutionResult> } {
-    const { result, opponentTurn } = this.state.mutateAndRefresh(() => this.application.saveTurn());
-    this.application.playPendingSounds();
-    const resolved = opponentTurn?.then((opponentResult: AppTurnExecutionResult) => {
+  private saveTurn(): { userResponse: AppTurnResponse; opponentResponse?: Promise<AppTurnResponse> } {
+    const { userResponse, opponentResponse } = this.state.mutateAndRefresh(() => this.application.handleSaveTurn());
+    this.playPendingSounds();
+    const resolved = opponentResponse?.then((opponentResponse: AppTurnResponse) => {
       this.state.refreshState();
-      this.application.playPendingSounds();
-      return opponentResult;
+      this.playPendingSounds();
+      return opponentResponse;
     });
-    return { result, opponentTurn: resolved };
+    return { userResponse, opponentResponse: resolved };
   }
 
-  private passTurn(): { opponentTurn?: Promise<AppTurnExecutionResult> } {
+  private passTurn(): { opponentTurn?: Promise<AppTurnResponse> } {
     const { opponentTurn } = this.state.mutateAndRefresh(() => this.application.passTurn());
-    this.application.playPendingSounds();
-    const resolved = opponentTurn?.then((opponentResult: AppTurnExecutionResult) => {
+    this.playPendingSounds();
+    const resolved = opponentTurn?.then((opponentResponse: AppTurnResponse) => {
       this.state.refreshState();
-      this.application.playPendingSounds();
-      return opponentResult;
+      this.playPendingSounds();
+      return opponentResponse;
     });
     return { opponentTurn: resolved };
   }
 
   private resignGame(): void {
     this.state.mutateAndRefresh(() => this.application.resignMatch());
-    this.application.playPendingSounds();
+    this.playPendingSounds();
   }
 }

@@ -33,7 +33,6 @@ function convertResolutionToHtml(resolution: AppTurnResolutionHistory[number]): 
 
 <style lang="scss" scoped>
 .annotation {
-  color: var(--secondary-color);
   height: 6rem;
   border-left: 1px solid var(--secondary-color);
   padding-left: calc(var(--cell-tile-width) / 4);
@@ -41,6 +40,7 @@ function convertResolutionToHtml(resolution: AppTurnResolutionHistory[number]): 
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
+  color: var(--secondary-color);
   font-size: var(--font-size-small);
   overflow-y: auto;
   overflow-x: hidden;

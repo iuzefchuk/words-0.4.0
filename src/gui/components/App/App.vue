@@ -31,7 +31,7 @@ onMounted(() => {
         '--transition-duration': `${transitionDurationMs}ms`,
         '--transition-duration-half': `${transitionDurationMs / 2}ms`,
       }),
-      '--cell-count-per-axis': Math.sqrt(matchStore.layoutCells.length),
+      '--cell-count-per-axis': Math.sqrt(matchStore.boardCells.length),
     }"
   >
     <AppLoader :is-active="loaderIsActive" @derendered="mainIsRendered = true" />

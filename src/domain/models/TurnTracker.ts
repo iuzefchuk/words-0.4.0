@@ -59,13 +59,13 @@ export default class TurnTracker {
     private turns: Array<Turn>,
   ) {}
 
-  static create({ idGenerator }: { idGenerator: IdGenerator }): TurnTracker {
+  static create(idGenerator: IdGenerator): TurnTracker {
     return new TurnTracker(idGenerator, []);
   }
 
-  static hydrate(data: unknown): TurnTracker {
+  static reconstruct(data: unknown): TurnTracker {
     const tracker = Object.setPrototypeOf(data, TurnTracker.prototype) as { turns: Array<unknown> };
-    for (const turn of tracker.turns) Turn.hydrate(turn);
+    for (const turn of tracker.turns) Turn.reconstruct(turn);
     return tracker as unknown as TurnTracker;
   }
 
@@ -111,7 +111,20 @@ export default class TurnTracker {
   }
 
   get resolutionHistory(): ReadonlyArray<Resolution> {
-    return this.turns.map(turn => turn.resolution).filter(turn => turn !== undefined);
+    return [...this.turns.map(turn => turn.resolution).filter(turn => turn !== undefined)];
+  }
+
+  get leaderByScore(): Player | null {
+    const userScore = this.getScoreFor(Player.User);
+    const opponentScore = this.getScoreFor(Player.Opponent);
+    const scoresAreTied = userScore === opponentScore;
+    if (scoresAreTied) return null;
+    return userScore > opponentScore ? Player.User : Player.Opponent;
+  }
+
+  get loserByScore(): Player | null {
+    if (this.leaderByScore === null) return null;
+    return this.leaderByScore === Player.User ? Player.Opponent : Player.User;
   }
 
   getScoreFor(player: Player): number {
@@ -176,7 +189,7 @@ class Turn {
     return new Turn(id, player, [], validationResult, undefined);
   }
 
-  static hydrate(data: unknown): Turn {
+  static reconstruct(data: unknown): Turn {
     return Object.setPrototypeOf(data, Turn.prototype) as Turn;
   }
 

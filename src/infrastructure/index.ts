@@ -1,0 +1,52 @@
+import {
+  AppDependencies,
+  DomainPlayer,
+  DomainCell,
+  DomainTile,
+  DomainDictionary,
+  DomainDictionaryProps,
+} from '@/application/types.ts';
+import IdGenerator from '@/infrastructure/services/CryptoIdGenerator.ts';
+import DateApiClock from '@/infrastructure/services/DateApiClock.ts';
+import IndexedDb from '@/infrastructure/services/IndexedDb.ts';
+import WebWorker from '@/infrastructure/services/WebWorker.ts';
+import { TurnGenerationWorker } from '@/shared/ports.ts';
+
+export default class Infrastructure {
+  private static readonly CACHE_VERSION = 1;
+  private static readonly DICTIONARY_WORKER_PATH = './workers/TurnGeneratorWorker.ts';
+  private static readonly DICTIONARY_DB_NAME = 'words-dictionary';
+  private static readonly DICTIONARY_STORE_NAME = 'props';
+  private static readonly DICTIONARY_CACHE_KEY = 'dictionary';
+
+  static async createAppDependencies(): Promise<AppDependencies> {
+    const dictionary = await this.createDictionary();
+    const turnGenerationWorker = this.createTurnGenerationWorker();
+    const idGenerator = new IdGenerator();
+    const clock = new DateApiClock();
+    return { dictionary, turnGenerationWorker, idGenerator, clock };
+  }
+
+  private static async createDictionary(): Promise<DomainDictionary> {
+    const db = new IndexedDb<DomainDictionaryProps>(
+      this.DICTIONARY_DB_NAME,
+      this.DICTIONARY_STORE_NAME,
+      this.DICTIONARY_CACHE_KEY,
+    );
+    const cache = await db.load(this.CACHE_VERSION);
+    if (cache) {
+      const dictionary = DomainDictionary.restoreFromProps(cache);
+      if (dictionary) return dictionary;
+    }
+    const dictionary = DomainDictionary.create();
+    db.save(this.CACHE_VERSION, dictionary[this.DICTIONARY_STORE_NAME]);
+    return dictionary;
+  }
+
+  private static createTurnGenerationWorker(): TurnGenerationWorker<DomainPlayer, DomainCell, DomainTile> {
+    return WebWorker.create<
+      { domain: unknown; player: DomainPlayer },
+      { tiles: ReadonlyArray<DomainTile>; cells: ReadonlyArray<DomainCell> }
+    >(Infrastructure.DICTIONARY_WORKER_PATH);
+  }
+}

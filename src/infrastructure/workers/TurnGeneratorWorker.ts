@@ -1,14 +1,14 @@
-import { AppPlayer } from '@/application/types.ts';
+import { DomainPlayer } from '@/application/types.ts';
 import Domain from '@/domain/index.ts';
 
-self.onmessage = (event: MessageEvent<{ domain: unknown; player: AppPlayer }>) => {
+self.onmessage = (event: MessageEvent<{ domain: unknown; player: DomainPlayer }>) => {
   try {
     const { domain, player } = event.data;
     if (!domain || !player) {
       throw new Error('Invalid worker request: missing domain or player');
     }
-    const hydrated = Domain.hydrate(domain);
-    for (const result of hydrated.generateTurnFor(player)) {
+    const reconstructed = Domain.reconstruct(domain);
+    for (const result of reconstructed.generateTurnFor(player)) {
       return self.postMessage({ return: result });
     }
     self.postMessage({ return: null });

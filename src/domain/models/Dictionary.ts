@@ -36,7 +36,7 @@ export default class Dictionary {
     return new Dictionary(props);
   }
 
-  static hydrate(data: unknown): Dictionary {
+  static reconstruct(data: unknown): Dictionary {
     return Object.setPrototypeOf(data, Dictionary.prototype) as Dictionary;
   }
 

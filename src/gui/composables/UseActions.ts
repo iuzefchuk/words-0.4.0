@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { Sound } from '@/application/enums.ts';
+import { Sound } from '@/gui/services/SoundPlayer.ts';
 import DialogStore from '@/gui/stores/DialogStore.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
@@ -39,9 +39,11 @@ export default class UseActions {
   private get dialogStore() {
     return DialogStore.INSTANCE();
   }
+
   private get matchStore() {
     return MatchStore.INSTANCE();
   }
+
   private get rackStore() {
     return RackStore.INSTANCE();
   }

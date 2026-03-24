@@ -47,21 +47,7 @@ export default class Inventory {
     this.initializePlayerPools();
   }
 
-  static hydrate(data: unknown): Inventory {
-    const inventory = Object.setPrototypeOf(data, Inventory.prototype) as {
-      drawPool: unknown;
-      poolByPlayer: Map<unknown, unknown>;
-      discardPool: unknown;
-      tileById: Map<unknown, unknown>;
-    };
-    TilePool.hydrate(inventory.drawPool);
-    for (const pool of inventory.poolByPlayer.values()) TilePool.hydrate(pool);
-    TilePool.hydrate(inventory.discardPool);
-    for (const tile of inventory.tileById.values()) Tile.hydrate(tile);
-    return inventory as unknown as Inventory;
-  }
-
-  static create({ players, idGenerator }: { players: ReadonlyArray<Player>; idGenerator: IdGenerator }): Inventory {
+  static create(players: ReadonlyArray<Player>, idGenerator: IdGenerator): Inventory {
     const tiles = this.shuffleTilesWithFisherYates(
       Object.values(Letter).flatMap(letter =>
         Array.from({ length: Inventory.LETTER_CONFIG[letter].distribution }, () =>
@@ -76,6 +62,20 @@ export default class Inventory {
     );
     const discardPool = TilePool.create();
     return new Inventory(drawPool, poolByPlayer, discardPool, tileById);
+  }
+
+  static reconstruct(data: unknown): Inventory {
+    const inventory = Object.setPrototypeOf(data, Inventory.prototype) as {
+      drawPool: unknown;
+      poolByPlayer: Map<unknown, unknown>;
+      discardPool: unknown;
+      tileById: Map<unknown, unknown>;
+    };
+    TilePool.reconstruct(inventory.drawPool);
+    for (const pool of inventory.poolByPlayer.values()) TilePool.reconstruct(pool);
+    TilePool.reconstruct(inventory.discardPool);
+    for (const tile of inventory.tileById.values()) Tile.reconstruct(tile);
+    return inventory as unknown as Inventory;
   }
 
   static shuffleTilesWithFisherYates(tiles: Array<Tile>): Array<Tile> {
@@ -155,9 +155,9 @@ class TilePool {
     return new TilePool(capacity, tiles ?? []);
   }
 
-  static hydrate(data: unknown): TilePool {
+  static reconstruct(data: unknown): TilePool {
     const pool = Object.setPrototypeOf(data, TilePool.prototype) as { tiles: Array<unknown> };
-    for (const tile of pool.tiles) Tile.hydrate(tile);
+    for (const tile of pool.tiles) Tile.reconstruct(tile);
     return pool as unknown as TilePool;
   }
 
@@ -223,7 +223,7 @@ class Tile {
     return new Tile(id, letter);
   }
 
-  static hydrate(data: unknown): Tile {
+  static reconstruct(data: unknown): Tile {
     return Object.setPrototypeOf(data, Tile.prototype) as Tile;
   }
 

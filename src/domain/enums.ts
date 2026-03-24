@@ -6,8 +6,13 @@ export enum Player {
 export enum Event {
   TilePlaced = 'TilePlaced',
   TileUndoPlaced = 'TileUndoPlaced',
-  TurnSaved = 'TurnSaved',
-  TurnPassed = 'TurnPassed',
+  UserTurnSaved = 'UserTurnSaved',
+  UserTurnPassed = 'UserTurnPassed',
+  OpponentTurnSaved = 'OpponentTurnSaved',
+  OpponentTurnPassed = 'OpponentTurnPassed',
+  MatchWon = 'MatchWon',
+  MatchTied = 'MatchTied',
+  MatchLost = 'MatchLost',
 }
 
 export enum Letter {
