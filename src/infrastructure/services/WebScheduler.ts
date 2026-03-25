@@ -2,6 +2,9 @@ import { Scheduler } from '@/shared/ports.ts';
 
 export default class WebScheduler implements Scheduler {
   yield(): Promise<void> {
-    return scheduler.yield();
+    if (typeof scheduler !== 'undefined' && typeof scheduler.yield === 'function') {
+      return scheduler.yield();
+    }
+    return new Promise(resolve => setTimeout(resolve, 0));
   }
 }
