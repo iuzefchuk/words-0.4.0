@@ -4,7 +4,7 @@ import Dictionary, { NodeId } from '@/domain/models/Dictionary.ts';
 import Inventory, { TileCollection, TileId } from '@/domain/models/Inventory.ts';
 import TurnTracker, { ValidationStatus } from '@/domain/models/TurnTracker.ts';
 import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
-import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/TurnValidator.ts';
+import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/CurrentTurnValidator.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 enum GenerationDirection {

@@ -4,8 +4,8 @@ import Dictionary from '@/domain/models/Dictionary.ts';
 import Inventory from '@/domain/models/Inventory.ts';
 import MatchTracker from '@/domain/models/MatchTracker.ts';
 import TurnTracker from '@/domain/models/TurnTracker.ts';
+import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/CurrentTurnValidator.ts';
 import TurnGenerator, { GeneratorContext, GeneratorResult } from '@/domain/services/TurnGenerator.ts';
-import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/TurnValidator.ts';
 import {
   GameCell,
   GameTile,
