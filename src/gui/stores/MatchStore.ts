@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { computed, Ref, shallowRef } from 'vue';
+import { computed, markRaw, Ref, shallowRef } from 'vue';
 import Application from '@/application/index.ts';
 import { DomainCell, DomainTile, AppState, DomainMatchResult, DomainBonus, DomainLetter } from '@/application/types.ts';
 import { BONUS_NAMES, EVENT_SOUNDS, LETTERS_SVG_HTML, MATCH_RESULT_TEXT } from '@/gui/constants.ts';
@@ -8,7 +8,7 @@ import SoundPlayer from '@/gui/services/SoundPlayer.ts';
 let app: Application;
 
 export async function startMatch(): Promise<void> {
-  app = await Application.create();
+  app = markRaw(await Application.create());
 }
 
 export default class MatchStore {
