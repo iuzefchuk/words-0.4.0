@@ -5,6 +5,7 @@ export enum Sound {
   ActionBad = 'ActionBad',
   ActionMix = 'ActionMix',
   AltActionGood = 'AltActionGood',
+  AltActionBad = 'AltActionBad',
   EndGood = 'EndGood',
   EndNeutral = 'EndNeutral',
   EndBad = 'EndBad',
@@ -33,6 +34,10 @@ export default class SoundPlayer {
     [Sound.AltActionGood]: [
       { frequency: 220, duration: 0.1, type: 'triangle', gain: 0.1 },
       { frequency: 262, duration: 0.08, type: 'triangle', gain: 0.08 },
+    ],
+    [Sound.AltActionBad]: [
+      { frequency: 262, duration: 0.1, type: 'triangle', gain: 0.1 },
+      { frequency: 220, duration: 0.12, type: 'triangle', gain: 0.08 },
     ],
     [Sound.EndGood]: [
       { frequency: 523, duration: 0.12, type: 'square', gain: 0.06 },

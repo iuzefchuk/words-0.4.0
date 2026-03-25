@@ -5,7 +5,7 @@ import IndexedDb from '@/infrastructure/services/IndexedDb.ts';
 import WebScheduler from '@/infrastructure/services/WebScheduler.ts';
 
 export default class Infrastructure {
-  private static readonly CACHE_VERSION = 1;
+  private static readonly CACHE_VERSION = 3;
   private static readonly DICTIONARY_DB_NAME = 'words-dictionary';
   private static readonly DICTIONARY_STORE_NAME = 'props';
   private static readonly DICTIONARY_CACHE_KEY = 'dictionary';

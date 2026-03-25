@@ -20,6 +20,7 @@ export const EVENT_SOUNDS: Partial<Record<DomainEvent, Sound>> = {
   [DomainEvent.UserTurnSaved]: Sound.ActionGood,
   [DomainEvent.UserTurnPassed]: Sound.ActionBad,
   [DomainEvent.OpponentTurnSaved]: Sound.AltActionGood,
+  [DomainEvent.OpponentTurnPassed]: Sound.AltActionBad,
   [DomainEvent.MatchWon]: Sound.EndGood,
   [DomainEvent.MatchTied]: Sound.EndNeutral,
   [DomainEvent.MatchLost]: Sound.EndBad,

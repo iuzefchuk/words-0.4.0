@@ -11,8 +11,6 @@ export type DictionaryProps = {
   allLetters: ReadonlySet<Letter>;
 };
 
-type Transition = { parentNode: Node; childLetter: Letter; childNode: Node };
-
 type Node = { id: NodeId; isFinal: boolean; children: Map<Letter, Node> };
 
 type FrozenNode = {
@@ -20,8 +18,6 @@ type FrozenNode = {
   readonly isFinal: boolean;
   readonly children: ReadonlyMap<Letter, FrozenNode>;
 };
-
-type NodeGenerator = Generator<Node, Node>;
 
 export default class Dictionary {
   private constructor(readonly props: DictionaryProps) {}
@@ -37,9 +33,13 @@ export default class Dictionary {
   }
 
   static restoreFromProps(props: DictionaryProps): Dictionary | null {
-    if (!(props.nodeById instanceof Map) || !(props.allLetters instanceof Set)) return null;
+    if (!props.rootNode || typeof props.rootNode.id !== 'number' || typeof props.rootNode.isFinal !== 'boolean') return null;
+    if (!(props.rootNode.children instanceof Map)) return null;
     this.freezeTree(props.rootNode);
-    return new Dictionary(props);
+    const nodeById = new Map<NodeId, FrozenNode>();
+    const allLetters = new Set<Letter>();
+    this.traverseNode(nodeById, allLetters, props.rootNode);
+    return new Dictionary({ rootNode: props.rootNode, nodeById, allLetters });
   }
 
   get allLetters(): ReadonlySet<Letter> {
@@ -128,48 +128,27 @@ class DictionaryTreeBuilder {
 
   private build(sortedWords: ReadonlyArray<string>): Node {
     const rootNode = this.createNode();
-    const generator = this.createNodeGenerator(rootNode);
-    generator.next();
+    const stack: Array<Node> = [rootNode];
     let previousWord = '';
     for (const word of sortedWords) {
       const commonPrefixLength = this.getCommonPrefixLength(previousWord, word);
-      const finishedNode = generator.next({ depth: commonPrefixLength }).value;
-      if (finishedNode) {
-        finishedNode.isFinal = true;
+      if (previousWord.length > 0) {
+        stack[stack.length - 1].isFinal = true;
+      }
+      while (stack.length > commonPrefixLength + 1) {
+        stack.pop();
       }
       for (let i = commonPrefixLength; i < word.length; i++) {
         const childNode = this.createNode();
-        const transition: Transition = {
-          parentNode: generator.next().value,
-          childLetter: word[i] as Letter,
-          childNode,
-        };
-        generator.next(transition);
+        stack[stack.length - 1].children.set(word[i] as Letter, childNode);
+        stack.push(childNode);
       }
       previousWord = word;
     }
-    const lastNode = generator.next({ depth: 0 }).value;
-    lastNode.isFinal = true;
-    return rootNode;
-  }
-
-  private *createNodeGenerator(rootNode: Node): NodeGenerator {
-    const stack: Array<Node> = [rootNode];
-    while (true) {
-      const input: { depth?: number } | Transition | undefined = yield stack[stack.length - 1];
-      if (input && 'depth' in input) {
-        let finishedNode: Node | undefined;
-        while (stack.length > (input.depth ?? 0) + 1) {
-          if (!finishedNode) finishedNode = stack.pop()!;
-          else stack.pop();
-        }
-        if (finishedNode) yield finishedNode;
-      } else if (input && 'parentNode' in input) {
-        const { parentNode, childLetter, childNode } = input;
-        parentNode.children.set(childLetter, childNode);
-        stack.push(childNode);
-      }
+    if (stack.length > 1) {
+      stack[stack.length - 1].isFinal = true;
     }
+    return rootNode;
   }
 
   private createNode(): Node {

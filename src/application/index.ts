@@ -178,7 +178,6 @@ export default class Application {
     if (generatorResult === null) {
       if (this.domain.willPlayerPassBeResign(player)) return { type: DomainTurnResolutionType.Resign, player };
       this.domain.passCurrentTurn();
-      this.clearAllDomainEvents();
       return { type: DomainTurnResolutionType.Pass, player };
     }
     for (let i = 0; i < generatorResult.tiles.length; i++) {
@@ -188,7 +187,6 @@ export default class Application {
     const words = this.domain.state.currentTurnWords ?? [];
     const score = this.domain.state.currentTurnScore ?? 0;
     this.saveTurn();
-    this.clearAllDomainEvents();
     return { type: DomainTurnResolutionType.Save, player, words, score };
   }
 
