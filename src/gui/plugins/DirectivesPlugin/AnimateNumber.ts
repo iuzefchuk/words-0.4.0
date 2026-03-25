@@ -2,6 +2,7 @@ import { DirectiveBinding } from 'vue';
 import Directive from './DirectiveClass.ts';
 
 type AnimatedHtmlElement = HTMLElement & { _animationFrameRequestId?: number };
+
 type BindingValue = { number: number; animationDelay?: number; animationDuration?: number };
 
 export default class AnimateNumber extends Directive<AnimatedHtmlElement, BindingValue> {

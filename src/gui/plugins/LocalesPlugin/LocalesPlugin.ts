@@ -15,7 +15,9 @@ export enum LocaleType {
 }
 
 type LocaleFileContent = Record<LocaleFile, Record<string, string>>;
+
 export type LocaleTextGetter = (string: string, props?: Record<string, string | number>) => string;
+
 export type LocaleNumberGetter = (number: number) => string;
 
 export default class LocalesPlugin {

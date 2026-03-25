@@ -4,7 +4,7 @@ import UseCounter from '@/gui/composables/UseCounter.ts';
 import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
 
 export default class UseLoader {
-  static readonly WORD = [GameLetter.W, GameLetter.O, GameLetter.R, GameLetter.D, GameLetter.S];
+  static readonly LETTERS = [GameLetter.W, GameLetter.O, GameLetter.R, GameLetter.D, GameLetter.S];
   readonly isRendered = ref(false);
 
   private constructor(
@@ -34,8 +34,8 @@ export default class UseLoader {
     return this.isItemVisible(idx);
   }
 
-  private get wordLength(): number {
-    return UseLoader.WORD.length;
+  private get lettersLength(): number {
+    return UseLoader.LETTERS.length;
   }
 
   private get step(): number {
@@ -43,15 +43,15 @@ export default class UseLoader {
   }
 
   private get isBuildingPhase(): boolean {
-    return this.step > 0 && this.step <= this.wordLength;
+    return this.step > 0 && this.step <= this.lettersLength;
   }
 
   private get isEmphasizedPhase(): boolean {
-    return this.step === this.wordLength + 1;
+    return this.step === this.lettersLength + 1;
   }
 
   private get isFinishedPhase(): boolean {
-    return this.step > this.wordLength + 1;
+    return this.step > this.lettersLength + 1;
   }
 
   private initRenderWatcher(): void {

@@ -39,7 +39,6 @@ export default class MatchTracker {
   }
 
   private record(player: Player, result: MatchResult): void {
-    this.ensureMutability();
     this.results.set(player, result);
   }
 }

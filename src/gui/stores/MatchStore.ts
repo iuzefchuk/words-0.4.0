@@ -26,14 +26,14 @@ export default class MatchStore {
     };
   });
 
-  private readonly state: MatchState;
-  private readonly queries: MatchQueries;
-  private readonly commands: MatchCommands;
+  private readonly state: State;
+  private readonly queries: Queries;
+  private readonly commands: Commands;
 
   private constructor(app: Application) {
-    this.state = new MatchState(app);
-    this.queries = new MatchQueries(app, this.state);
-    this.commands = new MatchCommands(app, this.state);
+    this.state = new State(app);
+    this.queries = new Queries(app, this.state);
+    this.commands = new Commands(app, this.state);
   }
 
   private getBonusName(bonus: GameBonus): string {
@@ -49,7 +49,7 @@ export default class MatchStore {
   }
 }
 
-class MatchState {
+class State {
   readonly matchIsFinished = computed(() => this.state.matchIsFinished);
   readonly matchResult = computed(() => this.state.matchResult);
   readonly tilesRemaining = computed(() => this.state.tilesRemaining);
@@ -94,10 +94,10 @@ class MatchState {
   }
 }
 
-class MatchQueries {
+class Queries {
   constructor(
     private readonly app: Application,
-    private readonly state: MatchState,
+    private readonly state: State,
   ) {}
 
   findTileOnCell = (cell: GameCell) => this.state.read(() => this.app.findTileByCell(cell));
@@ -113,10 +113,10 @@ class MatchQueries {
   getTileLetter = (tile: GameTile) => this.app.getTileLetter(tile);
 }
 
-class MatchCommands {
+class Commands {
   constructor(
     private readonly app: Application,
-    private readonly state: MatchState,
+    private readonly state: State,
   ) {}
 
   placeTile = (args: { cell: GameCell; tile: GameTile }): void => {

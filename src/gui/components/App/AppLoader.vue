@@ -11,7 +11,7 @@ const { isRendered } = loader;
   <Transition name="fade">
     <div v-if="isRendered" class="loader">
       <div class="loader__logo">
-        <template v-for="(letter, idx) in UseLoader.WORD" :key="idx">
+        <template v-for="(letter, idx) in UseLoader.LETTERS" :key="idx">
           <GameTile
             v-if="loader.isItemRendered(idx)"
             class="loader__tile"

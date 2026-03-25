@@ -222,7 +222,9 @@ export default class Game {
   }
 
   resignMatchForCurrentPlayer(): void {
-    this.matchTracker.recordCompletion(this.state.nextPlayer, this.state.currentPlayer);
+    const { currentPlayer, nextPlayer } = this.state;
+    this.matchTracker.recordCompletion(nextPlayer, currentPlayer);
+    this.events.record(currentPlayer === GamePlayer.User ? Event.MatchLost : Event.MatchWon);
   }
 
   clearAllEvents(): Array<Event> {
