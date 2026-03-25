@@ -3,12 +3,6 @@ import { type CellIndex, type Placement } from '@/domain/models/Board.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
 import { IdGenerator } from '@/shared/ports.ts';
 
-export enum ResolutionType {
-  Save = 'Save',
-  Pass = 'Pass',
-  Resign = 'Resign',
-}
-
 export enum ValidationStatus {
   Unvalidated = 'Unvalidated',
   Pending = 'Pending',
@@ -43,14 +37,6 @@ export type ValidResult = { status: ValidationStatus.Valid } & AllComputeds;
 
 export type ValidationResult = UnvalidatedResult | InvalidResult | ValidResult;
 
-export type ResolutionSave = { type: ResolutionType.Save; player: Player } & ComputedWords & ComputedScore;
-
-export type ResolutionPass = { type: ResolutionType.Pass; player: Player };
-
-export type ResolutionResign = { type: ResolutionType.Resign; player: Player };
-
-export type Resolution = ResolutionSave | ResolutionPass | ResolutionResign;
-
 export type TurnView = {
   readonly hasPriorTurns: boolean;
   readonly currentPlayer: Player;
@@ -61,9 +47,7 @@ export type TurnView = {
   readonly currentTurnWords: ReadonlyArray<string> | undefined;
   readonly currentTurnIsValid: boolean;
   readonly previousTurnTiles: ReadonlyArray<TileId> | undefined;
-  readonly resolutionHistory: ReadonlyArray<Resolution>;
   getScoreFor(player: Player): number;
-  willPassBeResignFor(player: Player): boolean;
 };
 
 export default class TurnTracker {
@@ -119,10 +103,6 @@ export default class TurnTracker {
     return this.turns.at(-2)?.tiles;
   }
 
-  get resolutionHistory(): ReadonlyArray<Resolution> {
-    return [...this.turns.map(turn => turn.resolution).filter(turn => turn !== undefined)];
-  }
-
   get leaderByScore(): Player | null {
     const userScore = this.getScoreFor(Player.User);
     const opponentScore = this.getScoreFor(Player.Opponent);
@@ -140,15 +120,6 @@ export default class TurnTracker {
     return this.turns
       .filter(turn => turn.player === player && turn.id !== this.currentTurn.id)
       .reduce((sum, turn) => sum + (turn.score ?? 0), 0);
-  }
-
-  willPassBeResignFor(player: Player): boolean {
-    const lastTurn = this.completedTurns.findLast(turn => turn.player === player);
-    return lastTurn?.resolutionType === ResolutionType.Pass;
-  }
-
-  recordCurrentTurnResolution(type: ResolutionType): void {
-    this.currentTurn.resolutionType = type;
   }
 
   placeTileInCurrentTurn(tile: TileId): void {
@@ -177,10 +148,6 @@ export default class TurnTracker {
     if (!last) throw new Error('Current turn does not exist');
     return last;
   }
-
-  private get completedTurns(): ReadonlyArray<Turn> {
-    return this.turns.slice(0, -1);
-  }
 }
 
 class Turn {
@@ -189,39 +156,12 @@ class Turn {
     readonly player: Player,
     private _tiles: Array<TileId>,
     private _validationResult: ValidationResult,
-    private _resolutionType: ResolutionType | undefined,
   ) {}
 
   static create({ player, idGenerator }: { player: Player; idGenerator: IdGenerator }): Turn {
     const id = idGenerator.execute();
     const validationResult: UnvalidatedResult = { status: ValidationStatus.Unvalidated };
-    return new Turn(id, player, [], validationResult, undefined);
-  }
-
-  get resolution(): Resolution | undefined {
-    if (this._resolutionType === ResolutionType.Save) {
-      if (this._validationResult.status !== ValidationStatus.Valid) {
-        throw new Error('Can`t log output for invalid turn');
-      }
-      return {
-        type: ResolutionType.Save,
-        player: this.player,
-        words: this._validationResult.words,
-        score: this._validationResult.score,
-      };
-    }
-    if (this._resolutionType === ResolutionType.Pass) return { type: ResolutionType.Pass, player: this.player };
-    if (this._resolutionType === ResolutionType.Resign) return { type: ResolutionType.Resign, player: this.player };
-  }
-
-  get resolutionType(): ResolutionType | undefined {
-    return this._resolutionType;
-  }
-
-  set resolutionType(type: ResolutionType) {
-    if (this._resolutionType !== undefined) throw new Error(`Resolution already set to ${this._resolutionType}`);
-    if (type === ResolutionType.Save && !this.isValid) throw new Error('Can`t log output for invalid turn');
-    this._resolutionType = type;
+    return new Turn(id, player, [], validationResult);
   }
 
   set validationResult(result: ValidationResult) {

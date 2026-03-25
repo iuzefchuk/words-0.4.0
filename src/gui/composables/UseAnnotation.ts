@@ -1,13 +1,20 @@
 import { computed } from 'vue';
-import { AppTurnResolution } from '@/application/types.ts';
+import { GameEvent, GameEventType } from '@/application/types.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
+
+const ANNOTATION_EVENT_TYPES: ReadonlySet<GameEventType> = new Set([
+  GameEventType.UserTurnSaved,
+  GameEventType.UserTurnPassed,
+  GameEventType.OpponentTurnSaved,
+  GameEventType.OpponentTurnPassed,
+]);
 
 export default class UseAnnotation {
   readonly messages = computed(() => {
-    const history = this.getRecentHistory();
-    return history.map((resolution, index) => ({
+    const events = this.getRecentAnnotationEvents();
+    return events.map((event, index) => ({
       key: this.getMessageKey(index),
-      html: this.createResolutionHtml(resolution),
+      html: this.createEventHtml(event),
     }));
   });
 
@@ -17,29 +24,34 @@ export default class UseAnnotation {
     return MatchStore.INSTANCE();
   }
 
-  private getRecentHistory(): ReadonlyArray<AppTurnResolution> {
-    const history = this.matchStore.turnResolutionHistory;
-    const start = Math.max(0, history.length - UseAnnotation.MAX_DISPLAYED_MESSAGES);
-    return history.slice(start);
+  private get annotationEvents(): ReadonlyArray<GameEvent> {
+    return this.matchStore.eventLog.filter(event => ANNOTATION_EVENT_TYPES.has(event.type));
+  }
+
+  private getRecentAnnotationEvents(): ReadonlyArray<GameEvent> {
+    const events = this.annotationEvents;
+    const start = Math.max(0, events.length - UseAnnotation.MAX_DISPLAYED_MESSAGES);
+    return events.slice(start);
   }
 
   private getMessageKey(index: number): number {
-    const total = this.matchStore.turnResolutionHistory.length;
+    const total = this.annotationEvents.length;
     const start = Math.max(0, total - UseAnnotation.MAX_DISPLAYED_MESSAGES);
     return start + index;
   }
 
-  private createResolutionHtml(resolution: AppTurnResolution): string {
-    return resolution.isSave ? this.getSaveMessage(resolution) : this.getPassMessage(resolution);
-  }
-
-  private getSaveMessage(resolution: AppTurnResolution): string {
-    const key = resolution.isUser ? 'game.resolution_save_user' : 'game.resolution_save_opponent';
-    return window.t(key, { words: resolution.words!, score: resolution.score! });
-  }
-
-  private getPassMessage(resolution: AppTurnResolution): string {
-    const key = resolution.isUser ? 'game.resolution_pass_user' : 'game.resolution_pass_opponent';
-    return window.t(key);
+  private createEventHtml(event: GameEvent): string {
+    switch (event.type) {
+      case GameEventType.UserTurnSaved:
+        return window.t('game.message_save_user', { words: event.words.join(', '), score: event.score });
+      case GameEventType.OpponentTurnSaved:
+        return window.t('game.message_save_opponent', { words: event.words.join(', '), score: event.score });
+      case GameEventType.UserTurnPassed:
+        return window.t('game.message_pass_user');
+      case GameEventType.OpponentTurnPassed:
+        return window.t('game.message_pass_opponent');
+      default:
+        return '';
+    }
   }
 }

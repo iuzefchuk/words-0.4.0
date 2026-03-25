@@ -1,4 +1,3 @@
-import { Event } from '@/domain/enums.ts';
 import Board from '@/domain/models/Board.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import Inventory from '@/domain/models/Inventory.ts';
@@ -9,11 +8,12 @@ import { GeneratorContext } from '@/domain/services/TurnGenerator.ts';
 import {
   GameBoardView,
   GameCell,
+  GameEvent,
+  GameEventType,
   GameInventoryView,
   GameMatchView,
   GamePlayer,
   GameTile,
-  GameTurnResolutionType,
   GameTurnView,
 } from '@/domain/types.ts';
 import { IdGenerator } from '@/shared/ports.ts';
@@ -56,18 +56,22 @@ export default class Game {
     return this.matchTracker;
   }
 
+  get eventLog(): ReadonlyArray<GameEvent> {
+    return this.events.log;
+  }
+
   placeTile(input: { cell: GameCell; tile: GameTile }): void {
     this.matchTracker.ensureMutability();
     this.board.placeTile(input.cell, input.tile);
     this.turnTracker.placeTileInCurrentTurn(input.tile);
-    this.events.record(Event.TilePlaced);
+    this.events.record({ type: GameEventType.TilePlaced });
   }
 
   undoPlaceTile(input: { tile: GameTile }): void {
     this.matchTracker.ensureMutability();
     this.turnTracker.undoPlaceTileInCurrentTurn(input);
     this.board.undoPlaceTile(input.tile);
-    this.events.record(Event.TileUndoPlaced);
+    this.events.record({ type: GameEventType.TileUndoPlaced });
   }
 
   clearTiles(): void {
@@ -89,22 +93,28 @@ export default class Game {
   saveTurn(): { words: ReadonlyArray<string> } {
     this.matchTracker.ensureMutability();
     if (!this.turnView.currentTurnIsValid) throw new Error('Turn is not valid');
-    const { currentPlayer: player, currentTurnTiles: tiles, currentTurnWords: words } = this.turnView;
-    if (!words) throw new Error('Current turn words do not exist');
-    this.turnTracker.recordCurrentTurnResolution(GameTurnResolutionType.Save);
+    const {
+      currentPlayer: player,
+      currentTurnTiles: tiles,
+      currentTurnWords: words,
+      currentTurnScore: score,
+    } = this.turnView;
+    if (words === undefined) throw new Error('Current turn words do not exist');
+    if (score === undefined) throw new Error('Current turn score does not exist');
     tiles.forEach(tile => this.inventory.discardTile({ player, tile }));
     this.inventory.replenishTilesFor(player);
     this.startTurnForNextPlayer();
-    this.events.record(player === GamePlayer.User ? Event.UserTurnSaved : Event.OpponentTurnSaved);
+    const type = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
+    this.events.record({ type, words, score });
     return { words };
   }
 
   passTurn(): void {
     const { currentPlayer: player } = this.turnView;
     this.matchTracker.ensureMutability();
-    this.turnTracker.recordCurrentTurnResolution(GameTurnResolutionType.Pass);
     this.startTurnForNextPlayer();
-    this.events.record(player === GamePlayer.User ? Event.UserTurnPassed : Event.OpponentTurnPassed);
+    const type = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
+    this.events.record({ type });
   }
 
   createGeneratorContext(yieldControl: () => Promise<void>): GeneratorContext {
@@ -125,11 +135,11 @@ export default class Game {
     const { leaderByScore, loserByScore } = this.turnTracker;
     if (leaderByScore === null || loserByScore === null) {
       this.tieMatch();
-      this.events.record(Event.MatchTied);
+      this.events.record({ type: GameEventType.MatchTied });
       return;
     }
     this.completeMatch(leaderByScore, loserByScore);
-    this.events.record(leaderByScore === GamePlayer.User ? Event.MatchWon : Event.MatchLost);
+    this.events.record({ type: leaderByScore === GamePlayer.User ? GameEventType.MatchWon : GameEventType.MatchLost });
   }
 
   completeMatch(winner: GamePlayer, loser: GamePlayer): void {
@@ -143,24 +153,37 @@ export default class Game {
   resignMatch(): void {
     const { currentPlayer, nextPlayer } = this.turnView;
     this.matchTracker.recordCompletion(nextPlayer, currentPlayer);
-    this.events.record(currentPlayer === GamePlayer.User ? Event.MatchLost : Event.MatchWon);
+    this.events.record({ type: currentPlayer === GamePlayer.User ? GameEventType.MatchLost : GameEventType.MatchWon });
   }
 
-  clearAllEvents(): Array<Event> {
+  willPassBeResignFor(player: GamePlayer): boolean {
+    const passType = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
+    const saveType = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
+    const lastTurnEvent = this.events.log.findLast(e => e.type === passType || e.type === saveType);
+    return lastTurnEvent?.type === passType;
+  }
+
+  clearAllEvents(): Array<GameEvent> {
     return this.events.clearAll();
   }
 }
 
 class Events {
-  private readonly events: Array<Event> = [];
+  private readonly _log: Array<GameEvent> = [];
+  private readonly pending: Array<GameEvent> = [];
 
-  record(event: Event): void {
-    this.events.push(event);
+  get log(): ReadonlyArray<GameEvent> {
+    return [...this._log];
   }
 
-  clearAll(): Array<Event> {
-    const copy = [...this.events];
-    this.events.length = 0;
+  record(event: GameEvent): void {
+    this._log.push(event);
+    this.pending.push(event);
+  }
+
+  clearAll(): Array<GameEvent> {
+    const copy = [...this.pending];
+    this.pending.length = 0;
     return copy;
   }
 }

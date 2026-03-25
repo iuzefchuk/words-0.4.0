@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { computed, markRaw, ref } from 'vue';
 import Application from '@/application/index.ts';
 import { AppCommands, AppQueries, GameCell, GameTile } from '@/application/types.ts';
-import { EVENT_SOUNDS } from '@/gui/constants.ts';
+import { GAME_EVENT_SOUNDS } from '@/gui/constants.ts';
 import SoundPlayer from '@/gui/services/SoundPlayer.ts';
 
 let app: Application;
@@ -62,7 +62,7 @@ class MatchQueries {
   readonly currentTurnScore = computed(() => this.read(() => this.appQueries.getCurrentTurnScore()));
   readonly currentTurnIsValid = computed(() => this.read(() => this.appQueries.isCurrentTurnValid()));
   readonly userPassWillBeResign = computed(() => this.read(() => this.appQueries.willUserPassBeResign()));
-  readonly turnResolutionHistory = computed(() => this.read(() => this.appQueries.getTurnResolutionHistory()));
+  readonly eventLog = computed(() => this.read(() => this.appQueries.getEventLog()));
   readonly matchIsFinished = computed(() => this.read(() => this.appQueries.isMatchFinished()));
   readonly matchResult = computed(() => this.read(() => this.appQueries.getMatchResult()));
 
@@ -132,8 +132,8 @@ class MatchCommands {
   }
 
   private playPendingSounds(): void {
-    for (const event of this.appCommands.clearAllGameEvents()) {
-      const sound = EVENT_SOUNDS[event];
+    for (const event of this.appCommands.clearAllEvents()) {
+      const sound = GAME_EVENT_SOUNDS[event.type];
       if (sound) SoundPlayer.play(sound);
     }
   }

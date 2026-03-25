@@ -3,13 +3,11 @@ import {
   AppTurnResponse,
   GameCell,
   GameEvent,
+  GameEventType,
   GameInventoryView,
   GamePlayer,
   GameTile,
   GameTurnGenerator,
-  GameTurnResolution,
-  GameTurnResolutionType,
-  GameTurnView,
 } from '@/application/types.ts';
 import Game from '@/domain/index.ts';
 import { TIME } from '@/shared/constants.ts';
@@ -28,20 +26,16 @@ export default class AppCommandBuilder {
     return {
       placeTile: (args: { cell: GameCell; tile: GameTile }) => this.placeTile(args),
       undoPlaceTile: (tile: GameTile) => this.undoPlaceTile(tile),
-      clearTiles: () => this.clearTiles(),
+      clearTiles: () => this.game.clearTiles(),
       handleSaveTurn: () => this.handleSaveTurn(),
       handlePassTurn: () => this.handlePassTurn(),
-      handleResignMatch: () => this.handleResignMatch(),
-      clearAllGameEvents: () => this.clearAllGameEvents(),
+      handleResignMatch: () => this.game.resignMatch(),
+      clearAllEvents: () => this.game.clearAllEvents(),
     };
   }
 
   private get inventoryView(): Readonly<GameInventoryView> {
     return this.game.inventoryView;
-  }
-
-  private get turnView(): Readonly<GameTurnView> {
-    return this.game.turnView;
   }
 
   private get currentPlayer(): GamePlayer {
@@ -56,10 +50,6 @@ export default class AppCommandBuilder {
   private undoPlaceTile(tile: GameTile): void {
     this.game.undoPlaceTile({ tile });
     this.game.validateTurn();
-  }
-
-  private clearTiles(): void {
-    this.game.clearTiles();
   }
 
   private handleSaveTurn(): { userResponse: AppTurnResponse; opponentTurn?: Promise<AppTurnResponse> } {
@@ -80,21 +70,13 @@ export default class AppCommandBuilder {
   }
 
   private handlePassTurn(): { opponentTurn?: Promise<AppTurnResponse> } {
-    if (this.turnView.willPassBeResignFor(GamePlayer.User)) {
+    if (this.game.willPassBeResignFor(GamePlayer.User)) {
       this.game.resignMatch();
       return {};
     }
     this.game.passTurn();
     const opponentTurn = this.currentPlayer === GamePlayer.Opponent ? this.executeOpponentTurn() : undefined;
     return { opponentTurn };
-  }
-
-  private handleResignMatch(): void {
-    this.game.resignMatch();
-  }
-
-  private clearAllGameEvents(): Array<GameEvent> {
-    return this.game.clearAllEvents();
   }
 
   private saveTurn(): AppTurnResponse {
@@ -104,22 +86,21 @@ export default class AppCommandBuilder {
   }
 
   private async executeOpponentTurn(): Promise<AppTurnResponse> {
-    const resolution = await this.ensureMinimumDuration(() => this.createOpponentTurn());
-    switch (resolution.type) {
-      case GameTurnResolutionType.Resign:
-        this.game.resignMatch();
+    const event = await this.ensureMinimumDuration(() => this.createOpponentTurn());
+    switch (event.type) {
+      case GameEventType.MatchLost:
         return { ok: true, value: { words: [] } };
-      case GameTurnResolutionType.Pass:
+      case GameEventType.OpponentTurnPassed:
         return { ok: true, value: { words: [] } };
-      case GameTurnResolutionType.Save:
+      case GameEventType.OpponentTurnSaved:
         if (!this.inventoryView.hasTilesFor(GamePlayer.Opponent)) this.game.finishMatchByScore();
-        return { ok: true, value: { words: resolution.words } };
+        return { ok: true, value: { words: event.words } };
       default:
-        throw new Error(`Unexpected resolution type: ${(resolution as { type: string }).type}`);
+        throw new Error(`Unexpected event type: ${(event as { type: string }).type}`);
     }
   }
 
-  private async createOpponentTurn(): Promise<GameTurnResolution> {
+  private async createOpponentTurn(): Promise<GameEvent> {
     const player = GamePlayer.Opponent;
     let generatorResult = null;
     const context = this.game.createGeneratorContext(() => this.scheduler.yield());
@@ -128,9 +109,12 @@ export default class AppCommandBuilder {
       break;
     }
     if (generatorResult === null) {
-      if (this.turnView.willPassBeResignFor(player)) return { type: GameTurnResolutionType.Resign, player };
+      if (this.game.willPassBeResignFor(player)) {
+        this.game.resignMatch();
+        return { type: GameEventType.MatchLost };
+      }
       this.game.passTurn();
-      return { type: GameTurnResolutionType.Pass, player };
+      return { type: GameEventType.OpponentTurnPassed };
     }
     for (let i = 0; i < generatorResult.tiles.length; i++) {
       this.game.placeTile({ cell: generatorResult.cells[i], tile: generatorResult.tiles[i] });
@@ -139,7 +123,7 @@ export default class AppCommandBuilder {
     const words = this.game.turnView.currentTurnWords ?? [];
     const score = this.game.turnView.currentTurnScore ?? 0;
     this.saveTurn();
-    return { type: GameTurnResolutionType.Save, player, words, score };
+    return { type: GameEventType.OpponentTurnSaved, words, score };
   }
 
   private async ensureMinimumDuration<T>(callback: () => Promise<T> | T): Promise<T> {

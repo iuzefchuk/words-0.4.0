@@ -2,23 +2,22 @@ import type {
   GameBoardView,
   GameCell,
   GameDictionaryProps,
+  GameEvent,
   GameGeneratorContext,
   GameGeneratorResult,
   GameInventoryView,
   GameMatchView,
   GameTile,
-  GameTurnResolution,
   GameTurnView,
 } from '@/domain/types.ts';
 import {
   GameBonus,
   GameDictionary,
-  GameEvent,
+  GameEventType,
   GameLetter,
   GameMatchResult,
   GamePlayer,
   GameTurnGenerator,
-  GameTurnResolutionType,
 } from '@/domain/types.ts';
 import { Clock, IdGenerator, Scheduler } from '@/shared/ports.ts';
 
@@ -27,23 +26,14 @@ export type {
   GameBoardView,
   GameTile,
   GameInventoryView,
-  GameTurnResolution,
+  GameEvent,
   GameDictionaryProps,
   GameMatchView,
   GameTurnView,
   GameGeneratorContext,
   GameGeneratorResult,
 };
-export {
-  GameBonus,
-  GameEvent,
-  GameLetter,
-  GamePlayer,
-  GameMatchResult,
-  GameTurnResolutionType,
-  GameDictionary,
-  GameTurnGenerator,
-};
+export { GameBonus, GameEventType, GameLetter, GamePlayer, GameMatchResult, GameDictionary, GameTurnGenerator };
 
 export type AppConfig = {
   boardCells: ReadonlyArray<GameCell>;
@@ -59,7 +49,7 @@ export type AppQueries = {
   getCurrentTurnScore: () => number | undefined;
   isCurrentTurnValid: () => boolean;
   willUserPassBeResign: () => boolean;
-  getTurnResolutionHistory: () => ReadonlyArray<AppTurnResolution>;
+  getEventLog: () => ReadonlyArray<GameEvent>;
   isMatchFinished: () => boolean;
   getMatchResult: () => GameMatchResult | undefined;
   areTilesSame: (firstTile: GameTile, secondTile: GameTile) => boolean;
@@ -82,7 +72,7 @@ export type AppCommands = {
   handleSaveTurn: () => { userResponse: AppTurnResponse; opponentTurn?: Promise<AppTurnResponse> };
   handlePassTurn: () => { opponentTurn?: Promise<AppTurnResponse> };
   handleResignMatch: () => void;
-  clearAllGameEvents: () => Array<GameEvent>;
+  clearAllEvents: () => Array<GameEvent>;
 };
 
 export type AppDependencies = {
@@ -93,5 +83,3 @@ export type AppDependencies = {
 };
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;
-
-export type AppTurnResolution = { isSave: boolean; isUser: boolean; words?: string; score?: number };

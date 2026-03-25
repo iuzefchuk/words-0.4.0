@@ -1,13 +1,10 @@
 import {
   AppQueries,
-  AppTurnResolution,
   GameBoardView,
   GameCell,
   GameInventoryView,
   GamePlayer,
   GameTile,
-  GameTurnResolution,
-  GameTurnResolutionType,
   GameTurnView,
 } from '@/application/types.ts';
 import Game from '@/domain/index.ts';
@@ -24,8 +21,8 @@ export default class AppQueryBuilder {
       isCurrentPlayerUser: () => this.turnView.currentPlayer === GamePlayer.User,
       getCurrentTurnScore: () => this.turnView.currentTurnScore,
       isCurrentTurnValid: () => this.turnView.currentTurnIsValid,
-      willUserPassBeResign: () => this.turnView.willPassBeResignFor(GamePlayer.User),
-      getTurnResolutionHistory: () => this.turnView.resolutionHistory.map(r => this.simplifyTurnResolution(r)),
+      willUserPassBeResign: () => this.game.willPassBeResignFor(GamePlayer.User),
+      getEventLog: () => this.game.eventLog,
       isMatchFinished: () => this.game.matchView.matchIsFinished,
       getMatchResult: () => this.game.matchView.getResultFor(GamePlayer.User),
       areTilesSame: (first: GameTile, second: GameTile) => this.inventoryView.areTilesEqual(first, second),
@@ -64,18 +61,5 @@ export default class AppQueryBuilder {
     const { previousTurnTiles: tiles } = this.game.turnView;
     if (tiles === undefined || tiles.length === 0) return false;
     return tiles.includes(tile);
-  }
-
-  private simplifyTurnResolution(resolution: GameTurnResolution): AppTurnResolution {
-    const isSave = resolution.type === GameTurnResolutionType.Save;
-    const isUser = resolution.player === GamePlayer.User;
-    return {
-      isSave,
-      isUser,
-      ...(isSave && {
-        words: resolution.words.join(', '),
-        score: resolution.score,
-      }),
-    };
   }
 }

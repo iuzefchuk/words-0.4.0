@@ -1,4 +1,4 @@
-import { GameBonus, GameEvent, GameLetter, GameMatchResult } from '@/domain/types.ts';
+import { GameBonus, GameEventType, GameLetter, GameMatchResult } from '@/domain/types.ts';
 import { Sound } from '@/gui/services/SoundPlayer.ts';
 
 export const BONUS_NAMES: Record<GameBonus, string> = {
@@ -14,16 +14,16 @@ export const MATCH_RESULT_TEXT: Record<GameMatchResult, string> = {
   [GameMatchResult.Tie]: 'game.end_tie',
 };
 
-export const EVENT_SOUNDS: Partial<Record<GameEvent, Sound>> = {
-  [GameEvent.TilePlaced]: Sound.GameShortNeutral,
-  [GameEvent.TileUndoPlaced]: Sound.GameShortNeutralReverse,
-  [GameEvent.UserTurnSaved]: Sound.GameShortGood,
-  [GameEvent.UserTurnPassed]: Sound.GameShortBad,
-  [GameEvent.OpponentTurnSaved]: Sound.GameShortAltGood,
-  [GameEvent.OpponentTurnPassed]: Sound.GameShortAltBad,
-  [GameEvent.MatchWon]: Sound.GameLongGood,
-  [GameEvent.MatchTied]: Sound.GameLongNeutral,
-  [GameEvent.MatchLost]: Sound.GameLongBad,
+export const GAME_EVENT_SOUNDS: Partial<Record<GameEventType, Sound>> = {
+  [GameEventType.TilePlaced]: Sound.GameShortNeutral,
+  [GameEventType.TileUndoPlaced]: Sound.GameShortNeutralReverse,
+  [GameEventType.UserTurnSaved]: Sound.GameShortGood,
+  [GameEventType.UserTurnPassed]: Sound.GameShortBad,
+  [GameEventType.OpponentTurnSaved]: Sound.GameShortAltGood,
+  [GameEventType.OpponentTurnPassed]: Sound.GameShortAltBad,
+  [GameEventType.MatchWon]: Sound.GameLongGood,
+  [GameEventType.MatchTied]: Sound.GameLongNeutral,
+  [GameEventType.MatchLost]: Sound.GameLongBad,
 };
 
 export const LETTERS_SVG_HTML: Record<GameLetter, string> = {

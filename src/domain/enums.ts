@@ -3,7 +3,7 @@ export enum Player {
   Opponent = 'Opponent',
 }
 
-export enum Event {
+export enum EventType {
   TilePlaced = 'TilePlaced',
   TileUndoPlaced = 'TileUndoPlaced',
   UserTurnSaved = 'UserTurnSaved',
