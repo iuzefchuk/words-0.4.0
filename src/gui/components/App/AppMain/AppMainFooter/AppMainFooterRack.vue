@@ -8,7 +8,7 @@ const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
 const { tilesRemaining } = storeToRefs(matchStore);
 const { tiles } = storeToRefs(rackStore);
-const buttons = new UseButtons();
+const buttons = UseButtons.create();
 const { allActionsAreDisabled } = buttons;
 </script>
 

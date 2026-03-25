@@ -27,7 +27,7 @@ watch(title, newValue => {
 </script>
 
 <template>
-  <Transition name="fade">
+  <Transition name="fade" appear>
     <div v-if="isRendered" class="dialog" @mousedown="toggleExitAnimation">
       <Transition tag="div" name="fade-down-up" appear>
         <div

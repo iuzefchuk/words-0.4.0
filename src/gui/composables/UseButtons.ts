@@ -1,4 +1,5 @@
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
+import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
 import SoundPlayer, { Sound } from '@/gui/services/SoundPlayer.ts';
 import DialogStore from '@/gui/stores/DialogStore.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
@@ -7,10 +8,18 @@ import RackStore from '@/gui/stores/RackStore.ts';
 export default class UseButtons {
   readonly allActionsAreDisabled = computed(() => !MatchStore.INSTANCE().currentPlayerIsUser);
 
+  private constructor(private readonly resignDelayMs: number) {}
+
+  static create(): UseButtons {
+    const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY, 0);
+    const resignDelayMs = transitionDurationMs * 2;
+    return new UseButtons(resignDelayMs);
+  }
+
   async handleResign(): Promise<void> {
     const { isConfirmed } = await this.triggerResignDialog();
     if (!isConfirmed) return;
-    this.matchStore.resign();
+    setTimeout(() => this.matchStore.resign(), this.resignDelayMs);
   }
 
   async handlePass(): Promise<void> {

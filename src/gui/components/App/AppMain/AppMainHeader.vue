@@ -16,7 +16,7 @@ const players = reactive([
 
 <template>
   <header class="header">
-    <div class="header__wrapper app__width-content">
+    <div class="header__wrapper">
       <p v-for="player in players" :key="player.name" class="header__player">
         {{ player.name }}: <span v-animate-number="{ number: player.score() }" class="header__player-score" />
       </p>
@@ -29,16 +29,15 @@ const players = reactive([
   width: 100%;
   display: grid;
   place-items: center;
-  border-bottom: var(--primary-border);
   z-index: var(--z-index-level-2);
-  padding: var(--primary-padding);
+  padding: var(--primary-padding) 0;
   justify-self: center;
   align-self: start;
-  height: 6rem;
   &__wrapper {
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
+    width: 100%;
   }
   &__player {
     display: flex;

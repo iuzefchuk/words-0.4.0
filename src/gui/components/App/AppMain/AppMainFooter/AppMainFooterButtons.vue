@@ -7,7 +7,7 @@ import RackStore from '@/gui/stores/RackStore.ts';
 const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
 const { anyTileIsPlaced } = storeToRefs(rackStore);
-const buttons = new UseButtons();
+const buttons = UseButtons.create();
 const { allActionsAreDisabled } = buttons;
 const items = reactive([
   {

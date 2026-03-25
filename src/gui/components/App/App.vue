@@ -15,7 +15,7 @@ const showEndscreen = ref(false);
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 
 watch(matchIsFinished, finished => {
-  if (finished) setTimeout(() => (showEndscreen.value = true), transitionDurationMs! * 2);
+  if (finished) showEndscreen.value = true;
 });
 
 onMounted(() => {
@@ -31,14 +31,16 @@ onMounted(() => {
         '--transition-duration': `${transitionDurationMs}ms`,
         '--transition-duration-half': `${transitionDurationMs / 2}ms`,
       }),
-      '--cell-count-per-axis': Math.sqrt(matchStore.boardCells.length),
+      '--cell-count-per-axis': matchStore.boardCellsPerAxis,
     }"
   >
     <AppLoader :is-active="loaderIsActive" @derendered="mainIsRendered = true" />
     <AppMain v-if="mainIsRendered" />
     <AppDialog />
   </div>
-  <AppEndscreen v-if="showEndscreen" />
+  <Transition name="fade" appear>
+    <AppEndscreen v-if="showEndscreen" />
+  </Transition>
 </template>
 
 <style lang="scss">
