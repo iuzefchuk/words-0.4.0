@@ -35,3 +35,7 @@ class Application {
 }
 
 new Application().start();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}

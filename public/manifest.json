@@ -1,0 +1,21 @@
+{
+  "name": "Words | Online Word Game",
+  "short_name": "Words",
+  "description": "Play words with friends for free. The best online words game for fans of Wordfeud, Scrabble and Words With Friends!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#181830",
+  "theme_color": "#181830",
+  "icons": [
+    {
+      "src": "/words.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/words.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
