@@ -3,13 +3,13 @@ import { Letter } from '@/domain/enums.ts';
 
 export type NodeId = number;
 
-type NextNodeGenerator = Generator<[Letter, NodeId]>;
-
-export type DictionaryProps = {
+export type DictionarySnapshot = {
   rootNode: FrozenNode;
   nodeById: ReadonlyMap<NodeId, FrozenNode>;
   allLetters: ReadonlySet<Letter>;
 };
+
+type NextNodeGenerator = Generator<[Letter, NodeId]>;
 
 type Node = { id: NodeId; isFinal: boolean; children: Map<Letter, Node> };
 
@@ -20,7 +20,11 @@ type FrozenNode = {
 };
 
 export default class Dictionary {
-  private constructor(readonly props: DictionaryProps) {}
+  private constructor(
+    public readonly rootNode: FrozenNode,
+    public readonly nodeById: ReadonlyMap<NodeId, FrozenNode>,
+    public readonly allLetters: ReadonlySet<Letter>,
+  ) {}
 
   static create(): Dictionary {
     const rootNode = DictionaryTreeBuilder.execute(DICTIONARY_DATA);
@@ -28,23 +32,19 @@ export default class Dictionary {
     const allLetters = new Set<Letter>();
     this.freezeTree(rootNode);
     this.traverseNode(nodeById, allLetters, rootNode);
-    const props = { rootNode, nodeById, allLetters } as DictionaryProps;
-    return new Dictionary(props);
+    return new Dictionary(rootNode, nodeById, allLetters);
   }
 
-  static restoreFromProps(props: DictionaryProps): Dictionary | null {
-    if (!props.rootNode || typeof props.rootNode.id !== 'number' || typeof props.rootNode.isFinal !== 'boolean')
-      return null;
-    if (!(props.rootNode.children instanceof Map)) return null;
-    this.freezeTree(props.rootNode);
-    const nodeById = new Map<NodeId, FrozenNode>();
-    const allLetters = new Set<Letter>();
-    this.traverseNode(nodeById, allLetters, props.rootNode);
-    return new Dictionary({ rootNode: props.rootNode, nodeById, allLetters });
+  static restoreFromSnapshot(snapshot: DictionarySnapshot): Dictionary {
+    return new Dictionary(snapshot.rootNode, snapshot.nodeById, snapshot.allLetters);
   }
 
-  get allLetters(): ReadonlySet<Letter> {
-    return this.props.allLetters;
+  get snapshot(): DictionarySnapshot {
+    return {
+      rootNode: this.rootNode,
+      nodeById: this.nodeById,
+      allLetters: this.allLetters,
+    };
   }
 
   get firstNode(): NodeId {
@@ -86,14 +86,6 @@ export default class Dictionary {
       allLetters.add(childLetter);
       this.traverseNode(nodeById, allLetters, childNode);
     }
-  }
-
-  private get rootNode(): FrozenNode {
-    return this.props.rootNode;
-  }
-
-  private get nodeById(): ReadonlyMap<NodeId, FrozenNode> {
-    return this.props.nodeById;
   }
 
   private containsWord(word: string): boolean {

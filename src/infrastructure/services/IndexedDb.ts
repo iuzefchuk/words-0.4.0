@@ -31,8 +31,12 @@ export default class IndexedDb<T> {
 
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
-      request.onupgradeneeded = () => request.result.createObjectStore(this.storeName);
+      const request = indexedDB.open(this.dbName, 2);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains(this.storeName)) {
+          request.result.createObjectStore(this.storeName);
+        }
+      };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
@@ -50,9 +54,10 @@ export default class IndexedDb<T> {
   private setCache(db: IDBDatabase, cache: VersionedCache<T>): Promise<void> {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction(this.storeName, 'readwrite');
-      const request = transaction.objectStore(this.storeName).put(cache, this.cacheKey);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+      transaction.objectStore(this.storeName).put(cache, this.cacheKey);
     });
   }
 }

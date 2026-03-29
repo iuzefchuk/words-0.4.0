@@ -1,3 +1,4 @@
+import { Clock, Scheduler } from '@/application/ports.ts';
 import {
   AppCommands,
   AppTurnResponse,
@@ -10,8 +11,8 @@ import {
   GameTurnGenerator,
 } from '@/application/types.ts';
 import Game from '@/domain/index.ts';
+import type { GameRepository } from '@/domain/ports.ts';
 import { TIME } from '@/shared/constants.ts';
-import { Clock, Scheduler } from '@/shared/ports.ts';
 
 export default class AppCommandBuilder {
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
@@ -20,16 +21,23 @@ export default class AppCommandBuilder {
     private readonly game: Game,
     private readonly clock: Clock,
     private readonly scheduler: Scheduler,
+    private readonly gameRepository: GameRepository,
   ) {}
 
   get commands(): AppCommands {
     return {
       placeTile: (args: { cell: GameCell; tile: GameTile }) => this.placeTile(args),
       undoPlaceTile: (tile: GameTile) => this.undoPlaceTile(tile),
-      clearTiles: () => this.game.clearTiles(),
+      clearTiles: () => {
+        this.game.clearTiles();
+        this.persist();
+      },
       handleSaveTurn: () => this.handleSaveTurn(),
       handlePassTurn: () => this.handlePassTurn(),
-      handleResignMatch: () => this.game.resignMatch(),
+      handleResignMatch: () => {
+        this.game.resignMatch();
+        this.persist();
+      },
       clearAllEvents: () => this.game.clearAllEvents(),
     };
   }
@@ -42,14 +50,20 @@ export default class AppCommandBuilder {
     return this.game.turnView.currentPlayer;
   }
 
+  private persist(): void {
+    this.gameRepository.save(this.game.snapshot);
+  }
+
   private placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
     this.game.placeTile({ cell, tile });
     this.game.validateTurn();
+    this.persist();
   }
 
   private undoPlaceTile(tile: GameTile): void {
     this.game.undoPlaceTile({ tile });
     this.game.validateTurn();
+    this.persist();
   }
 
   private handleSaveTurn(): { userResponse: AppTurnResponse; opponentTurn?: Promise<AppTurnResponse> } {
@@ -60,11 +74,14 @@ export default class AppCommandBuilder {
     }
     if (!this.inventoryView.hasTilesFor(player)) {
       this.game.finishMatchByScore();
+      this.persist();
       return { userResponse };
     }
     if (this.game.matchView.matchIsFinished) {
+      this.persist();
       return { userResponse };
     }
+    this.persist();
     const opponentTurn = this.currentPlayer === GamePlayer.Opponent ? this.executeOpponentTurn() : undefined;
     return { userResponse, opponentTurn };
   }
@@ -72,9 +89,11 @@ export default class AppCommandBuilder {
   private handlePassTurn(): { opponentTurn?: Promise<AppTurnResponse> } {
     if (this.game.willPassBeResignFor(GamePlayer.User)) {
       this.game.resignMatch();
+      this.persist();
       return {};
     }
     this.game.passTurn();
+    this.persist();
     const opponentTurn = this.currentPlayer === GamePlayer.Opponent ? this.executeOpponentTurn() : undefined;
     return { opponentTurn };
   }
@@ -87,17 +106,23 @@ export default class AppCommandBuilder {
 
   private async executeOpponentTurn(): Promise<AppTurnResponse> {
     const event = await this.ensureMinimumDuration(() => this.createOpponentTurn());
+    let response: AppTurnResponse;
     switch (event.type) {
       case GameEventType.MatchLost:
-        return { ok: true, value: { words: [] } };
+        response = { ok: true, value: { words: [] } };
+        break;
       case GameEventType.OpponentTurnPassed:
-        return { ok: true, value: { words: [] } };
+        response = { ok: true, value: { words: [] } };
+        break;
       case GameEventType.OpponentTurnSaved:
         if (!this.inventoryView.hasTilesFor(GamePlayer.Opponent)) this.game.finishMatchByScore();
-        return { ok: true, value: { words: event.words } };
+        response = { ok: true, value: { words: event.words } };
+        break;
       default:
         throw new Error(`Unexpected event type: ${(event as { type: string }).type}`);
     }
+    this.persist();
+    return response;
   }
 
   private async createOpponentTurn(): Promise<GameEvent> {

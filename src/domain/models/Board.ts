@@ -27,10 +27,14 @@ export type BoardView = {
   getBonus(cell: CellIndex): Bonus | null;
   getRowIndex(cell: CellIndex): number;
   getColumnIndex(cell: CellIndex): number;
-  findTopRightCell(cells: ReadonlyArray<CellIndex>): CellIndex | undefined;
+  findCellInTopmostRow(cells: ReadonlyArray<CellIndex>): CellIndex | undefined;
   findTileByCell(cell: CellIndex): TileId | undefined;
   findCellByTile(tile: TileId): CellIndex | undefined;
   isTilePlaced(tile: TileId): boolean;
+};
+
+export type BoardSnapshot = {
+  tileByCell: ReadonlyMap<CellIndex, TileId>;
 };
 
 export default class Board {
@@ -47,6 +51,18 @@ export default class Board {
 
   static clone(board: Board): Board {
     return new Board(new Map(board.tileByCell), new Map(board.cellByTile));
+  }
+
+  static restoreFromSnapshot(snapshot: BoardSnapshot): Board {
+    const board = Board.create();
+    snapshot.tileByCell.forEach((tile, cell) => board.placeTile(cell, tile));
+    return board;
+  }
+
+  get snapshot(): BoardSnapshot {
+    return {
+      tileByCell: this.tileByCell,
+    };
   }
 
   get cells(): ReadonlyArray<CellIndex> {
@@ -89,7 +105,7 @@ export default class Board {
     return Layout.getColumnIndex(cell);
   }
 
-  findTopRightCell(cells: ReadonlyArray<CellIndex>): CellIndex | undefined {
+  findCellInTopmostRow(cells: ReadonlyArray<CellIndex>): CellIndex | undefined {
     if (cells.length === 0) return undefined;
     return cells.reduce((best, current) => {
       const bestRow = Layout.getRowIndex(best);
@@ -190,18 +206,23 @@ class Layout {
     (_, i) => this.createCellIndex(i),
   );
 
-  private static readonly BONUS_BY_CELL: ReadonlyMap<CellIndex, Bonus> = new Map(
-    Object.values(Bonus).flatMap(bonus => {
-      return {
-        [Bonus.DoubleLetter]: [
-          7, 16, 28, 36, 38, 66, 68, 92, 94, 100, 102, 105, 119, 122, 124, 130, 132, 156, 158, 186, 188, 196, 208, 217,
-        ],
-        [Bonus.TripleLetter]: [0, 14, 20, 24, 48, 56, 76, 80, 84, 88, 136, 140, 144, 148, 168, 176, 200, 204, 210, 224],
-        [Bonus.DoubleWord]: [32, 42, 52, 64, 70, 108, 116, 154, 160, 172, 182, 192],
-        [Bonus.TripleWord]: [4, 10, 60, 74, 150, 164, 214, 220],
-      }[bonus].map(number => [this.createCellIndex(number), bonus] as const);
-    }),
-  );
+  private static readonly BONUS_BY_CELL: ReadonlyMap<CellIndex, Bonus> = new Map([
+    ...[
+      7, 16, 28, 36, 38, 66, 68, 92, 94, 100, 102, 105, 119, 122, 124, 130, 132, 156, 158, 186, 188, 196, 208, 217,
+    ].map(int => [int as CellIndex, Bonus.DoubleLetter] as const),
+    ...[0, 14, 20, 24, 48, 56, 76, 80, 84, 88, 136, 140, 144, 148, 168, 176, 200, 204, 210, 224].map(
+      int => [int as CellIndex, Bonus.TripleLetter] as const,
+    ),
+    ...[32, 42, 52, 64, 70, 108, 116, 154, 160, 172, 182, 192].map(
+      int => [int as CellIndex, Bonus.DoubleWord] as const,
+    ),
+    ...[4, 10, 60, 74, 150, 164, 214, 220].map(int => [int as CellIndex, Bonus.TripleWord] as const),
+  ]);
+
+  private static readonly CENTER_CELL: CellIndex = (() => {
+    const mid = Math.floor(Layout.CELLS_PER_AXIS / 2);
+    return (mid * Layout.CELLS_PER_AXIS + mid) as CellIndex;
+  })();
 
   static isCellPositionOnLeftEdge(cellPosition: number): boolean {
     return cellPosition === 0;
@@ -213,7 +234,7 @@ class Layout {
 
   static isCellCenter(cell: CellIndex): boolean {
     this.validateCell(cell);
-    return cell === this.centerCell;
+    return cell === this.CENTER_CELL;
   }
 
   static getBonus(cell: CellIndex): Bonus | null {
@@ -281,10 +302,5 @@ class Layout {
 
   private static createCellIndex(value: number): CellIndex {
     return value as CellIndex;
-  }
-
-  private static get centerCell(): CellIndex {
-    const mid = Math.floor(this.CELLS_PER_AXIS / 2);
-    return this.createCellIndex(mid * this.CELLS_PER_AXIS + mid);
   }
 }

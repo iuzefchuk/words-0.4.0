@@ -58,7 +58,7 @@ export default class AppQueryBuilder {
   private getCurrentTurnTopRightCell(): GameCell | undefined {
     const { currentTurnCells: cells } = this.game.turnView;
     if (cells === undefined || cells.length === 0) return undefined;
-    return this.boardView.findTopRightCell(cells);
+    return this.boardView.findCellInTopmostRow(cells);
   }
 
   private isCellTopRightInCurrentTurn(cell: GameCell): boolean {

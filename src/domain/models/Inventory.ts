@@ -1,10 +1,12 @@
 import { Letter, Player } from '@/domain/enums.ts';
-import { IdGenerator } from '@/shared/ports.ts';
+import { IdGenerator } from '@/domain/ports.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export type TileId = Brand<string, 'TileId'>;
 
 export type TileCollection = ReadonlyMap<Letter, ReadonlyArray<TileId>>;
+
+export type TileSnapshot = { id: string; letter: Letter };
 
 export type InventoryView = {
   readonly unusedTilesCount: number;
@@ -12,6 +14,13 @@ export type InventoryView = {
   hasTilesFor(player: Player): boolean;
   areTilesEqual(firstTile: TileId, secondTile: TileId): boolean;
   getTileLetter(tile: TileId): Letter;
+};
+
+export type InventorySnapshot = {
+  tileById: Map<TileId, TileSnapshot>;
+  drawPoolTileIds: ReadonlyArray<TileId>;
+  playerPoolsTileIds: Map<Player, ReadonlyArray<TileId>>;
+  discardPoolTileIds: ReadonlyArray<TileId>;
 };
 
 export default class Inventory {
@@ -47,29 +56,49 @@ export default class Inventory {
   };
 
   private constructor(
-    private drawPool: TilePool,
-    private poolByPlayer: Map<Player, TilePool>,
-    private discardPool: TilePool,
     private readonly tileById: Map<TileId, Tile>,
-  ) {
-    this.initializePlayerPools();
-  }
+    private drawPool: TilePool,
+    private playerPools: Map<Player, TilePool>,
+    private discardPool: TilePool,
+  ) {}
 
   static create(players: ReadonlyArray<Player>, idGenerator: IdGenerator): Inventory {
-    const tiles = shuffleWithFisherYates(
-      Object.values(Letter).flatMap(letter =>
-        Array.from({ length: Inventory.LETTER_CONFIG[letter].distribution }, () =>
-          Tile.create({ letter, idGenerator }),
-        ),
-      ),
+    const tiles = Object.values(Letter).flatMap(letter =>
+      Array.from({ length: Inventory.LETTER_CONFIG[letter].distribution }, () => Tile.create({ letter, idGenerator })),
     );
+    shuffleWithFisherYates(tiles);
     const tileById = new Map<TileId, Tile>(tiles.map(tile => [tile.id, tile]));
     const drawPool = TilePool.create({ tiles });
-    const poolByPlayer = new Map(
+    const playerPools = new Map(
       players.map(player => [player, TilePool.create({ capacity: this.PLAYER_POOL_CAPACITY })]),
     );
     const discardPool = TilePool.create();
-    return new Inventory(drawPool, poolByPlayer, discardPool, tileById);
+    const inventory = new Inventory(tileById, drawPool, playerPools, discardPool);
+    inventory.initializePlayerPools();
+    return inventory;
+  }
+
+  static restoreFromSnapshot(snapshot: InventorySnapshot): Inventory {
+    const { drawPoolTileIds, playerPoolsTileIds, discardPoolTileIds } = snapshot;
+    const tileById = new Map(snapshot.tileById as Map<TileId, Tile>);
+    const drawPool = TilePool.create({ tiles: drawPoolTileIds.map(tileId => tileById.get(tileId)!) });
+    const playerPools = new Map(
+      Object.entries(playerPoolsTileIds).map(([player, ids]) => [
+        player as Player,
+        TilePool.create({ tiles: ids, capacity: Inventory.PLAYER_POOL_CAPACITY }),
+      ]),
+    );
+    const discardPool = TilePool.create({ tiles: discardPoolTileIds.map(tileId => tileById.get(tileId)!) });
+    return new Inventory(tileById, drawPool, playerPools, discardPool);
+  }
+
+  get snapshot(): InventorySnapshot {
+    return {
+      tileById: this.tileById,
+      drawPoolTileIds: this.drawPool.tileIds,
+      playerPoolsTileIds: new Map([...this.playerPools].map(([player, pool]) => [player, pool.tileIds])),
+      discardPoolTileIds: this.discardPool.tileIds,
+    };
   }
 
   get unusedTilesCount(): number {
@@ -112,11 +141,11 @@ export default class Inventory {
   }
 
   private initializePlayerPools(): void {
-    this.poolByPlayer.forEach(pool => this.replenishPlayerPool(pool));
+    this.playerPools.forEach(pool => this.replenishPlayerPool(pool));
   }
 
   private getTilePoolFor(player: Player): TilePool {
-    const pool = this.poolByPlayer.get(player);
+    const pool = this.playerPools.get(player);
     if (!pool) throw new Error('Player pool not found');
     return pool;
   }
@@ -202,6 +231,10 @@ class Tile {
 
   static create({ letter, idGenerator }: { letter: Letter; idGenerator: IdGenerator }): Tile {
     const id = idGenerator.execute() as TileId;
+    return new Tile(id, letter);
+  }
+
+  static restore(id: TileId, letter: Letter): Tile {
     return new Tile(id, letter);
   }
 

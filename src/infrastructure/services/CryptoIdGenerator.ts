@@ -1,4 +1,4 @@
-import { IdGenerator } from '@/shared/ports.ts';
+import { IdGenerator } from '@/domain/ports.ts';
 
 export default class CryptoIdGenerator implements IdGenerator {
   execute(): string {

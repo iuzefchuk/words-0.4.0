@@ -11,12 +11,24 @@ export type MatchView = {
   getResultFor(player: Player): MatchResult | undefined;
 };
 
+export type MatchTrackerSnapshot = {
+  results: ReadonlyMap<Player, MatchResult | undefined>;
+};
+
 export default class MatchTracker {
   private constructor(private readonly results: Map<Player, MatchResult | undefined>) {}
 
   static create(players: ReadonlyArray<Player>): MatchTracker {
     const results = new Map(players.map(player => [player, undefined]));
     return new MatchTracker(results);
+  }
+
+  static restoreFromSnapshot(snapshot: MatchTrackerSnapshot): MatchTracker {
+    return new MatchTracker(snapshot.results as Map<Player, MatchResult | undefined>);
+  }
+
+  get snapshot(): MatchTrackerSnapshot {
+    return { results: this.results };
   }
 
   get matchIsFinished(): boolean {

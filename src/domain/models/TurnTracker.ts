@@ -1,7 +1,7 @@
 import { Player } from '@/domain/enums.ts';
 import { type CellIndex, type Placement } from '@/domain/models/Board.ts';
 import { TileId } from '@/domain/models/Inventory.ts';
-import { IdGenerator } from '@/shared/ports.ts';
+import { IdGenerator } from '@/domain/ports.ts';
 
 export enum ValidationStatus {
   Unvalidated = 'Unvalidated',
@@ -50,19 +50,43 @@ export type TurnView = {
   getScoreFor(player: Player): number;
 };
 
+export type TurnTrackerSnapshot = {
+  turns: ReadonlyArray<TurnSnapshot>;
+  userScore: number;
+  opponentScore: number;
+};
+
+export type TurnSnapshot = {
+  id: string;
+  player: Player;
+  tiles: ReadonlyArray<TileId>;
+};
+
 export default class TurnTracker {
   private static readonly FIRST_PLAYER: Player = Player.User;
-
-  private userScore = 0;
-  private opponentScore = 0;
 
   private constructor(
     private readonly idGenerator: IdGenerator,
     private turns: Array<Turn>,
+    private userScore: number = 0,
+    private opponentScore: number = 0,
   ) {}
 
   static create(idGenerator: IdGenerator): TurnTracker {
     return new TurnTracker(idGenerator, []);
+  }
+
+  static restoreFromSnapshot(snapshot: TurnTrackerSnapshot, idGenerator: IdGenerator): TurnTracker {
+    const turns = snapshot.turns.map(turn => Turn.restore(turn.id, turn.player, turn.tiles as Array<TileId>));
+    return new TurnTracker(idGenerator, turns, snapshot.userScore, snapshot.opponentScore);
+  }
+
+  get snapshot(): TurnTrackerSnapshot {
+    return {
+      turns: this.turns,
+      userScore: this.userScore,
+      opponentScore: this.opponentScore,
+    };
   }
 
   get hasPriorTurns(): boolean {
@@ -159,13 +183,16 @@ class Turn {
     readonly id: string,
     readonly player: Player,
     private _tiles: Array<TileId>,
-    private _validationResult: ValidationResult,
+    private _validationResult: ValidationResult = { status: ValidationStatus.Unvalidated },
   ) {}
 
   static create({ player, idGenerator }: { player: Player; idGenerator: IdGenerator }): Turn {
     const id = idGenerator.execute();
-    const validationResult: UnvalidatedResult = { status: ValidationStatus.Unvalidated };
-    return new Turn(id, player, [], validationResult);
+    return new Turn(id, player, []);
+  }
+
+  static restore(id: string, player: Player, tiles: Array<TileId>): Turn {
+    return new Turn(id, player, tiles);
   }
 
   set validationResult(result: ValidationResult) {

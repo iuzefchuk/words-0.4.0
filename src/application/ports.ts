@@ -3,10 +3,6 @@ export type Clock = {
   wait(ms: number): Promise<void>;
 };
 
-export type IdGenerator = {
-  execute(): string;
-};
-
 export type Scheduler = {
   yield(): Promise<void>;
 };

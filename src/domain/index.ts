@@ -3,6 +3,7 @@ import Dictionary from '@/domain/models/Dictionary.ts';
 import Inventory from '@/domain/models/Inventory.ts';
 import MatchTracker from '@/domain/models/MatchTracker.ts';
 import TurnTracker from '@/domain/models/TurnTracker.ts';
+import { IdGenerator } from '@/domain/ports.ts';
 import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/CurrentTurnValidator.ts';
 import { GeneratorContext } from '@/domain/services/TurnGenerator.ts';
 import {
@@ -13,10 +14,12 @@ import {
   GameInventoryView,
   GameMatchView,
   GamePlayer,
+  GameSnapshot,
   GameTile,
   GameTurnView,
 } from '@/domain/types.ts';
-import { IdGenerator } from '@/shared/ports.ts';
+
+const GAME_SNAPSHOT_VERSION = 1; //TODO connect to .env version
 
 export default class Game {
   private readonly events = new Events();
@@ -29,15 +32,37 @@ export default class Game {
     private readonly turnTracker: TurnTracker,
   ) {}
 
-  static create(dictionary: Dictionary, idGenerator: IdGenerator): Game {
-    const board = Board.create();
+  static create(idGenerator: IdGenerator): Game {
     const players = Object.values(GamePlayer);
+    const board = Board.create();
+    const dictionary = Dictionary.create();
     const inventory = Inventory.create(players, idGenerator);
     const matchTracker = MatchTracker.create(players);
     const turnTracker = TurnTracker.create(idGenerator);
     const game = new Game(board, dictionary, inventory, matchTracker, turnTracker);
     game.startTurnForNextPlayer();
     return game;
+  }
+
+  static restoreFromSnapshot(snapshot: GameSnapshot, idGenerator: IdGenerator): Game | null {
+    if (snapshot.version !== GAME_SNAPSHOT_VERSION) return null;
+    const board = Board.restoreFromSnapshot(snapshot.board);
+    const dictionary = Dictionary.restoreFromSnapshot(snapshot.dictionary);
+    const inventory = Inventory.restoreFromSnapshot(snapshot.inventory);
+    const matchTracker = MatchTracker.restoreFromSnapshot(snapshot.matchTracker);
+    const turnTracker = TurnTracker.restoreFromSnapshot(snapshot.turnTracker, idGenerator);
+    return new Game(board, dictionary, inventory, matchTracker, turnTracker);
+  }
+
+  get snapshot(): GameSnapshot {
+    return {
+      version: GAME_SNAPSHOT_VERSION,
+      board: this.board.snapshot,
+      dictionary: this.dictionary.snapshot,
+      inventory: this.inventory.snapshot,
+      turnTracker: this.turnTracker.snapshot,
+      matchTracker: this.matchTracker.snapshot,
+    };
   }
 
   get boardView(): Readonly<GameBoardView> {

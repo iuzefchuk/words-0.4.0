@@ -1,36 +1,38 @@
-import { AppDependencies, GameDictionary, GameDictionaryProps } from '@/application/types.ts';
+import { AppDependencies } from '@/application/types.ts';
+import { GameRepository } from '@/domain/ports.ts';
+import { GameSnapshot } from '@/domain/types.ts';
 import IdGenerator from '@/infrastructure/services/CryptoIdGenerator.ts';
 import DateApiClock from '@/infrastructure/services/DateApiClock.ts';
 import IndexedDb from '@/infrastructure/services/IndexedDb.ts';
 import WebScheduler from '@/infrastructure/services/WebScheduler.ts';
 
 export default class Infrastructure {
-  private static readonly CACHE_VERSION = 3;
-  private static readonly DICTIONARY_DB_NAME = 'words-dictionary';
-  private static readonly DICTIONARY_STORE_NAME = 'props';
-  private static readonly DICTIONARY_CACHE_KEY = 'dictionary';
-
   static async createAppDependencies(): Promise<AppDependencies> {
-    const dictionary = await this.createDictionary();
     const idGenerator = new IdGenerator();
     const clock = new DateApiClock();
     const scheduler = new WebScheduler();
-    return { dictionary, idGenerator, clock, scheduler };
+    const gameRepository = new IndexedDbGameRepository();
+    return { idGenerator, clock, scheduler, gameRepository };
+  }
+}
+
+class IndexedDbGameRepository implements GameRepository {
+  private static readonly DB_VERSION = 1;
+  private static readonly DB_NAME = 'words-game';
+  private static readonly STORE_NAME = 'state';
+  private static readonly CACHE_KEY = 'game';
+
+  private readonly db = new IndexedDb<GameSnapshot>(
+    IndexedDbGameRepository.DB_NAME,
+    IndexedDbGameRepository.STORE_NAME,
+    IndexedDbGameRepository.CACHE_KEY,
+  );
+
+  async save(snapshot: GameSnapshot): Promise<void> {
+    await this.db.save(IndexedDbGameRepository.DB_VERSION, snapshot);
   }
 
-  private static async createDictionary(): Promise<GameDictionary> {
-    const db = new IndexedDb<GameDictionaryProps>(
-      this.DICTIONARY_DB_NAME,
-      this.DICTIONARY_STORE_NAME,
-      this.DICTIONARY_CACHE_KEY,
-    );
-    const cache = await db.load(this.CACHE_VERSION);
-    if (cache) {
-      const dictionary = GameDictionary.restoreFromProps(cache);
-      if (dictionary) return dictionary;
-    }
-    const dictionary = GameDictionary.create();
-    db.save(this.CACHE_VERSION, dictionary[this.DICTIONARY_STORE_NAME]);
-    return dictionary;
+  async load(): Promise<GameSnapshot | null> {
+    return this.db.load(IndexedDbGameRepository.DB_VERSION);
   }
 }

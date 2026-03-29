@@ -1,7 +1,9 @@
+import { Clock, Scheduler } from '@/application/ports.ts';
+import type { GameRepository } from '@/domain/ports.ts';
+import { IdGenerator } from '@/domain/ports.ts';
 import type {
   GameBoardView,
   GameCell,
-  GameDictionaryProps,
   GameEvent,
   GameInventoryView,
   GameMatchView,
@@ -10,26 +12,15 @@ import type {
 } from '@/domain/types.ts';
 import {
   GameBonus,
-  GameDictionary,
   GameEventType,
   GameLetter,
   GameMatchResult,
   GamePlayer,
   GameTurnGenerator,
 } from '@/domain/types.ts';
-import { Clock, IdGenerator, Scheduler } from '@/shared/ports.ts';
 
-export type {
-  GameCell,
-  GameBoardView,
-  GameTile,
-  GameInventoryView,
-  GameEvent,
-  GameDictionaryProps,
-  GameMatchView,
-  GameTurnView,
-};
-export { GameBonus, GameEventType, GameLetter, GamePlayer, GameMatchResult, GameDictionary, GameTurnGenerator };
+export type { GameCell, GameBoardView, GameTile, GameInventoryView, GameEvent, GameMatchView, GameTurnView };
+export { GameBonus, GameEventType, GameLetter, GamePlayer, GameMatchResult, GameTurnGenerator };
 
 export type AppConfig = {
   boardCells: ReadonlyArray<GameCell>;
@@ -73,10 +64,10 @@ export type AppCommands = {
 };
 
 export type AppDependencies = {
-  dictionary: GameDictionary;
   idGenerator: IdGenerator;
   clock: Clock;
   scheduler: Scheduler;
+  gameRepository: GameRepository;
 };
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;
