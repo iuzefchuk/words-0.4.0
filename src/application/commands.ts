@@ -30,13 +30,13 @@ export default class AppCommandBuilder {
       undoPlaceTile: (tile: GameTile) => this.undoPlaceTile(tile),
       clearTiles: () => {
         this.game.clearTiles();
-        this.persist();
+        this.syncPersistence();
       },
       handleSaveTurn: () => this.handleSaveTurn(),
       handlePassTurn: () => this.handlePassTurn(),
       handleResignMatch: () => {
         this.game.resignMatch();
-        this.persist();
+        this.clearPersistence();
       },
       clearAllEvents: () => this.game.clearAllEvents(),
     };
@@ -50,20 +50,24 @@ export default class AppCommandBuilder {
     return this.game.turnsView.currentPlayer;
   }
 
-  private persist(): void {
+  private syncPersistence(): void {
     this.gameRepository.save(this.game.snapshot);
+  }
+
+  private clearPersistence(): void {
+    this.gameRepository.clear();
   }
 
   private placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {
     this.game.placeTile({ cell, tile });
     this.game.validateTurn();
-    this.persist();
+    this.syncPersistence();
   }
 
   private undoPlaceTile(tile: GameTile): void {
     this.game.undoPlaceTile({ tile });
     this.game.validateTurn();
-    this.persist();
+    this.syncPersistence();
   }
 
   private handleSaveTurn(): { userResponse: AppTurnResponse; opponentTurn?: Promise<AppTurnResponse> } {
@@ -74,14 +78,14 @@ export default class AppCommandBuilder {
     }
     if (!this.inventoryView.hasTilesFor(player)) {
       this.game.finishMatchByScore();
-      this.persist();
+      this.clearPersistence();
       return { userResponse };
     }
     if (this.game.matchView.isFinished) {
-      this.persist();
+      this.clearPersistence();
       return { userResponse };
     }
-    this.persist();
+    this.syncPersistence();
     const opponentTurn = this.currentPlayer === GamePlayer.Opponent ? this.executeOpponentTurn() : undefined;
     return { userResponse, opponentTurn };
   }
@@ -89,11 +93,11 @@ export default class AppCommandBuilder {
   private handlePassTurn(): { opponentTurn?: Promise<AppTurnResponse> } {
     if (this.game.willPassBeResignFor(GamePlayer.User)) {
       this.game.resignMatch();
-      this.persist();
+      this.clearPersistence();
       return {};
     }
     this.game.passTurn();
-    this.persist();
+    this.syncPersistence();
     const opponentTurn = this.currentPlayer === GamePlayer.Opponent ? this.executeOpponentTurn() : undefined;
     return { opponentTurn };
   }
@@ -121,7 +125,11 @@ export default class AppCommandBuilder {
       default:
         throw new Error(`Unexpected event type: ${(event as { type: string }).type}`);
     }
-    this.persist();
+    if (this.game.matchView.isFinished) {
+      this.clearPersistence();
+    } else {
+      this.syncPersistence();
+    }
     return response;
   }
 

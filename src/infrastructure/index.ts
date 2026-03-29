@@ -35,4 +35,8 @@ class IndexedDbGameRepository implements GameRepository {
   async load(): Promise<GameSnapshot | null> {
     return this.db.load(IndexedDbGameRepository.DB_VERSION);
   }
+
+  async clear(): Promise<void> {
+    await this.db.delete();
+  }
 }

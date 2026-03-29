@@ -48,7 +48,7 @@ export default class Game {
   static restoreFromSnapshot(snapshot: GameSnapshot, idGenerator: IdGenerator): Game | null {
     if (snapshot.version !== GAME_SNAPSHOT_VERSION) return null;
     const board = Board.restoreFromSnapshot(snapshot.board);
-    const dictionary = Dictionary.restoreFromSnapshot(snapshot.dictionary);
+    const dictionary = Dictionary.create();
     const inventory = Inventory.restoreFromSnapshot(snapshot.inventory);
     const match = Match.restoreFromSnapshot(snapshot.match);
     const turns = Turns.restoreFromSnapshot(snapshot.turns, idGenerator);
@@ -60,7 +60,6 @@ export default class Game {
     return {
       version: GAME_SNAPSHOT_VERSION,
       board: this.board.snapshot,
-      dictionary: this.dictionary.snapshot,
       inventory: this.inventory.snapshot,
       turns: this.turns.snapshot,
       match: this.match.snapshot,

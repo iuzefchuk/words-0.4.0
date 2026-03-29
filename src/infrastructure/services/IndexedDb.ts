@@ -1,6 +1,8 @@
 type VersionedCache<T> = { version: number; data: T };
 
 export default class IndexedDb<T> {
+  private dbPromise: Promise<IDBDatabase> | null = null;
+
   constructor(
     private readonly dbName: string,
     private readonly storeName: string,
@@ -11,7 +13,6 @@ export default class IndexedDb<T> {
     try {
       const db = await this.openDatabase();
       const cache = await this.getCache(db);
-      db.close();
       if (!cache || cache.version !== version) return null;
       return cache.data;
     } catch {
@@ -23,23 +24,37 @@ export default class IndexedDb<T> {
     try {
       const db = await this.openDatabase();
       await this.setCache(db, { version, data });
-      db.close();
+    } catch {
+      // silently fail — caching is best-effort
+    }
+  }
+
+  async delete(): Promise<void> {
+    try {
+      const db = await this.openDatabase();
+      await this.deleteCache(db);
     } catch {
       // silently fail — caching is best-effort
     }
   }
 
   private openDatabase(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 2);
-      request.onupgradeneeded = () => {
-        if (!request.result.objectStoreNames.contains(this.storeName)) {
-          request.result.createObjectStore(this.storeName);
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
+    if (!this.dbPromise) {
+      this.dbPromise = new Promise((resolve, reject) => {
+        const request = indexedDB.open(this.dbName, 2);
+        request.onupgradeneeded = () => {
+          if (!request.result.objectStoreNames.contains(this.storeName)) {
+            request.result.createObjectStore(this.storeName);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => {
+          this.dbPromise = null;
+          reject(request.error);
+        };
+      });
+    }
+    return this.dbPromise;
   }
 
   private getCache(db: IDBDatabase): Promise<VersionedCache<T> | undefined> {
@@ -58,6 +73,16 @@ export default class IndexedDb<T> {
       transaction.onerror = () => reject(transaction.error);
       transaction.onabort = () => reject(transaction.error);
       transaction.objectStore(this.storeName).put(cache, this.cacheKey);
+    });
+  }
+
+  private deleteCache(db: IDBDatabase): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(this.storeName, 'readwrite');
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+      transaction.objectStore(this.storeName).delete(this.cacheKey);
     });
   }
 }

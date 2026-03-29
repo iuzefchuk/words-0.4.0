@@ -2,7 +2,6 @@ import { EventType as GameEventType, Letter as GameLetter, Player as GamePlayer 
 import type { default as Game } from '@/domain/index.ts';
 import { Bonus as GameBonus } from '@/domain/models/Board.ts';
 import type { BoardSnapshot, BoardView as GameBoardView, CellIndex as GameCell } from '@/domain/models/Board.ts';
-import type { DictionarySnapshot } from '@/domain/models/Dictionary.ts';
 import type {
   InventoryView as GameInventoryView,
   TileId as GameTile,
@@ -20,7 +19,6 @@ export type EventsSnapshot = {
 export type GameSnapshot = {
   version: number;
   board: BoardSnapshot;
-  dictionary: DictionarySnapshot;
   inventory: InventorySnapshot;
   match: MatchSnapshot;
   turns: TurnsSnapshot;
