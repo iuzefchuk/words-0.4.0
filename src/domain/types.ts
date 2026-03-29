@@ -13,6 +13,10 @@ import type { MatchView as GameMatchView, MatchTrackerSnapshot } from '@/domain/
 import type { TurnView as GameTurnView, TurnTrackerSnapshot } from '@/domain/models/TurnTracker.ts';
 import { default as GameTurnGenerator } from '@/domain/services/TurnGenerator.ts';
 
+export type EventsSnapshot = {
+  readonly log: Array<GameEvent>;
+};
+
 export type GameSnapshot = {
   version: number;
   board: BoardSnapshot;
@@ -20,6 +24,7 @@ export type GameSnapshot = {
   inventory: InventorySnapshot;
   matchTracker: MatchTrackerSnapshot;
   turnTracker: TurnTrackerSnapshot;
+  events: EventsSnapshot;
 };
 
 export type GameEvent =

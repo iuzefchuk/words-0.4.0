@@ -4,6 +4,12 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   root: 'src/gui',
+  server: {
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+    },
+  },
   build: {
     outDir: fileURLToPath(new URL('./dist', import.meta.url)),
     emptyOutDir: true,

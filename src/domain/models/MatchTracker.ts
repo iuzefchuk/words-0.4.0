@@ -12,7 +12,7 @@ export type MatchView = {
 };
 
 export type MatchTrackerSnapshot = {
-  results: ReadonlyMap<Player, MatchResult | undefined>;
+  readonly results: Map<Player, MatchResult | undefined>;
 };
 
 export default class MatchTracker {
@@ -24,7 +24,7 @@ export default class MatchTracker {
   }
 
   static restoreFromSnapshot(snapshot: MatchTrackerSnapshot): MatchTracker {
-    return new MatchTracker(snapshot.results as Map<Player, MatchResult | undefined>);
+    return new MatchTracker(new Map(snapshot.results));
   }
 
   get snapshot(): MatchTrackerSnapshot {

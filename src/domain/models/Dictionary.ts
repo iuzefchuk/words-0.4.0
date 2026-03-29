@@ -4,9 +4,9 @@ import { Letter } from '@/domain/enums.ts';
 export type NodeId = number;
 
 export type DictionarySnapshot = {
-  rootNode: FrozenNode;
-  nodeById: ReadonlyMap<NodeId, FrozenNode>;
-  allLetters: ReadonlySet<Letter>;
+  readonly rootNode: FrozenNode;
+  readonly nodeById: ReadonlyMap<NodeId, FrozenNode>;
+  readonly allLetters: ReadonlySet<Letter>;
 };
 
 type NextNodeGenerator = Generator<[Letter, NodeId]>;

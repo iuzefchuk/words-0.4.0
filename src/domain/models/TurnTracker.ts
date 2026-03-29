@@ -51,15 +51,16 @@ export type TurnView = {
 };
 
 export type TurnTrackerSnapshot = {
-  turns: ReadonlyArray<TurnSnapshot>;
-  userScore: number;
-  opponentScore: number;
+  readonly turns: Array<TurnSnapshot>;
+  readonly userScore: number;
+  readonly opponentScore: number;
 };
 
 export type TurnSnapshot = {
-  id: string;
-  player: Player;
-  tiles: ReadonlyArray<TileId>;
+  readonly id: string;
+  readonly player: Player;
+  readonly tiles: Array<TileId>;
+  readonly validationResult: ValidationResult;
 };
 
 export default class TurnTracker {
@@ -68,22 +69,22 @@ export default class TurnTracker {
   private constructor(
     private readonly idGenerator: IdGenerator,
     private turns: Array<Turn>,
-    private userScore: number = 0,
-    private opponentScore: number = 0,
+    private userScore: number,
+    private opponentScore: number,
   ) {}
 
   static create(idGenerator: IdGenerator): TurnTracker {
-    return new TurnTracker(idGenerator, []);
+    return new TurnTracker(idGenerator, [], 0, 0);
   }
 
   static restoreFromSnapshot(snapshot: TurnTrackerSnapshot, idGenerator: IdGenerator): TurnTracker {
-    const turns = snapshot.turns.map(turn => Turn.restore(turn.id, turn.player, turn.tiles as Array<TileId>));
+    const turns = snapshot.turns.map(turn => Turn.restoreFromSnapshot(turn));
     return new TurnTracker(idGenerator, turns, snapshot.userScore, snapshot.opponentScore);
   }
 
   get snapshot(): TurnTrackerSnapshot {
     return {
-      turns: this.turns,
+      turns: this.turns.map(turn => turn.snapshot),
       userScore: this.userScore,
       opponentScore: this.opponentScore,
     };
@@ -103,7 +104,7 @@ export default class TurnTracker {
   }
 
   get currentTurnTiles(): ReadonlyArray<TileId> {
-    return this.currentTurn.tiles;
+    return this.currentTurn.tilesView;
   }
 
   get currentTurnCells(): ReadonlyArray<CellIndex> | undefined {
@@ -123,7 +124,7 @@ export default class TurnTracker {
   }
 
   get previousTurnTiles(): ReadonlyArray<TileId> | undefined {
-    return this.turns.at(-2)?.tiles;
+    return this.turns.at(-2)?.tilesView;
   }
 
   get leaderByScore(): Player | null {
@@ -159,7 +160,7 @@ export default class TurnTracker {
   }
 
   setCurrentTurnValidation(result: ValidationResult): void {
-    this.currentTurn.validationResult = result;
+    this.currentTurn.setValidationResult(result);
   }
 
   resetCurrentTurn(): void {
@@ -182,8 +183,8 @@ class Turn {
   private constructor(
     readonly id: string,
     readonly player: Player,
-    private _tiles: Array<TileId>,
-    private _validationResult: ValidationResult = { status: ValidationStatus.Unvalidated },
+    private tiles: Array<TileId>,
+    private validationResult: ValidationResult = { status: ValidationStatus.Unvalidated },
   ) {}
 
   static create({ player, idGenerator }: { player: Player; idGenerator: IdGenerator }): Turn {
@@ -191,51 +192,55 @@ class Turn {
     return new Turn(id, player, []);
   }
 
-  static restore(id: string, player: Player, tiles: Array<TileId>): Turn {
-    return new Turn(id, player, tiles);
+  static restoreFromSnapshot(snapshot: TurnSnapshot): Turn {
+    return new Turn(snapshot.id, snapshot.player, snapshot.tiles, snapshot.validationResult);
   }
 
-  set validationResult(result: ValidationResult) {
-    this._validationResult = result;
+  get snapshot(): TurnSnapshot {
+    return { id: this.id, player: this.player, tiles: this.tiles, validationResult: this.validationResult };
   }
 
-  get tiles(): ReadonlyArray<TileId> {
-    return this._tiles;
+  get tilesView(): ReadonlyArray<TileId> {
+    return this.tiles;
   }
 
   get cells(): ReadonlyArray<CellIndex> | undefined {
-    return this._validationResult.status === ValidationStatus.Valid ? this._validationResult.cells : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.cells : undefined;
   }
 
   get error(): ValidationError | undefined {
-    return this._validationResult.status === ValidationStatus.Invalid ? this._validationResult.error : undefined;
+    return this.validationResult.status === ValidationStatus.Invalid ? this.validationResult.error : undefined;
   }
 
   get score(): number | undefined {
-    return this._validationResult.status === ValidationStatus.Valid ? this._validationResult.score : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.score : undefined;
   }
 
   get words(): ReadonlyArray<string> | undefined {
-    return this._validationResult.status === ValidationStatus.Valid ? this._validationResult.words : undefined;
+    return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.words : undefined;
   }
 
   get isValid(): boolean {
-    return this._validationResult.status === ValidationStatus.Valid;
+    return this.validationResult.status === ValidationStatus.Valid;
+  }
+
+  setValidationResult(result: ValidationResult) {
+    this.validationResult = result;
   }
 
   placeTile(tile: TileId): void {
-    if (this._tiles.includes(tile)) throw new Error(`Tile ${tile} already connected`);
-    this._tiles.push(tile);
+    if (this.tiles.includes(tile)) throw new Error(`Tile ${tile} already connected`);
+    this.tiles.push(tile);
   }
 
   undoPlaceTile({ tile }: { tile: TileId }): void {
-    const index = this._tiles.indexOf(tile);
+    const index = this.tiles.indexOf(tile);
     if (index === -1) throw new Error(`Tile ${tile} not found`);
-    this._tiles.splice(index, 1);
+    this.tiles.splice(index, 1);
   }
 
   reset(): void {
-    this._tiles.length = 0;
+    this.tiles.length = 0;
     this.validationResult = { status: ValidationStatus.Unvalidated };
   }
 }

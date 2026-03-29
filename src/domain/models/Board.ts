@@ -34,7 +34,7 @@ export type BoardView = {
 };
 
 export type BoardSnapshot = {
-  tileByCell: ReadonlyMap<CellIndex, TileId>;
+  readonly tileByCell: Map<CellIndex, TileId>;
 };
 
 export default class Board {

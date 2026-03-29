@@ -7,6 +7,7 @@ import { IdGenerator } from '@/domain/ports.ts';
 import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/CurrentTurnValidator.ts';
 import { GeneratorContext } from '@/domain/services/TurnGenerator.ts';
 import {
+  EventsSnapshot,
   GameBoardView,
   GameCell,
   GameEvent,
@@ -22,24 +23,24 @@ import {
 const GAME_SNAPSHOT_VERSION = 1; //TODO connect to .env version
 
 export default class Game {
-  private readonly events = new Events();
-
   private constructor(
     private readonly board: Board,
     private readonly dictionary: Dictionary,
     private readonly inventory: Inventory,
     private readonly matchTracker: MatchTracker,
     private readonly turnTracker: TurnTracker,
+    private readonly events: Events,
   ) {}
 
   static create(idGenerator: IdGenerator): Game {
     const players = Object.values(GamePlayer);
     const board = Board.create();
     const dictionary = Dictionary.create();
-    const inventory = Inventory.create(players, idGenerator);
+    const inventory = Inventory.create(players);
     const matchTracker = MatchTracker.create(players);
     const turnTracker = TurnTracker.create(idGenerator);
-    const game = new Game(board, dictionary, inventory, matchTracker, turnTracker);
+    const events = Events.create();
+    const game = new Game(board, dictionary, inventory, matchTracker, turnTracker, events);
     game.startTurnForNextPlayer();
     return game;
   }
@@ -51,7 +52,8 @@ export default class Game {
     const inventory = Inventory.restoreFromSnapshot(snapshot.inventory);
     const matchTracker = MatchTracker.restoreFromSnapshot(snapshot.matchTracker);
     const turnTracker = TurnTracker.restoreFromSnapshot(snapshot.turnTracker, idGenerator);
-    return new Game(board, dictionary, inventory, matchTracker, turnTracker);
+    const events = Events.restoreFromSnapshot(snapshot.events);
+    return new Game(board, dictionary, inventory, matchTracker, turnTracker, events);
   }
 
   get snapshot(): GameSnapshot {
@@ -62,6 +64,7 @@ export default class Game {
       inventory: this.inventory.snapshot,
       turnTracker: this.turnTracker.snapshot,
       matchTracker: this.matchTracker.snapshot,
+      events: this.events.snapshot,
     };
   }
 
@@ -82,7 +85,7 @@ export default class Game {
   }
 
   get eventLog(): ReadonlyArray<GameEvent> {
-    return this.events.log;
+    return this.events.logView;
   }
 
   placeTile(input: { cell: GameCell; tile: GameTile }): void {
@@ -173,7 +176,7 @@ export default class Game {
   willPassBeResignFor(player: GamePlayer): boolean {
     const passType = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
     const saveType = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
-    const lastTurnEvent = this.events.log.findLast(e => e.type === passType || e.type === saveType);
+    const lastTurnEvent = this.events.logView.findLast(e => e.type === passType || e.type === saveType);
     return lastTurnEvent?.type === passType;
   }
 
@@ -195,15 +198,30 @@ export default class Game {
 }
 
 class Events {
-  private readonly _log: Array<GameEvent> = [];
   private readonly pending: Array<GameEvent> = [];
 
-  get log(): ReadonlyArray<GameEvent> {
-    return [...this._log];
+  private constructor(private readonly log: Array<GameEvent>) {}
+
+  static create(): Events {
+    return new Events([]);
+  }
+
+  static restoreFromSnapshot(snapshot: EventsSnapshot): Events {
+    return new Events(snapshot.log);
+  }
+
+  get snapshot(): EventsSnapshot {
+    return {
+      log: this.log,
+    };
+  }
+
+  get logView(): ReadonlyArray<GameEvent> {
+    return [...this.log];
   }
 
   record(event: GameEvent): void {
-    this._log.push(event);
+    this.log.push(event);
     this.pending.push(event);
   }
 

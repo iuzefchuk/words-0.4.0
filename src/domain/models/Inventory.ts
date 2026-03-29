@@ -1,12 +1,14 @@
 import { Letter, Player } from '@/domain/enums.ts';
-import { IdGenerator } from '@/domain/ports.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export type TileId = Brand<string, 'TileId'>;
 
 export type TileCollection = ReadonlyMap<Letter, ReadonlyArray<TileId>>;
 
-export type TileSnapshot = { id: string; letter: Letter };
+type TilePoolSnapshot = {
+  readonly capacity?: number;
+  readonly tiles: Array<Tile>;
+};
 
 export type InventoryView = {
   readonly unusedTilesCount: number;
@@ -17,11 +19,92 @@ export type InventoryView = {
 };
 
 export type InventorySnapshot = {
-  tileById: Map<TileId, TileSnapshot>;
-  drawPoolTileIds: ReadonlyArray<TileId>;
-  playerPoolsTileIds: Map<Player, ReadonlyArray<TileId>>;
-  discardPoolTileIds: ReadonlyArray<TileId>;
+  readonly drawPool: TilePoolSnapshot;
+  readonly playerPools: Map<Player, TilePoolSnapshot>;
+  readonly discardPool: TilePoolSnapshot;
 };
+
+class Tile {
+  private constructor(
+    readonly id: TileId,
+    readonly letter: Letter,
+  ) {}
+
+  static create(id: TileId, letter: Letter): Tile {
+    return new Tile(id, letter);
+  }
+
+  equals(other: Tile): boolean {
+    return this.id === other.id;
+  }
+}
+
+class TilePool {
+  private readonly tileIds: Array<TileId>;
+
+  private constructor(
+    private readonly capacity: number | undefined,
+    private readonly tiles: Array<Tile>,
+  ) {
+    this.tileIds = tiles.map(tile => tile.id);
+  }
+
+  static create({ capacity, tiles }: { capacity?: number; tiles?: Array<Tile> } = {}): TilePool {
+    return new TilePool(capacity, tiles ?? []);
+  }
+
+  static restoreFromSnapshot(snapshot: TilePoolSnapshot): TilePool {
+    return new TilePool(snapshot.capacity, snapshot.tiles);
+  }
+
+  get snapshot(): TilePoolSnapshot {
+    return { capacity: this.capacity, tiles: this.tiles };
+  }
+
+  get tileCount(): number {
+    return this.tiles.length;
+  }
+
+  get tileIdsView(): ReadonlyArray<TileId> {
+    return this.tileIds;
+  }
+
+  get tileCollection(): TileCollection {
+    const collection = new Map<Letter, Array<TileId>>();
+    for (const tile of this.tiles) {
+      let arr = collection.get(tile.letter);
+      if (!arr) collection.set(tile.letter, (arr = []));
+      arr.push(tile.id);
+    }
+    return collection;
+  }
+
+  addTile(tile: Tile): void {
+    if (this.tileIds.includes(tile.id)) throw new Error(`Tile ${tile} is already present`);
+    this.validateCapacity({ newTileCount: this.tiles.length + 1 });
+    this.tiles.push(tile);
+    this.tileIds.push(tile.id);
+  }
+
+  discardTile(tileId: TileId): Tile {
+    const index = this.tileIds.indexOf(tileId);
+    if (index === -1) throw new Error('Tile absent');
+    this.tileIds.splice(index, 1);
+    const [removedTile] = this.tiles.splice(index, 1);
+    return removedTile;
+  }
+
+  popTile(): Tile {
+    const tile = this.tiles.pop();
+    if (!tile) throw new Error('No tiles left to draw');
+    this.tileIds.pop();
+    return tile;
+  }
+
+  private validateCapacity({ newTileCount }: { newTileCount: number }): void {
+    if (this.capacity !== undefined && newTileCount > this.capacity) throw new Error('Rack limit exceeded');
+  }
+}
 
 export default class Inventory {
   private static readonly PLAYER_POOL_CAPACITY = 7;
@@ -55,49 +138,48 @@ export default class Inventory {
     [Letter.Z]: { distribution: 1, points: 10 },
   };
 
+  private static readonly TILE_BY_ID: ReadonlyMap<TileId, Tile> = new Map(
+    Object.values(Letter).flatMap(letter =>
+      Array.from({ length: Inventory.LETTER_CONFIG[letter].distribution }, (_, i) => {
+        const id = `${letter}-${i}` as TileId;
+        return [id, Tile.create(id, letter)] as const;
+      }),
+    ),
+  );
+
   private constructor(
-    private readonly tileById: Map<TileId, Tile>,
     private drawPool: TilePool,
     private playerPools: Map<Player, TilePool>,
     private discardPool: TilePool,
   ) {}
 
-  static create(players: ReadonlyArray<Player>, idGenerator: IdGenerator): Inventory {
-    const tiles = Object.values(Letter).flatMap(letter =>
-      Array.from({ length: Inventory.LETTER_CONFIG[letter].distribution }, () => Tile.create({ letter, idGenerator })),
-    );
+  static create(players: ReadonlyArray<Player>): Inventory {
+    const tiles = [...Inventory.TILE_BY_ID.values()];
     shuffleWithFisherYates(tiles);
-    const tileById = new Map<TileId, Tile>(tiles.map(tile => [tile.id, tile]));
     const drawPool = TilePool.create({ tiles });
     const playerPools = new Map(
       players.map(player => [player, TilePool.create({ capacity: this.PLAYER_POOL_CAPACITY })]),
     );
     const discardPool = TilePool.create();
-    const inventory = new Inventory(tileById, drawPool, playerPools, discardPool);
+    const inventory = new Inventory(drawPool, playerPools, discardPool);
     inventory.initializePlayerPools();
     return inventory;
   }
 
   static restoreFromSnapshot(snapshot: InventorySnapshot): Inventory {
-    const { drawPoolTileIds, playerPoolsTileIds, discardPoolTileIds } = snapshot;
-    const tileById = new Map(snapshot.tileById as Map<TileId, Tile>);
-    const drawPool = TilePool.create({ tiles: drawPoolTileIds.map(tileId => tileById.get(tileId)!) });
+    const drawPool = TilePool.restoreFromSnapshot(snapshot.drawPool);
     const playerPools = new Map(
-      Object.entries(playerPoolsTileIds).map(([player, ids]) => [
-        player as Player,
-        TilePool.create({ tiles: ids, capacity: Inventory.PLAYER_POOL_CAPACITY }),
-      ]),
+      [...snapshot.playerPools].map(([player, pool]) => [player, TilePool.restoreFromSnapshot(pool)]),
     );
-    const discardPool = TilePool.create({ tiles: discardPoolTileIds.map(tileId => tileById.get(tileId)!) });
-    return new Inventory(tileById, drawPool, playerPools, discardPool);
+    const discardPool = TilePool.restoreFromSnapshot(snapshot.discardPool);
+    return new Inventory(drawPool, playerPools, discardPool);
   }
 
   get snapshot(): InventorySnapshot {
     return {
-      tileById: this.tileById,
-      drawPoolTileIds: this.drawPool.tileIds,
-      playerPoolsTileIds: new Map([...this.playerPools].map(([player, pool]) => [player, pool.tileIds])),
-      discardPoolTileIds: this.discardPool.tileIds,
+      drawPool: this.drawPool.snapshot,
+      playerPools: new Map([...this.playerPools].map(([player, pool]) => [player, pool.snapshot])),
+      discardPool: this.discardPool.snapshot,
     };
   }
 
@@ -106,7 +188,7 @@ export default class Inventory {
   }
 
   getTilesFor(player: Player): ReadonlyArray<TileId> {
-    return this.getTilePoolFor(player).tileIds;
+    return this.getTilePoolFor(player).tileIdsView;
   }
 
   hasTilesFor(player: Player): boolean {
@@ -158,87 +240,8 @@ export default class Inventory {
   }
 
   private getTileById(tileId: TileId): Tile {
-    const tile = this.tileById.get(tileId);
+    const tile = Inventory.TILE_BY_ID.get(tileId);
     if (!tile) throw new Error(`Can't find tile ${tileId}`);
     return tile;
-  }
-}
-
-class TilePool {
-  private readonly _tileIds: Array<TileId>;
-
-  private constructor(
-    private readonly capacity: number | undefined,
-    private readonly tiles: Array<Tile>,
-  ) {
-    this._tileIds = tiles.map(t => t.id);
-  }
-
-  static create({ capacity, tiles }: { capacity?: number; tiles?: Array<Tile> } = {}): TilePool {
-    return new TilePool(capacity, tiles ?? []);
-  }
-
-  get tileCount(): number {
-    return this.tiles.length;
-  }
-
-  get tileIds(): ReadonlyArray<TileId> {
-    return this._tileIds;
-  }
-
-  get tileCollection(): TileCollection {
-    const collection = new Map<Letter, Array<TileId>>();
-    for (const tile of this.tiles) {
-      let arr = collection.get(tile.letter);
-      if (!arr) collection.set(tile.letter, (arr = []));
-      arr.push(tile.id);
-    }
-    return collection;
-  }
-
-  addTile(tile: Tile): void {
-    if (this._tileIds.includes(tile.id)) throw new Error(`Tile ${tile} is already present`);
-    this.validateCapacity({ newTileCount: this.tiles.length + 1 });
-    this.tiles.push(tile);
-    this._tileIds.push(tile.id);
-  }
-
-  discardTile(tileId: TileId): Tile {
-    const index = this._tileIds.indexOf(tileId);
-    if (index === -1) throw new Error('Tile absent');
-    this._tileIds.splice(index, 1);
-    const [removedTile] = this.tiles.splice(index, 1);
-    return removedTile;
-  }
-
-  popTile(): Tile {
-    const tile = this.tiles.pop();
-    if (!tile) throw new Error('No tiles left to draw');
-    this._tileIds.pop();
-    return tile;
-  }
-
-  private validateCapacity({ newTileCount }: { newTileCount: number }): void {
-    if (this.capacity !== undefined && newTileCount > this.capacity) throw new Error('Rack limit exceeded');
-  }
-}
-
-class Tile {
-  private constructor(
-    readonly id: TileId,
-    readonly letter: Letter,
-  ) {}
-
-  static create({ letter, idGenerator }: { letter: Letter; idGenerator: IdGenerator }): Tile {
-    const id = idGenerator.execute() as TileId;
-    return new Tile(id, letter);
-  }
-
-  static restore(id: TileId, letter: Letter): Tile {
-    return new Tile(id, letter);
-  }
-
-  equals(other: Tile): boolean {
-    return this.id === other.id;
   }
 }
