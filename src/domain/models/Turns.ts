@@ -77,6 +77,11 @@ export default class Turns {
     return new Turns(idGenerator, turns);
   }
 
+  static clone(turns: Turns): Turns {
+    const clonedHistory = turns.history.map(turn => Turn.clone(turn));
+    return new Turns(turns.idGenerator, clonedHistory);
+  }
+
   get snapshot(): TurnsSnapshot {
     return {
       turns: this.history.map(turn => turn.snapshot),
@@ -165,8 +170,12 @@ class Turn {
     return new Turn(snapshot.id, snapshot.player, snapshot.tiles, snapshot.validationResult);
   }
 
+  static clone(turn: Turn): Turn {
+    return new Turn(turn.id, turn.player, [...turn.tiles], turn.validationResult);
+  }
+
   get snapshot(): TurnSnapshot {
-    return { id: this.id, player: this.player, tiles: this.tiles, validationResult: this.validationResult };
+    return { id: this.id, player: this.player, tiles: [...this.tiles], validationResult: this.validationResult };
   }
 
   get tilesView(): ReadonlyArray<TileId> {

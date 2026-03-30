@@ -38,7 +38,7 @@ export default class Match {
   }
 
   get snapshot(): MatchSnapshot {
-    return { results: this.results, scores: this.scores };
+    return { results: new Map(this.results), scores: new Map(this.scores) };
   }
 
   get userScore(): number {
@@ -87,7 +87,7 @@ export default class Match {
     this.recordResult(secondPlayer, MatchResult.Tie);
   }
 
-  ensureMutability(): void {
+  private ensureMutability(): void {
     if (this.isFinished) throw new Error('Match is finished');
   }
 

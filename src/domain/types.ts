@@ -1,5 +1,4 @@
 import { EventType as GameEventType, Letter as GameLetter, Player as GamePlayer } from '@/domain/enums.ts';
-import type { default as Game } from '@/domain/index.ts';
 import { Bonus as GameBonus } from '@/domain/models/Board.ts';
 import type { BoardSnapshot, BoardView as GameBoardView, CellIndex as GameCell } from '@/domain/models/Board.ts';
 import type {
@@ -36,5 +35,5 @@ export type GameEvent =
   | { type: GameEventType.MatchTied }
   | { type: GameEventType.MatchLost };
 
-export type { Game, GameCell, GameBoardView, GameTile, GameInventoryView, GameTurnsView };
+export type { GameCell, GameBoardView, GameTile, GameInventoryView, GameTurnsView };
 export { GamePlayer, GameEventType, GameLetter, GameBonus, GameMatchResult, GameMatchView, GameTurnGenerator };

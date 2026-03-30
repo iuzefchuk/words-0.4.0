@@ -61,7 +61,7 @@ export default class Board {
 
   get snapshot(): BoardSnapshot {
     return {
-      tileByCell: this.tileByCell,
+      tileByCell: new Map(this.tileByCell),
     };
   }
 

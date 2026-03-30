@@ -32,7 +32,6 @@ export type GeneratorContext = {
   dictionary: Dictionary;
   inventory: Inventory;
   turns: Turns;
-  yieldControl: () => Promise<void>;
 };
 
 type GeneratorArguments = {
@@ -40,6 +39,7 @@ type GeneratorArguments = {
   lettersComputer: CrossCheckComputer;
   playerTileCollection: TileCollection;
   coords: AnchorCoordinates;
+  yieldControl: () => Promise<void>;
 };
 
 export type GeneratorResult = { tiles: ReadonlyArray<TileId>; cells: ReadonlyArray<CellIndex> };
@@ -332,7 +332,11 @@ export default class TurnGenerator {
     }
   };
 
-  static async *execute(context: GeneratorContext, player: Player): AsyncGenerator<GeneratorResult> {
+  static async *execute(
+    context: GeneratorContext,
+    player: Player,
+    yieldControl: () => Promise<void>,
+  ): AsyncGenerator<GeneratorResult> {
     const { inventory, board, dictionary, turns } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
@@ -342,13 +346,13 @@ export default class TurnGenerator {
     for (const cell of anchorCells) {
       for (const axis of Object.values(Axis)) {
         const coords: AnchorCoordinates = { axis, cell };
-        yield* this.generate({ context, lettersComputer, playerTileCollection, coords });
+        yield* this.generate({ context, lettersComputer, playerTileCollection, coords, yieldControl });
       }
     }
   }
 
   private static async *generate(args: GeneratorArguments): AsyncGenerator<GeneratorResult> {
-    const { context, coords } = args;
+    const { context, coords, yieldControl } = args;
     const { dictionary } = context;
     const dispatcher = TurnGenerator.TaskDispatcher.create(args);
     const firstTask: EvaluateTask = {
@@ -360,6 +364,6 @@ export default class TurnGenerator {
       },
     };
     const resolver = TurnGenerator.TaskCommandResolver.create(firstTask);
-    yield* resolver.execute(task => dispatcher.execute(task), context.yieldControl);
+    yield* resolver.execute(task => dispatcher.execute(task), yieldControl);
   }
 }

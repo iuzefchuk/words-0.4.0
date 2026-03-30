@@ -5,7 +5,7 @@ import Match from '@/domain/models/Match.ts';
 import Turns from '@/domain/models/Turns.ts';
 import { IdGenerator } from '@/domain/ports.ts';
 import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/CurrentTurnValidator.ts';
-import { GeneratorContext } from '@/domain/services/TurnGenerator.ts';
+import { GeneratorContext, GeneratorResult } from '@/domain/services/TurnGenerator.ts';
 import {
   EventsSnapshot,
   GameBoardView,
@@ -86,21 +86,21 @@ export default class Game {
   }
 
   placeTile(input: { cell: GameCell; tile: GameTile }): void {
-    this.match.ensureMutability();
+    this.ensureMutability();
     this.board.placeTile(input.cell, input.tile);
     this.turns.recordPlacedTile(input.tile);
     this.events.record({ type: GameEventType.TilePlaced });
   }
 
   undoPlaceTile(input: { tile: GameTile }): void {
-    this.match.ensureMutability();
+    this.ensureMutability();
     this.turns.undoRecordPlacedTile(input);
     this.board.undoPlaceTile(input.tile);
     this.events.record({ type: GameEventType.TileUndoPlaced });
   }
 
   clearTiles(): void {
-    this.match.ensureMutability();
+    this.ensureMutability();
     for (const tile of this.turns.currentTurnTiles) this.board.undoPlaceTile(tile);
     this.turns.resetCurrentTurn();
   }
@@ -116,7 +116,7 @@ export default class Game {
   }
 
   saveTurn(): { words: ReadonlyArray<string> } {
-    this.match.ensureMutability();
+    this.ensureMutability();
     if (!this.turnsView.currentTurnIsValid) throw new Error('Turn is not valid');
     const {
       currentPlayer: player,
@@ -137,20 +137,37 @@ export default class Game {
 
   passTurn(): void {
     const { currentPlayer: player } = this.turnsView;
-    this.match.ensureMutability();
+    this.ensureMutability();
     this.startTurnForNextPlayer();
     const type = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
     this.events.record({ type });
   }
 
-  createGeneratorContext(yieldControl: () => Promise<void>): GeneratorContext {
+  createGeneratorContext(): GeneratorContext {
     return {
       board: Board.clone(this.board),
       dictionary: this.dictionary,
       inventory: this.inventory,
-      turns: this.turns,
-      yieldControl,
+      turns: Turns.clone(this.turns),
     };
+  }
+
+  applyGeneratedTurn(result: GeneratorResult): { words: ReadonlyArray<string>; score: number } {
+    this.ensureMutability();
+    for (let i = 0; i < result.tiles.length; i++) {
+      this.board.placeTile(result.cells[i], result.tiles[i]);
+      this.turns.recordPlacedTile(result.tiles[i]);
+    }
+    const validationResult = CurrentTurnValidator.execute({
+      board: this.board,
+      dictionary: this.dictionary,
+      inventory: this.inventory,
+      turns: this.turns,
+    } as ValidatorContext);
+    this.turns.recordValidationResult(validationResult);
+    const score = this.turnsView.currentTurnScore ?? 0;
+    const { words } = this.saveTurn();
+    return { words, score };
   }
 
   finishMatchByScore(): void {
@@ -177,8 +194,8 @@ export default class Game {
     return lastTurnEvent?.type === passType;
   }
 
-  clearAllEvents(): Array<GameEvent> {
-    return this.events.clearAll();
+  private ensureMutability(): void {
+    if (this.match.isFinished) throw new Error('Match is finished');
   }
 
   private startTurnForNextPlayer(): void {
@@ -195,8 +212,6 @@ export default class Game {
 }
 
 class Events {
-  private readonly pending: Array<GameEvent> = [];
-
   private constructor(private readonly log: Array<GameEvent>) {}
 
   static create(): Events {
@@ -209,7 +224,7 @@ class Events {
 
   get snapshot(): EventsSnapshot {
     return {
-      log: this.log,
+      log: [...this.log],
     };
   }
 
@@ -219,12 +234,5 @@ class Events {
 
   record(event: GameEvent): void {
     this.log.push(event);
-    this.pending.push(event);
-  }
-
-  clearAll(): Array<GameEvent> {
-    const copy = [...this.pending];
-    this.pending.length = 0;
-    return copy;
   }
 }

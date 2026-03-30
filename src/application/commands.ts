@@ -16,13 +16,16 @@ import { TIME } from '@/shared/constants.ts';
 
 export default class AppCommandBuilder {
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
+  private eventCursor: number;
 
   constructor(
     private readonly game: Game,
     private readonly clock: Clock,
     private readonly scheduler: Scheduler,
     private readonly gameRepository: GameRepository,
-  ) {}
+  ) {
+    this.eventCursor = game.eventLog.length;
+  }
 
   get commands(): AppCommands {
     return {
@@ -38,7 +41,7 @@ export default class AppCommandBuilder {
         this.game.resignMatch();
         this.clearPersistence();
       },
-      clearAllEvents: () => this.game.clearAllEvents(),
+      clearAllEvents: () => this.drainNewEvents(),
     };
   }
 
@@ -136,8 +139,8 @@ export default class AppCommandBuilder {
   private async createOpponentTurn(): Promise<GameEvent> {
     const player = GamePlayer.Opponent;
     let generatorResult = null;
-    const context = this.game.createGeneratorContext(() => this.scheduler.yield());
-    for await (const result of GameTurnGenerator.execute(context, player)) {
+    const context = this.game.createGeneratorContext();
+    for await (const result of GameTurnGenerator.execute(context, player, () => this.scheduler.yield())) {
       generatorResult = result;
       break;
     }
@@ -149,14 +152,15 @@ export default class AppCommandBuilder {
       this.game.passTurn();
       return { type: GameEventType.OpponentTurnPassed };
     }
-    for (let i = 0; i < generatorResult.tiles.length; i++) {
-      this.game.placeTile({ cell: generatorResult.cells[i], tile: generatorResult.tiles[i] });
-    }
-    this.game.validateTurn();
-    const words = this.game.turnsView.currentTurnWords ?? [];
-    const score = this.game.turnsView.currentTurnScore ?? 0;
-    this.saveTurn();
+    const { words, score } = this.game.applyGeneratedTurn(generatorResult);
     return { type: GameEventType.OpponentTurnSaved, words, score };
+  }
+
+  private drainNewEvents(): Array<GameEvent> {
+    const log = this.game.eventLog as Array<GameEvent>;
+    const newEvents = log.slice(this.eventCursor);
+    this.eventCursor = log.length;
+    return newEvents;
   }
 
   private async ensureMinimumDuration<T>(callback: () => Promise<T> | T): Promise<T> {

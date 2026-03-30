@@ -58,7 +58,7 @@ class TilePool {
   }
 
   get snapshot(): TilePoolSnapshot {
-    return { capacity: this.capacity, tiles: this.tiles };
+    return { capacity: this.capacity, tiles: [...this.tiles] };
   }
 
   get tileCount(): number {
