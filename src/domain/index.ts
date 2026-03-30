@@ -22,8 +22,6 @@ import {
   GameTurnsView,
 } from '@/domain/types.ts';
 
-const GAME_SNAPSHOT_VERSION = 1; //TODO connect to .env version
-
 export default class Game {
   private constructor(
     private readonly board: Board,
@@ -47,7 +45,7 @@ export default class Game {
   }
 
   static restoreFromSnapshot(snapshot: GameSnapshot, idGenerator: IdGenerator, dictionary: Dictionary): Game | null {
-    if (snapshot.version !== GAME_SNAPSHOT_VERSION) return null;
+    if (snapshot.version !== APP_VERSION) return null;
     const board = Board.restoreFromSnapshot(snapshot.board);
     const inventory = Inventory.restoreFromSnapshot(snapshot.inventory);
     const match = Match.restoreFromSnapshot(snapshot.match);
@@ -58,7 +56,7 @@ export default class Game {
 
   get snapshot(): GameSnapshot {
     return {
-      version: GAME_SNAPSHOT_VERSION,
+      version: APP_VERSION,
       board: this.board.snapshot,
       inventory: this.inventory.snapshot,
       turns: this.turns.snapshot,

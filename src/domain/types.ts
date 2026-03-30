@@ -21,7 +21,7 @@ export type GameSettings = {
 };
 
 export type GameSnapshot = {
-  version: number;
+  version: string;
   board: BoardSnapshot;
   inventory: InventorySnapshot;
   match: MatchSnapshot;

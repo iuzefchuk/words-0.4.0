@@ -1,3 +1,5 @@
+declare const APP_VERSION: string;
+
 declare const brandSymbol: unique symbol;
 
 declare const scheduler: { yield(): Promise<void> };

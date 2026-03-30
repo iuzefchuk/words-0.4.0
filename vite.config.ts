@@ -1,6 +1,9 @@
+import { readFileSync } from 'node:fs';
 import { URL, fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vitest/config';
+
+const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 export default defineConfig({
   root: 'src/gui',
@@ -15,6 +18,9 @@ export default defineConfig({
     emptyOutDir: true,
   },
   publicDir: fileURLToPath(new URL('./public', import.meta.url)),
+  define: {
+    APP_VERSION: JSON.stringify(version),
+  },
   plugins: [vue()],
   resolve: {
     alias: {
