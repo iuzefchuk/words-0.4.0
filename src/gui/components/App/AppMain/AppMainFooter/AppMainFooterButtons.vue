@@ -59,6 +59,7 @@ const items = reactive([
 
 <style lang="scss" scoped>
 .buttons {
+  $gap: var(--space-m);
   height: calc(var(--cell-tile-width) * 1.6);
   width: 100%;
   display: grid;
@@ -67,11 +68,11 @@ const items = reactive([
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
-    gap: var(--space-m);
+    gap: $gap;
     height: 100%;
   }
   &__list-item {
-    width: 25%;
+    width: calc((100% - $gap * 3) / 4);
   }
   &__btn {
     cursor: pointer;

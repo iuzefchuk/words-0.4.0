@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import AppMainBoardCell from '@/gui/components/App/AppMain/AppMainBoard/AppMainBoardCell.vue';
+import AppMainBoardOutline from '@/gui/components/App/AppMain/AppMainBoard/AppMainBoardOutline.vue';
 import AppMainBoardTooltip from '@/gui/components/App/AppMain/AppMainBoard/AppMainBoardTooltip.vue';
-import AppOutline from '@/gui/components/shared/AppOutline.vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 const matchStore = MatchStore.INSTANCE();
 </script>
@@ -20,7 +20,7 @@ const matchStore = MatchStore.INSTANCE();
         <AppMainBoardTooltip v-if="cell === matchStore.currentTurnTopRightCell" />
       </Transition>
     </AppMainBoardCell>
-    <AppOutline />
+    <AppMainBoardOutline />
   </ul>
 </template>
 
