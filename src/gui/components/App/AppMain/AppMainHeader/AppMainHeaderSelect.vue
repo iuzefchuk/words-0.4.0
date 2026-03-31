@@ -1,7 +1,13 @@
 <script lang="ts" setup generic="T extends string">
 import { computed } from 'vue';
-const props = defineProps<{ modelValue: T; options: Array<{ text: string; value: T }> }>();
-const emit = defineEmits<{ change: [value: T] }>();
+const props = defineProps<{
+  modelValue: T;
+  options: Array<{ text: string; value: T }>;
+  isDisabled: boolean;
+}>();
+const emit = defineEmits<{
+  change: [value: T];
+}>();
 const selectedOption = computed({
   get: () => props.modelValue,
   set: value => emit('change', value),
@@ -9,7 +15,7 @@ const selectedOption = computed({
 </script>
 
 <template>
-  <select v-model="selectedOption" class="select">
+  <select v-model="selectedOption" :class="{ select: true, 'select--disabled': isDisabled }">
     <option v-for="option in options" :key="option.text" :value="option.value">
       {{ option.text }}
     </option>
@@ -25,5 +31,9 @@ const selectedOption = computed({
   font-weight: inherit;
   border-bottom: var(--primary-border);
   cursor: pointer;
+  &--disabled {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+  }
 }
 </style>

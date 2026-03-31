@@ -59,12 +59,13 @@ export default class Game {
     const match = Match.restoreFromSnapshot(snapshot.match);
     const turns = Turns.restoreFromSnapshot(snapshot.turns, idGenerator);
     const events = Events.restoreFromSnapshot(snapshot.events);
-    return new Game(version, board, dictionary, inventory, match, turns, events, GameDifficulty.Low);
+    return new Game(version, board, dictionary, inventory, match, turns, events, snapshot.difficulty);
   }
 
   get snapshot(): GameSnapshot {
     return {
       version: this.version,
+      difficulty: this.difficulty,
       board: this.board.snapshot,
       inventory: this.inventory.snapshot,
       turns: this.turns.snapshot,
@@ -171,37 +172,14 @@ export default class Game {
     };
   }
 
-  scoreGeneratorResult(result: GeneratorResult): number {
-    const board = Board.clone(this.board);
-    const turns = Turns.clone(this.turns);
-    for (let i = 0; i < result.tiles.length; i++) {
-      board.placeTile(result.cells[i], result.tiles[i]);
-      turns.recordPlacedTile(result.tiles[i]);
-    }
-    const validationResult = CurrentTurnValidator.execute({
-      board,
-      dictionary: this.dictionary,
-      inventory: this.inventory,
-      turns,
-    } as ValidatorContext);
-    turns.recordValidationResult(validationResult);
-    return turns.currentTurnScore ?? 0;
-  }
-
   applyGeneratedTurn(result: GeneratorResult): { words: ReadonlyArray<string>; score: number } {
     this.ensureMutability();
     for (let i = 0; i < result.tiles.length; i++) {
       this.board.placeTile(result.cells[i], result.tiles[i]);
       this.turns.recordPlacedTile(result.tiles[i]);
     }
-    const validationResult = CurrentTurnValidator.execute({
-      board: this.board,
-      dictionary: this.dictionary,
-      inventory: this.inventory,
-      turns: this.turns,
-    } as ValidatorContext);
-    this.turns.recordValidationResult(validationResult);
-    const score = this.turnsView.currentTurnScore ?? 0;
+    this.turns.recordValidationResult(result.validationResult);
+    const { score } = result.validationResult;
     const { words } = this.saveTurn();
     return { words, score };
   }

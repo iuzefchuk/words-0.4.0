@@ -31,6 +31,7 @@ export type GameSettings = {
 
 export type GameSnapshot = {
   version: string;
+  difficulty: GameDifficulty;
   board: BoardSnapshot;
   inventory: InventorySnapshot;
   match: MatchSnapshot;

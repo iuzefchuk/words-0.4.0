@@ -1,11 +1,13 @@
 <script lang="ts" setup>
-import { PropType, computed } from 'vue';
+import { computed } from 'vue';
 import { GameBonus, GameCell } from '@/application/types.ts';
 import GameTile from '@/gui/components/shared/AppTile.vue';
 import { getBonusName } from '@/gui/mappings.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
-const props = defineProps({ cell: { type: Number as unknown as PropType<GameCell>, required: true } });
+const props = defineProps<{
+  cell: GameCell;
+}>();
 const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
 const isCellCenter = computed(() => matchStore.isCellCenter(props.cell));

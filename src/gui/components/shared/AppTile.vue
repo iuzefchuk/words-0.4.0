@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { PropType } from 'vue';
 import { GameLetter } from '@/application/types.ts';
 import { getLetterSvgHtml } from '@/gui/mappings.ts';
-defineProps({
-  letter: { type: String as PropType<GameLetter>, required: true },
-  isInverted: { type: Boolean, default: false },
-  isSaturated: { type: Boolean, default: false },
-});
+withDefaults(
+  defineProps<{
+    letter: GameLetter;
+    isInverted?: boolean;
+    isSaturated?: boolean;
+  }>(),
+  { isInverted: false, isSaturated: false },
+);
 </script>
 
 <template>

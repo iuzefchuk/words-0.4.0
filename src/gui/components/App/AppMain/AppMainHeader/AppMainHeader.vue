@@ -26,26 +26,24 @@ const players = [
 
 <template>
   <header class="header">
-    <Transition name="fade">
-      <template v-if="!matchStore.hasPriorTurns">
-        <p>
-          {{ t('game.settings_bonuses') }}:
-          <AppMainHeaderSelect
-            :model-value="matchStore.bonusDistribution"
-            :options="bonusOptions"
-            @change="matchStore.changeBonusDistribution"
-          />
-        </p>
-        <p>
-          {{ t('game.settings_difficulty') }}:
-          <AppMainHeaderSelect
-            :model-value="matchStore.difficulty"
-            :options="difficultyOptions"
-            @change="matchStore.changeDifficulty"
-          />
-        </p>
-      </template>
-    </Transition>
+    <p>
+      {{ t('game.settings_bonuses') }}:
+      <AppMainHeaderSelect
+        :model-value="matchStore.bonusDistribution"
+        :options="bonusOptions"
+        :is-disabled="matchStore.hasPriorTurns"
+        @change="matchStore.changeBonusDistribution"
+      />
+    </p>
+    <p>
+      {{ t('game.settings_difficulty') }}:
+      <AppMainHeaderSelect
+        :model-value="matchStore.difficulty"
+        :options="difficultyOptions"
+        :is-disabled="matchStore.hasPriorTurns"
+        @change="matchStore.changeDifficulty"
+      />
+    </p>
     <p v-for="player in players" :key="player.name">
       {{ player.name }}: <span v-animate-number="{ number: player.score() }" class="header__player-score" />
     </p>

@@ -160,19 +160,21 @@ export default class AppCommandBuilder {
     const { difficulty } = this.game;
     const attemptsLimit = AppCommandBuilder.DIFFICULTY_RESULT_LIMITS[difficulty];
     const context = this.game.createGeneratorContext();
-    let bestResult: { result: GameGeneratorResult; score: number } | null = null;
-    let generatorResult = null;
+    let bestResult: GameGeneratorResult | null = null;
+    let bestScore = -1;
     let attemptsCount = 0;
     for await (const result of GameTurnGenerator.execute(context, player, () => this.scheduler.yield())) {
-      generatorResult = result;
-      if (attemptsLimit === 1) break;
-      const score = this.game.scoreGeneratorResult(result);
-      if (bestResult === null || score > bestResult.score) {
-        bestResult = { result, score };
+      if (attemptsLimit === 1) {
+        bestResult = result;
+        break;
+      }
+      if (result.validationResult.score > bestScore) {
+        bestResult = result;
+        bestScore = result.validationResult.score;
       }
       if (++attemptsCount >= attemptsLimit) break;
     }
-    if (generatorResult === null) {
+    if (bestResult === null) {
       if (this.game.willPassBeResignFor(player)) {
         this.game.resignMatch();
         return { type: GameEventType.MatchLost };
@@ -180,8 +182,7 @@ export default class AppCommandBuilder {
       this.game.passTurn();
       return { type: GameEventType.OpponentTurnPassed };
     }
-    const selectedResult = bestResult?.result ?? generatorResult;
-    const { words, score } = this.game.applyGeneratedTurn(selectedResult);
+    const { words, score } = this.game.applyGeneratedTurn(bestResult);
     return { type: GameEventType.OpponentTurnSaved, words, score };
   }
 

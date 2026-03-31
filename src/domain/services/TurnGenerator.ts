@@ -2,7 +2,7 @@ import { Letter, Player } from '@/domain/enums.ts';
 import Board, { AnchorCoordinates, Axis, CellIndex, Link } from '@/domain/models/Board.ts';
 import Dictionary, { NodeId } from '@/domain/models/Dictionary.ts';
 import Inventory, { TileCollection, TileId } from '@/domain/models/Inventory.ts';
-import Turns, { ValidationStatus } from '@/domain/models/Turns.ts';
+import Turns, { ValidResult, ValidationStatus } from '@/domain/models/Turns.ts';
 import CrossCheckComputer from '@/domain/services/CrossCheckComputer.ts';
 import CurrentTurnValidator, { ValidatorContext } from '@/domain/services/CurrentTurnValidator.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
@@ -42,7 +42,11 @@ type GeneratorArguments = {
   yieldControl: () => Promise<void>;
 };
 
-export type GeneratorResult = { tiles: ReadonlyArray<TileId>; cells: ReadonlyArray<CellIndex> };
+export type GeneratorResult = {
+  tiles: ReadonlyArray<TileId>;
+  cells: ReadonlyArray<CellIndex>;
+  validationResult: ValidResult;
+};
 
 type Traversal = { position: number; direction: GenerationDirection; node: NodeId };
 
@@ -217,8 +221,7 @@ export default class TurnGenerator {
         const validationResult = CurrentTurnValidator.execute(this.context as ValidatorContext);
         for (const tile of tiles) this.context.turns.undoRecordPlacedTile({ tile });
         if (validationResult.status === ValidationStatus.Valid) {
-          for (const link of placement) this.board.undoPlaceTile(link.tile);
-          return this.emitReturn({ tiles, cells: placement.map(link => link.cell) });
+          return this.emitReturn({ tiles, cells: placement.map(link => link.cell), validationResult });
         }
       }
       const nextTasks: Array<Task> = [];

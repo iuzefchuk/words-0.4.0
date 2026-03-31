@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import GameTile from '@/gui/components/shared/AppTile.vue';
 import UseLoader from '@/gui/composables/UseLoader.ts';
-const props = defineProps({ isActive: { type: Boolean, required: true } });
-const emit = defineEmits(['derendered']);
+const props = defineProps<{
+  isActive: boolean;
+}>();
+const emit = defineEmits<{ derendered: void }>();
 const loader = UseLoader.create(props, emit);
 const { isRendered } = loader;
 </script>
