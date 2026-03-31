@@ -1,9 +1,9 @@
 <script lang="ts" setup generic="T extends string">
 import { computed } from 'vue';
 const props = defineProps<{
+  isDisabled: boolean;
   modelValue: T;
   options: Array<{ text: string; value: T }>;
-  isDisabled: boolean;
 }>();
 const emit = defineEmits<{
   change: [value: T];

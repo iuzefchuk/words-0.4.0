@@ -1,78 +1,93 @@
 export enum Sound {
+  GameLongBad = 'GameLongBad',
+  GameLongGood = 'GameLongGood',
+  GameLongNeutral = 'GameLongNeutral',
+  GameShortAltBad = 'GameShortAltBad',
+  GameShortAltGood = 'GameShortAltGood',
+  GameShortBad = 'GameShortBad',
   GameShortGood = 'GameShortGood',
   GameShortNeutral = 'GameShortNeutral',
   GameShortNeutralReverse = 'GameShortNeutralReverse',
-  GameShortBad = 'GameShortBad',
-  GameShortAltGood = 'GameShortAltGood',
-  GameShortAltBad = 'GameShortAltBad',
-  GameLongGood = 'GameLongGood',
-  GameLongNeutral = 'GameLongNeutral',
-  GameLongBad = 'GameLongBad',
-  SystemShuffle = 'SystemShuffle',
   SystemClear = 'SystemClear',
   SystemDialog = 'SystemDialog',
+  SystemShuffle = 'SystemShuffle',
 }
 
-type Note = { frequency: number; duration: number; type: OscillatorType; gain: number; ramp?: number };
+type Note = { duration: number; frequency: number; gain: number; ramp?: number; type: OscillatorType };
 
 export default class SoundPlayer {
+  private static context = new AudioContext();
+  private static readonly FADE_OUT_MS = 0.03;
   private static readonly NOTES: Record<Sound, ReadonlyArray<Note>> = {
-    [Sound.GameShortGood]: [
-      { frequency: 523, duration: 0.08, type: 'sine', gain: 0.12 },
-      { frequency: 659, duration: 0.1, type: 'sine', gain: 0.15 },
-    ],
-    [Sound.GameShortNeutral]: [{ frequency: 440, duration: 0.07, type: 'sine', gain: 0.12 }],
-    [Sound.GameShortNeutralReverse]: [{ frequency: 330, duration: 0.07, type: 'sine', gain: 0.1 }],
-    [Sound.GameShortBad]: [
-      { frequency: 392, duration: 0.08, type: 'sine', gain: 0.12 },
-      { frequency: 311, duration: 0.12, type: 'sine', gain: 0.14 },
-    ],
-    [Sound.GameShortAltGood]: [
-      { frequency: 220, duration: 0.1, type: 'triangle', gain: 0.1 },
-      { frequency: 262, duration: 0.08, type: 'triangle', gain: 0.08 },
-    ],
-    [Sound.GameShortAltBad]: [
-      { frequency: 262, duration: 0.1, type: 'triangle', gain: 0.1 },
-      { frequency: 220, duration: 0.12, type: 'triangle', gain: 0.08 },
+    [Sound.GameLongBad]: [
+      { duration: 0.15, frequency: 370, gain: 0.06, type: 'square' },
+      { duration: 0.15, frequency: 311, gain: 0.07, type: 'square' },
+      { duration: 0.25, frequency: 262, gain: 0.08, type: 'square' },
     ],
     [Sound.GameLongGood]: [
-      { frequency: 523, duration: 0.12, type: 'square', gain: 0.06 },
-      { frequency: 659, duration: 0.12, type: 'square', gain: 0.07 },
-      { frequency: 784, duration: 0.12, type: 'square', gain: 0.08 },
-      { frequency: 1047, duration: 0.2, type: 'square', gain: 0.09 },
+      { duration: 0.12, frequency: 523, gain: 0.06, type: 'square' },
+      { duration: 0.12, frequency: 659, gain: 0.07, type: 'square' },
+      { duration: 0.12, frequency: 784, gain: 0.08, type: 'square' },
+      { duration: 0.2, frequency: 1047, gain: 0.09, type: 'square' },
     ],
     [Sound.GameLongNeutral]: [
-      { frequency: 440, duration: 0.15, type: 'square', gain: 0.06 },
-      { frequency: 523, duration: 0.15, type: 'square', gain: 0.06 },
-      { frequency: 440, duration: 0.2, type: 'square', gain: 0.05 },
+      { duration: 0.15, frequency: 440, gain: 0.06, type: 'square' },
+      { duration: 0.15, frequency: 523, gain: 0.06, type: 'square' },
+      { duration: 0.2, frequency: 440, gain: 0.05, type: 'square' },
     ],
-    [Sound.GameLongBad]: [
-      { frequency: 370, duration: 0.15, type: 'square', gain: 0.06 },
-      { frequency: 311, duration: 0.15, type: 'square', gain: 0.07 },
-      { frequency: 262, duration: 0.25, type: 'square', gain: 0.08 },
+    [Sound.GameShortAltBad]: [
+      { duration: 0.1, frequency: 262, gain: 0.1, type: 'triangle' },
+      { duration: 0.12, frequency: 220, gain: 0.08, type: 'triangle' },
     ],
-    [Sound.SystemShuffle]: [
-      { frequency: 554, duration: 0.04, type: 'triangle', gain: 0.06 },
-      { frequency: 440, duration: 0.04, type: 'triangle', gain: 0.06 },
-      { frequency: 622, duration: 0.04, type: 'triangle', gain: 0.07 },
-      { frequency: 370, duration: 0.04, type: 'triangle', gain: 0.06 },
+    [Sound.GameShortAltGood]: [
+      { duration: 0.1, frequency: 220, gain: 0.1, type: 'triangle' },
+      { duration: 0.08, frequency: 262, gain: 0.08, type: 'triangle' },
     ],
+    [Sound.GameShortBad]: [
+      { duration: 0.08, frequency: 392, gain: 0.12, type: 'sine' },
+      { duration: 0.12, frequency: 311, gain: 0.14, type: 'sine' },
+    ],
+    [Sound.GameShortGood]: [
+      { duration: 0.08, frequency: 523, gain: 0.12, type: 'sine' },
+      { duration: 0.1, frequency: 659, gain: 0.15, type: 'sine' },
+    ],
+    [Sound.GameShortNeutral]: [{ duration: 0.07, frequency: 440, gain: 0.12, type: 'sine' }],
+    [Sound.GameShortNeutralReverse]: [{ duration: 0.07, frequency: 330, gain: 0.1, type: 'sine' }],
     [Sound.SystemClear]: [
-      { frequency: 660, duration: 0.06, type: 'triangle', gain: 0.06 },
-      { frequency: 660, duration: 0.06, type: 'triangle', gain: 0.05 },
+      { duration: 0.06, frequency: 660, gain: 0.06, type: 'triangle' },
+      { duration: 0.06, frequency: 660, gain: 0.05, type: 'triangle' },
     ],
     [Sound.SystemDialog]: [
-      { frequency: 880, duration: 0.05, type: 'triangle', gain: 0.05 },
-      { frequency: 440, duration: 0.08, type: 'triangle', gain: 0.06 },
+      { duration: 0.05, frequency: 880, gain: 0.05, type: 'triangle' },
+      { duration: 0.08, frequency: 440, gain: 0.06, type: 'triangle' },
+    ],
+    [Sound.SystemShuffle]: [
+      { duration: 0.04, frequency: 554, gain: 0.06, type: 'triangle' },
+      { duration: 0.04, frequency: 440, gain: 0.06, type: 'triangle' },
+      { duration: 0.04, frequency: 622, gain: 0.07, type: 'triangle' },
+      { duration: 0.04, frequency: 370, gain: 0.06, type: 'triangle' },
     ],
   };
-  private static readonly FADE_OUT_MS = 0.03;
-  private static context = new AudioContext();
   private static queueEnd = 0;
 
   static play(sound: Sound): void {
     const notes = this.NOTES[sound];
     setTimeout(() => this.playNotes(notes), 0);
+  }
+
+  private static playNote(note: Note, start: number, end: number): void {
+    const { frequency, gain, type } = note;
+    const oscillator = this.context.createOscillator();
+    const gainNode = this.context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gainNode.gain.setValueAtTime(gain, start);
+    gainNode.gain.setValueAtTime(gain, end - this.FADE_OUT_MS);
+    gainNode.gain.linearRampToValueAtTime(0.001, end);
+    oscillator.connect(gainNode);
+    gainNode.connect(this.context.destination);
+    oscillator.start(start);
+    oscillator.stop(end);
   }
 
   private static playNotes(notes: ReadonlyArray<Note>): void {
@@ -89,20 +104,5 @@ export default class SoundPlayer {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  private static playNote(note: Note, start: number, end: number): void {
-    const { type, frequency, gain } = note;
-    const oscillator = this.context.createOscillator();
-    const gainNode = this.context.createGain();
-    oscillator.type = type;
-    oscillator.frequency.value = frequency;
-    gainNode.gain.setValueAtTime(gain, start);
-    gainNode.gain.setValueAtTime(gain, end - this.FADE_OUT_MS);
-    gainNode.gain.linearRampToValueAtTime(0.001, end);
-    oscillator.connect(gainNode);
-    gainNode.connect(this.context.destination);
-    oscillator.start(start);
-    oscillator.stop(end);
   }
 }

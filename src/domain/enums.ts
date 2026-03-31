@@ -1,24 +1,19 @@
-export enum Player {
-  User = 'User',
-  Opponent = 'Opponent',
+export enum Difficulty {
+  High = 'High',
+  Low = 'Low',
+  Medium = 'Medium',
 }
 
 export enum EventType {
+  MatchLost = 'MatchLost',
+  MatchTied = 'MatchTied',
+  MatchWon = 'MatchWon',
+  OpponentTurnPassed = 'OpponentTurnPassed',
+  OpponentTurnSaved = 'OpponentTurnSaved',
   TilePlaced = 'TilePlaced',
   TileUndoPlaced = 'TileUndoPlaced',
-  UserTurnSaved = 'UserTurnSaved',
   UserTurnPassed = 'UserTurnPassed',
-  OpponentTurnSaved = 'OpponentTurnSaved',
-  OpponentTurnPassed = 'OpponentTurnPassed',
-  MatchWon = 'MatchWon',
-  MatchTied = 'MatchTied',
-  MatchLost = 'MatchLost',
-}
-
-export enum Difficulty {
-  Low = 'Low',
-  Medium = 'Medium',
-  High = 'High',
+  UserTurnSaved = 'UserTurnSaved',
 }
 
 export enum Letter {
@@ -48,4 +43,9 @@ export enum Letter {
   X = 'X',
   Y = 'Y',
   Z = 'Z',
+}
+
+export enum Player {
+  Opponent = 'Opponent',
+  User = 'User',
 }

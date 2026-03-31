@@ -2,87 +2,107 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 export enum DialogStatus {
-  Dismissed = 'Dismissed',
   Canceled = 'Canceled',
   Confirmed = 'Confirmed',
+  Dismissed = 'Dismissed',
 }
 
-type DialogTriggerParams = {
-  title: string;
-  html: string;
-  cancelText?: string;
-  confirmText?: string;
-  cancelIsHidden?: boolean;
-  confirmIsHidden?: boolean;
-};
-
 type DialogResult = {
-  isDismissed: boolean;
   isCanceled: boolean;
   isConfirmed: boolean;
+  isDismissed: boolean;
+};
+
+type DialogTriggerParams = {
+  cancelIsHidden?: boolean;
+  cancelText?: string;
+  confirmIsHidden?: boolean;
+  confirmText?: string;
+  html: string;
+  title: string;
 };
 
 export default class DialogStore {
   static readonly INSTANCE = defineStore('dialog', () => {
     const store = new DialogStore();
     return {
-      title: store.titleRef,
-      html: store.htmlRef,
-      cancelText: store.cancelTextRef,
-      confirmText: store.confirmTextRef,
       cancelIsHidden: store.cancelIsHiddenRef,
+      cancelText: store.cancelTextRef,
       confirmIsHidden: store.confirmIsHiddenRef,
-      trigger: store.trigger.bind(store),
+      confirmText: store.confirmTextRef,
+      html: store.htmlRef,
       resolve: store.resolve.bind(store),
+      title: store.titleRef,
+      trigger: store.trigger.bind(store),
     };
   });
 
-  private static readonly DEFAULT_TITLE = '';
-  private static readonly DEFAULT_HTML = '';
-  private static readonly DEFAULT_CANCEL_TEXT = '';
-  private static readonly DEFAULT_CONFIRM_TEXT = '';
   private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
+  private static readonly DEFAULT_CANCEL_TEXT = '';
   private static readonly DEFAULT_CONFIRM_IS_HIDDEN = false;
+  private static readonly DEFAULT_CONFIRM_TEXT = '';
+  private static readonly DEFAULT_HTML = '';
+  private static readonly DEFAULT_TITLE = '';
 
+  private cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
+  private cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
+  private confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
+  private confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
+  private htmlRef = ref(DialogStore.DEFAULT_HTML);
   private pendingResolve: ((result: DialogResult) => void) | null = null;
   private titleRef = ref(DialogStore.DEFAULT_TITLE);
-  private htmlRef = ref(DialogStore.DEFAULT_HTML);
-  private cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
-  private confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
-  private cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
-  private confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
 
-  private set title(newValue: string) {
-    this.titleRef.value = newValue;
-  }
-
-  private set html(newValue: string) {
-    this.htmlRef.value = newValue;
+  private set cancelIsHidden(newValue: boolean) {
+    this.cancelIsHiddenRef.value = newValue;
   }
 
   private set cancelText(newValue: string) {
     this.cancelTextRef.value = newValue;
   }
 
-  private set confirmText(newValue: string) {
-    this.confirmTextRef.value = newValue;
-  }
-
-  private set cancelIsHidden(newValue: boolean) {
-    this.cancelIsHiddenRef.value = newValue;
-  }
-
   private set confirmIsHidden(newValue: boolean) {
     this.confirmIsHiddenRef.value = newValue;
   }
 
+  private set confirmText(newValue: string) {
+    this.confirmTextRef.value = newValue;
+  }
+
+  private set html(newValue: string) {
+    this.htmlRef.value = newValue;
+  }
+
+  private set title(newValue: string) {
+    this.titleRef.value = newValue;
+  }
+
+  private resetState() {
+    this.title = DialogStore.DEFAULT_TITLE;
+    this.html = DialogStore.DEFAULT_HTML;
+    this.cancelText = DialogStore.DEFAULT_CANCEL_TEXT;
+    this.confirmText = DialogStore.DEFAULT_CONFIRM_TEXT;
+    this.cancelIsHidden = DialogStore.DEFAULT_CANCEL_IS_HIDDEN;
+    this.confirmIsHidden = DialogStore.DEFAULT_CONFIRM_IS_HIDDEN;
+  }
+
+  private resolve({ status }: { status: DialogStatus }): void {
+    if (this.pendingResolve) {
+      this.pendingResolve({
+        isCanceled: status === DialogStatus.Canceled,
+        isConfirmed: status === DialogStatus.Confirmed,
+        isDismissed: status === DialogStatus.Dismissed,
+      });
+      this.pendingResolve = null;
+    }
+  }
+
   private async trigger({
-    title,
-    html,
-    cancelText,
-    confirmText,
     cancelIsHidden,
+    cancelText,
     confirmIsHidden,
+    confirmText,
+    html,
+    title,
   }: DialogTriggerParams): Promise<DialogResult> {
     this.title = title;
     this.html = html;
@@ -95,25 +115,5 @@ export default class DialogStore {
     });
     this.resetState();
     return result;
-  }
-
-  private resolve({ status }: { status: DialogStatus }): void {
-    if (this.pendingResolve) {
-      this.pendingResolve({
-        isDismissed: status === DialogStatus.Dismissed,
-        isConfirmed: status === DialogStatus.Confirmed,
-        isCanceled: status === DialogStatus.Canceled,
-      });
-      this.pendingResolve = null;
-    }
-  }
-
-  private resetState() {
-    this.title = DialogStore.DEFAULT_TITLE;
-    this.html = DialogStore.DEFAULT_HTML;
-    this.cancelText = DialogStore.DEFAULT_CANCEL_TEXT;
-    this.confirmText = DialogStore.DEFAULT_CONFIRM_TEXT;
-    this.cancelIsHidden = DialogStore.DEFAULT_CANCEL_IS_HIDDEN;
-    this.confirmIsHidden = DialogStore.DEFAULT_CONFIRM_IS_HIDDEN;
   }
 }

@@ -8,52 +8,52 @@ import Turns, {
   ComputedValue,
   ComputedWords,
   InvalidResult,
-  ValidResult,
   ValidationError,
   ValidationResult,
   ValidationStatus,
+  ValidResult,
 } from '@/domain/models/Turns.ts';
 import PlacementBuilder from '@/domain/services/PlacementBuilder.ts';
 import ScoreCalculator from '@/domain/services/ScoreCalculator.ts';
 
 export type ValidatorContext = { board: Board; dictionary: Dictionary; inventory: Inventory; turns: Turns };
 
-type PendingResult<State> = { status: ValidationStatus.Pending; state: State };
+type ComputedTilesOutput = ComputedPlacements & SequencesOutput;
+
+type PendingResult<State> = { state: State; status: ValidationStatus.Pending };
 
 type PipelineInput = { context: ValidatorContext };
 
-type PipelineThroughput<State> = PendingResult<State> | InvalidResult;
-
-type PipelineState<Output extends ComputedValue> = PipelineInput & Output;
-
 type PipelineOutput = InvalidResult | ValidResult;
+
+type PipelineState<Output extends ComputedValue> = Output & PipelineInput;
+
+type PipelineThroughput<State> = InvalidResult | PendingResult<State>;
+
+type ScoreOutput = ComputedScore & WordsOutput;
 
 type SequencesOutput = ComputedCells;
 
-type ComputedTilesOutput = SequencesOutput & ComputedPlacements;
-
 type WordsOutput = ComputedTilesOutput & ComputedWords;
-
-type ScoreOutput = WordsOutput & ComputedScore;
 
 export default class CurrentTurnValidator {
   private static Pipeline = class Pipeline<State extends PipelineInput> {
     private constructor(private throughput: PipelineThroughput<State>) {}
 
-    static start(context: ValidatorContext): Pipeline<PipelineInput> {
-      return new Pipeline({ status: ValidationStatus.Pending, state: { context } });
+    static fail(error: ValidationError): InvalidResult {
+      return { error, status: ValidationStatus.Invalid };
     }
 
     static pass<State extends PipelineInput, NewValue extends ComputedValue>(
       state: State,
       newValue: NewValue,
-    ): PendingResult<State & NewValue> {
+    ): PendingResult<NewValue & State> {
       Object.assign(state, newValue);
-      return { status: ValidationStatus.Pending, state: state as State & NewValue };
+      return { state: state as NewValue & State, status: ValidationStatus.Pending };
     }
 
-    static fail(error: ValidationError): InvalidResult {
-      return { status: ValidationStatus.Invalid, error };
+    static start(context: ValidatorContext): Pipeline<PipelineInput> {
+      return new Pipeline({ state: { context }, status: ValidationStatus.Pending });
     }
 
     continue<NextState extends State>(callback: (state: State) => PipelineThroughput<NextState>): Pipeline<NextState> {
@@ -63,9 +63,9 @@ export default class CurrentTurnValidator {
 
     end(): PipelineOutput {
       if (this.throughput.status === ValidationStatus.Invalid) return this.throughput;
-      const { cells, placements, words, score } = this.throughput.state as unknown as PipelineState<ScoreOutput>;
+      const { cells, placements, score, words } = this.throughput.state as unknown as PipelineState<ScoreOutput>;
       if (score === undefined) throw new Error('Can`t show end result when pipeline wasn`t completed');
-      return { status: ValidationStatus.Valid, cells, placements, words, score } as ValidResult;
+      return { cells, placements, score, status: ValidationStatus.Valid, words } as ValidResult;
     }
   };
 
@@ -116,21 +116,6 @@ export default class CurrentTurnValidator {
     return this.Pipeline.pass(state, { placements: result });
   }
 
-  private static computeAndValidateWords(
-    state: PipelineState<ComputedTilesOutput>,
-  ): PipelineThroughput<PipelineState<WordsOutput>> {
-    const { dictionary, inventory } = state.context;
-    const words: Array<string> = [];
-    for (let i = 0; i < state.placements.length; i++) {
-      const letters: Array<string> = [];
-      for (const { tile } of state.placements[i]) letters.push(inventory.getTileLetter(tile));
-      words[i] = letters.join('');
-    }
-    return dictionary.containsWords(words)
-      ? this.Pipeline.pass(state, { words })
-      : this.Pipeline.fail(ValidationError.WordNotInDictionary);
-  }
-
   private static computeAndValidateScore(
     state: PipelineState<WordsOutput>,
   ): PipelineThroughput<PipelineState<ScoreOutput>> {
@@ -144,5 +129,20 @@ export default class CurrentTurnValidator {
       cell => board.getWordMultiplier(cell),
     );
     return this.Pipeline.pass(state, { score });
+  }
+
+  private static computeAndValidateWords(
+    state: PipelineState<ComputedTilesOutput>,
+  ): PipelineThroughput<PipelineState<WordsOutput>> {
+    const { dictionary, inventory } = state.context;
+    const words: Array<string> = [];
+    for (let i = 0; i < state.placements.length; i++) {
+      const letters: Array<string> = [];
+      for (const { tile } of state.placements[i]) letters.push(inventory.getTileLetter(tile));
+      words[i] = letters.join('');
+    }
+    return dictionary.containsWords(words)
+      ? this.Pipeline.pass(state, { words })
+      : this.Pipeline.fail(ValidationError.WordNotInDictionary);
   }
 }

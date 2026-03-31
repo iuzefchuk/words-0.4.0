@@ -1,11 +1,19 @@
 import { GameTile } from '@/application/types.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 
-type OutlineGroup = { row: number; col: number; rowSpan: number; colSpan: number };
-
 type CellKey = number;
 
+type OutlineGroup = { col: number; colSpan: number; row: number; rowSpan: number };
+
 export default class UseOutline {
+  private get boardCellsPerAxis(): number {
+    return this.matchStore.boardCellsPerAxis;
+  }
+
+  private get matchStore() {
+    return MatchStore.INSTANCE();
+  }
+
   createGroups(tiles: ReadonlyArray<GameTile>): ReadonlyArray<OutlineGroup> {
     const cells = this.collectCells(tiles);
     if (cells.size === 0) return [];
@@ -18,24 +26,13 @@ export default class UseOutline {
     return groups;
   }
 
-  private get matchStore() {
-    return MatchStore.INSTANCE();
-  }
-
-  private get boardCellsPerAxis(): number {
-    return this.matchStore.boardCellsPerAxis;
-  }
-
-  private collectCells(tiles: ReadonlyArray<GameTile>): Set<CellKey> {
-    const cells = new Set<CellKey>();
-    for (const tile of tiles) {
-      const cell = this.matchStore.findCellWithTile(tile);
-      if (!cell) continue;
-      const row = this.matchStore.getCellRowIndex(cell);
-      const col = this.matchStore.getCellColumnIndex(cell);
-      cells.add(this.toKey(row, col));
-    }
-    return cells;
+  private boundsToGroup(bounds: ReturnType<typeof this.createBounds>): OutlineGroup {
+    return {
+      col: bounds.minCol,
+      colSpan: bounds.maxCol - bounds.minCol + 1,
+      row: bounds.minRow,
+      rowSpan: bounds.maxRow - bounds.minRow + 1,
+    };
   }
 
   private buildGroup(start: CellKey, cells: Set<CellKey>, visited: Set<CellKey>): OutlineGroup {
@@ -56,16 +53,28 @@ export default class UseOutline {
     return this.boundsToGroup(bounds);
   }
 
-  private getNeighborKeys(row: number, col: number): Array<CellKey> {
-    return [this.toKey(row, col + 1), this.toKey(row, col - 1), this.toKey(row + 1, col), this.toKey(row - 1, col)];
+  private col(key: CellKey): number {
+    return key % this.boardCellsPerAxis;
+  }
+
+  private collectCells(tiles: ReadonlyArray<GameTile>): Set<CellKey> {
+    const cells = new Set<CellKey>();
+    for (const tile of tiles) {
+      const cell = this.matchStore.findCellWithTile(tile);
+      if (!cell) continue;
+      const row = this.matchStore.getCellRowIndex(cell);
+      const col = this.matchStore.getCellColumnIndex(cell);
+      cells.add(this.toKey(row, col));
+    }
+    return cells;
   }
 
   private createBounds() {
     return {
-      minRow: Infinity,
+      maxCol: -Infinity,
       maxRow: -Infinity,
       minCol: Infinity,
-      maxCol: -Infinity,
+      minRow: Infinity,
     };
   }
 
@@ -76,24 +85,15 @@ export default class UseOutline {
     bounds.maxCol = Math.max(bounds.maxCol, col);
   }
 
-  private boundsToGroup(bounds: ReturnType<typeof this.createBounds>): OutlineGroup {
-    return {
-      row: bounds.minRow,
-      col: bounds.minCol,
-      rowSpan: bounds.maxRow - bounds.minRow + 1,
-      colSpan: bounds.maxCol - bounds.minCol + 1,
-    };
-  }
-
-  private toKey(row: number, col: number): CellKey {
-    return row * this.boardCellsPerAxis + col;
+  private getNeighborKeys(row: number, col: number): Array<CellKey> {
+    return [this.toKey(row, col + 1), this.toKey(row, col - 1), this.toKey(row + 1, col), this.toKey(row - 1, col)];
   }
 
   private row(key: CellKey): number {
     return Math.floor(key / this.boardCellsPerAxis);
   }
 
-  private col(key: CellKey): number {
-    return key % this.boardCellsPerAxis;
+  private toKey(row: number, col: number): CellKey {
+    return row * this.boardCellsPerAxis + col;
   }
 }

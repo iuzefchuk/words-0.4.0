@@ -25,6 +25,21 @@ export default class CrossCheckComputer {
     return newResult;
   }
 
+  private collectAdjacentTileLetters(
+    axisCells: ReadonlyArray<CellIndex>,
+    startPosition: number,
+    direction: -1 | 1,
+  ): string {
+    let result = '';
+    for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
+      const tile = this.board.findTileByCell(axisCells[i]);
+      if (!tile) break;
+      const letter = this.inventory.getTileLetter(tile);
+      result = direction === -1 ? letter + result : result + letter;
+    }
+    return result;
+  }
+
   private computeFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const axisCells = this.board.getAxisCells(coords);
     const position = axisCells.indexOf(coords.cell);
@@ -45,20 +60,5 @@ export default class CrossCheckComputer {
       if (suffixNode && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
     }
     return anchorLetters;
-  }
-
-  private collectAdjacentTileLetters(
-    axisCells: ReadonlyArray<CellIndex>,
-    startPosition: number,
-    direction: -1 | 1,
-  ): string {
-    let result = '';
-    for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
-      const tile = this.board.findTileByCell(axisCells[i]);
-      if (!tile) break;
-      const letter = this.inventory.getTileLetter(tile);
-      result = direction === -1 ? letter + result : result + letter;
-    }
-    return result;
   }
 }

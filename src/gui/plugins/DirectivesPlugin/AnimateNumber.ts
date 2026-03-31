@@ -1,9 +1,9 @@
 import { DirectiveBinding } from 'vue';
 import Directive from './DirectiveClass.ts';
 
-type AnimatedHtmlElement = HTMLElement & { _animationFrameRequestId?: number };
+type AnimatedHtmlElement = { _animationFrameRequestId?: number } & HTMLElement;
 
-type BindingValue = { number: number; animationDelay?: number; animationDuration?: number };
+type BindingValue = { animationDelay?: number; animationDuration?: number; number: number };
 
 export default class AnimateNumber extends Directive<AnimatedHtmlElement, BindingValue> {
   private static Animator = class Animator {
@@ -20,7 +20,7 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
     }
 
     static create(element: AnimatedHtmlElement, bindingValue: BindingValue, startValue?: number): Animator {
-      const { number: endValue, animationDelay: delay, animationDuration: duration } = bindingValue;
+      const { animationDelay: delay, animationDuration: duration, number: endValue } = bindingValue;
       return new Animator(element, endValue, delay, duration, startValue);
     }
 
@@ -45,13 +45,13 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
     }
   };
 
-  mounted(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
-    AnimateNumber.Animator.create(element, binding.value).execute();
-  }
-
   beforeUpdate(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
-    const { value, oldValue } = binding;
+    const { oldValue, value } = binding;
     if (value.number === oldValue?.number) return;
     AnimateNumber.Animator.create(element, binding.value, oldValue?.number).execute();
+  }
+
+  mounted(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
+    AnimateNumber.Animator.create(element, binding.value).execute();
   }
 }

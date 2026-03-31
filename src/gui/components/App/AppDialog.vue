@@ -5,18 +5,18 @@ import ProvidesPlugin from '@/gui/plugins/ProvidesPlugin.ts';
 import DialogStore, { DialogStatus } from '@/gui/stores/DialogStore.ts';
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const dialogStore = DialogStore.INSTANCE();
-const { title, html, cancelText, confirmText, cancelIsHidden, confirmIsHidden } = storeToRefs(dialogStore);
+const { cancelIsHidden, cancelText, confirmIsHidden, confirmText, html, title } = storeToRefs(dialogStore);
 const exitAnimation = ref(false);
 const isRendered = ref(false);
+function respond(status: DialogStatus): void {
+  isRendered.value = false;
+  dialogStore.resolve({ status });
+}
 function toggleExitAnimation() {
   exitAnimation.value = true;
   setTimeout(() => {
     exitAnimation.value = false;
   }, transitionDurationMs);
-}
-function respond(status: DialogStatus): void {
-  isRendered.value = false;
-  dialogStore.resolve({ status });
 }
 watch(title, newValue => {
   if (newValue) isRendered.value = true;

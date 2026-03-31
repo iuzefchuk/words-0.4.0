@@ -1,24 +1,24 @@
 import { App, Ref, ref, watch } from 'vue';
 
-enum NumberSeparatorType {
-  Dot = 'de-DE',
-  Space = 'fr-FR',
-  Comma = 'en-US',
+export enum LocaleType {
+  En = 'en',
 }
 
 enum LocaleFile {
   Game = 'game',
 }
 
-export enum LocaleType {
-  En = 'en',
+enum NumberSeparatorType {
+  Comma = 'en-US',
+  Dot = 'de-DE',
+  Space = 'fr-FR',
 }
 
-type LocaleFileContent = Record<LocaleFile, Record<string, string>>;
-
-export type LocaleTextGetter = (string: string, props?: Record<string, string | number>) => string;
-
 export type LocaleNumberGetter = (number: number) => string;
+
+export type LocaleTextGetter = (string: string, props?: Record<string, number | string>) => string;
+
+type LocaleFileContent = Record<LocaleFile, Record<string, string>>;
 
 export default class LocalesPlugin {
   private static readonly NUMBER_SEPARATOR_TYPE_FOR_LOCALE = {
@@ -50,12 +50,14 @@ export default class LocalesPlugin {
     );
   }
 
-  private setGlobals(app: App): void {
-    const globals = app.config.globalProperties;
-    window.localeType = globals.localeType = this.type;
-    window.t = globals.t = this.getLocalizedText.bind(this);
-    window.n = globals.n = this.getLocalizedNumber.bind(this);
-  }
+  private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
+    return new Intl.NumberFormat(
+      LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma,
+      {
+        maximumFractionDigits: 2,
+      },
+    ).format(Number(number));
+  };
 
   private getLocalizedText: LocaleTextGetter = (string: string, props?: object) => {
     const [file, key] = string.split('.');
@@ -70,12 +72,10 @@ export default class LocalesPlugin {
     return localizedText;
   };
 
-  private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
-    return new Intl.NumberFormat(
-      LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma,
-      {
-        maximumFractionDigits: 2,
-      },
-    ).format(Number(number));
-  };
+  private setGlobals(app: App): void {
+    const globals = app.config.globalProperties;
+    window.localeType = globals.localeType = this.type;
+    window.t = globals.t = this.getLocalizedText.bind(this);
+    window.n = globals.n = this.getLocalizedNumber.bind(this);
+  }
 }

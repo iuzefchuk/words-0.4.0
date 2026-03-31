@@ -23,7 +23,65 @@ import {
   GameTurnsView,
 } from '@/domain/types.ts';
 
+class Events {
+  get logView(): ReadonlyArray<GameEvent> {
+    return [...this.log];
+  }
+
+  get snapshot(): EventsSnapshot {
+    return {
+      log: [...this.log],
+    };
+  }
+
+  private constructor(private readonly log: Array<GameEvent>) {}
+
+  static create(): Events {
+    return new Events([]);
+  }
+
+  static restoreFromSnapshot(snapshot: EventsSnapshot): Events {
+    return new Events(snapshot.log);
+  }
+
+  record(event: GameEvent): void {
+    this.log.push(event);
+  }
+}
+
 export default class Game {
+  get boardView(): Readonly<GameBoardView> {
+    return this.board;
+  }
+
+  get eventLog(): ReadonlyArray<GameEvent> {
+    return this.events.logView;
+  }
+
+  get inventoryView(): Readonly<GameInventoryView> {
+    return this.inventory;
+  }
+
+  get matchView(): Readonly<GameMatchView> {
+    return this.match;
+  }
+
+  get snapshot(): GameSnapshot {
+    return {
+      board: this.board.snapshot,
+      difficulty: this.difficulty,
+      events: this.events.snapshot,
+      inventory: this.inventory.snapshot,
+      match: this.match.snapshot,
+      turns: this.turns.snapshot,
+      version: this.version,
+    };
+  }
+
+  get turnsView(): Readonly<GameTurnsView> {
+    return this.turns;
+  }
+
   private constructor(
     private readonly version: string,
     private readonly board: Board,
@@ -62,41 +120,16 @@ export default class Game {
     return new Game(version, board, dictionary, inventory, match, turns, events, snapshot.difficulty);
   }
 
-  get snapshot(): GameSnapshot {
-    return {
-      version: this.version,
-      difficulty: this.difficulty,
-      board: this.board.snapshot,
-      inventory: this.inventory.snapshot,
-      turns: this.turns.snapshot,
-      match: this.match.snapshot,
-      events: this.events.snapshot,
-    };
-  }
-
-  get boardView(): Readonly<GameBoardView> {
-    return this.board;
-  }
-
-  get inventoryView(): Readonly<GameInventoryView> {
-    return this.inventory;
-  }
-
-  get turnsView(): Readonly<GameTurnsView> {
-    return this.turns;
-  }
-
-  get matchView(): Readonly<GameMatchView> {
-    return this.match;
-  }
-
-  get eventLog(): ReadonlyArray<GameEvent> {
-    return this.events.logView;
-  }
-
-  changeDifficulty(newValue: GameDifficulty) {
-    if (this.turns.historyHasPriorTurns) throw new Error('Cannot change difficulty after turns have been played');
-    this.difficulty = newValue;
+  applyGeneratedTurn(result: GeneratorResult): { score: number; words: ReadonlyArray<string> } {
+    this.ensureMutability();
+    for (let i = 0; i < result.tiles.length; i++) {
+      this.board.placeTile(result.cells[i], result.tiles[i]);
+      this.turns.recordPlacedTile(result.tiles[i]);
+    }
+    this.turns.recordValidationResult(result.validationResult);
+    const { score } = result.validationResult;
+    const { words } = this.saveTurn();
+    return { score, words };
   }
 
   changeBonusDistribution(bonusDistribution: GameBonusDistribution): void {
@@ -105,62 +138,15 @@ export default class Game {
     this.board.changeBonusDistribution(bonusDistribution);
   }
 
-  placeTile(input: { cell: GameCell; tile: GameTile }): void {
-    this.ensureMutability();
-    this.board.placeTile(input.cell, input.tile);
-    this.turns.recordPlacedTile(input.tile);
-    this.events.record({ type: GameEventType.TilePlaced });
-  }
-
-  undoPlaceTile(input: { tile: GameTile }): void {
-    this.ensureMutability();
-    this.turns.undoRecordPlacedTile(input);
-    this.board.undoPlaceTile(input.tile);
-    this.events.record({ type: GameEventType.TileUndoPlaced });
+  changeDifficulty(newValue: GameDifficulty) {
+    if (this.turns.historyHasPriorTurns) throw new Error('Cannot change difficulty after turns have been played');
+    this.difficulty = newValue;
   }
 
   clearTiles(): void {
     this.ensureMutability();
     for (const tile of this.turns.currentTurnTiles) this.board.undoPlaceTile(tile);
     this.turns.resetCurrentTurn();
-  }
-
-  validateTurn(): void {
-    const result = CurrentTurnValidator.execute({
-      board: this.board,
-      dictionary: this.dictionary,
-      inventory: this.inventory,
-      turns: this.turns,
-    } as ValidatorContext);
-    this.turns.recordValidationResult(result);
-  }
-
-  saveTurn(): { words: ReadonlyArray<string> } {
-    this.ensureMutability();
-    if (!this.turnsView.currentTurnIsValid) throw new Error('Turn is not valid');
-    const {
-      currentPlayer: player,
-      currentTurnTiles: tiles,
-      currentTurnWords: words,
-      currentTurnScore: score,
-    } = this.turnsView;
-    if (words === undefined) throw new Error('Current turn words do not exist');
-    if (score === undefined) throw new Error('Current turn score does not exist');
-    tiles.forEach(tile => this.inventory.discardTile({ player, tile }));
-    this.inventory.replenishTilesFor(player);
-    this.match.incrementScore(player, score);
-    this.startTurnForNextPlayer();
-    const type = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
-    this.events.record({ type, words, score });
-    return { words };
-  }
-
-  passTurn(): void {
-    const { currentPlayer: player } = this.turnsView;
-    this.ensureMutability();
-    this.startTurnForNextPlayer();
-    const type = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
-    this.events.record({ type });
   }
 
   createGeneratorContext(): GeneratorContext {
@@ -170,18 +156,6 @@ export default class Game {
       inventory: this.inventory,
       turns: Turns.clone(this.turns),
     };
-  }
-
-  applyGeneratedTurn(result: GeneratorResult): { words: ReadonlyArray<string>; score: number } {
-    this.ensureMutability();
-    for (let i = 0; i < result.tiles.length; i++) {
-      this.board.placeTile(result.cells[i], result.tiles[i]);
-      this.turns.recordPlacedTile(result.tiles[i]);
-    }
-    this.turns.recordValidationResult(result.validationResult);
-    const { score } = result.validationResult;
-    const { words } = this.saveTurn();
-    return { words, score };
   }
 
   finishMatchByScore(): void {
@@ -195,10 +169,62 @@ export default class Game {
     this.events.record({ type: leaderByScore === GamePlayer.User ? GameEventType.MatchWon : GameEventType.MatchLost });
   }
 
+  passTurn(): void {
+    const { currentPlayer: player } = this.turnsView;
+    this.ensureMutability();
+    this.startTurnForNextPlayer();
+    const type = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
+    this.events.record({ type });
+  }
+
+  placeTile(input: { cell: GameCell; tile: GameTile }): void {
+    this.ensureMutability();
+    this.board.placeTile(input.cell, input.tile);
+    this.turns.recordPlacedTile(input.tile);
+    this.events.record({ type: GameEventType.TilePlaced });
+  }
+
   resignMatch(): void {
     const { currentPlayer, nextPlayer } = this.turnsView;
     this.match.recordCompletion(nextPlayer, currentPlayer);
     this.events.record({ type: currentPlayer === GamePlayer.User ? GameEventType.MatchLost : GameEventType.MatchWon });
+  }
+
+  saveTurn(): { words: ReadonlyArray<string> } {
+    this.ensureMutability();
+    if (!this.turnsView.currentTurnIsValid) throw new Error('Turn is not valid');
+    const {
+      currentPlayer: player,
+      currentTurnScore: score,
+      currentTurnTiles: tiles,
+      currentTurnWords: words,
+    } = this.turnsView;
+    if (words === undefined) throw new Error('Current turn words do not exist');
+    if (score === undefined) throw new Error('Current turn score does not exist');
+    tiles.forEach(tile => this.inventory.discardTile({ player, tile }));
+    this.inventory.replenishTilesFor(player);
+    this.match.incrementScore(player, score);
+    this.startTurnForNextPlayer();
+    const type = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
+    this.events.record({ score, type, words });
+    return { words };
+  }
+
+  undoPlaceTile(input: { tile: GameTile }): void {
+    this.ensureMutability();
+    this.turns.undoRecordPlacedTile(input);
+    this.board.undoPlaceTile(input.tile);
+    this.events.record({ type: GameEventType.TileUndoPlaced });
+  }
+
+  validateTurn(): void {
+    const result = CurrentTurnValidator.execute({
+      board: this.board,
+      dictionary: this.dictionary,
+      inventory: this.inventory,
+      turns: this.turns,
+    } as ValidatorContext);
+    this.turns.recordValidationResult(result);
   }
 
   willPassBeResignFor(player: GamePlayer): boolean {
@@ -206,6 +232,10 @@ export default class Game {
     const saveType = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
     const lastTurnEvent = this.events.logView.findLast(e => e.type === passType || e.type === saveType);
     return lastTurnEvent?.type === passType;
+  }
+
+  private completeMatch(winner: GamePlayer, loser: GamePlayer): void {
+    this.match.recordCompletion(winner, loser);
   }
 
   private ensureMutability(): void {
@@ -216,37 +246,7 @@ export default class Game {
     this.turns.startTurnFor(this.turns.nextPlayer);
   }
 
-  private completeMatch(winner: GamePlayer, loser: GamePlayer): void {
-    this.match.recordCompletion(winner, loser);
-  }
-
   private tieMatch(): void {
     this.match.recordTie(this.turnsView.currentPlayer, this.turnsView.nextPlayer);
-  }
-}
-
-class Events {
-  private constructor(private readonly log: Array<GameEvent>) {}
-
-  static create(): Events {
-    return new Events([]);
-  }
-
-  static restoreFromSnapshot(snapshot: EventsSnapshot): Events {
-    return new Events(snapshot.log);
-  }
-
-  get snapshot(): EventsSnapshot {
-    return {
-      log: [...this.log],
-    };
-  }
-
-  get logView(): ReadonlyArray<GameEvent> {
-    return [...this.log];
-  }
-
-  record(event: GameEvent): void {
-    this.log.push(event);
   }
 }

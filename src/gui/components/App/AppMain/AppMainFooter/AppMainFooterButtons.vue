@@ -11,34 +11,34 @@ const buttons = UseButtons.create();
 const { allActionsAreDisabled } = buttons;
 const items = reactive([
   {
-    name: window.t('game.action_resign'),
     action: () => buttons.handleResign(),
-    isRendered: () => true,
     isDisabled: () => allActionsAreDisabled.value,
+    isRendered: () => true,
+    name: window.t('game.action_resign'),
   },
   {
-    name: window.t('game.action_pass'),
     action: () => buttons.handlePass(),
-    isRendered: () => true,
     isDisabled: () => allActionsAreDisabled.value,
+    isRendered: () => true,
+    name: window.t('game.action_pass'),
   },
   {
-    name: window.t('game.action_shuffle'),
     action: () => buttons.handleShuffle(),
+    isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => !anyTileIsPlaced.value,
-    isDisabled: () => allActionsAreDisabled.value,
+    name: window.t('game.action_shuffle'),
   },
   {
-    name: window.t('game.action_clear'),
     action: () => buttons.handleClear(),
-    isRendered: () => anyTileIsPlaced.value,
     isDisabled: () => allActionsAreDisabled.value,
+    isRendered: () => anyTileIsPlaced.value,
+    name: window.t('game.action_clear'),
   },
   {
-    name: window.t('game.action_play'),
     action: () => buttons.handlePlay(),
-    isRendered: () => true,
     isDisabled: () => allActionsAreDisabled.value || !matchStore.currentTurnIsValid,
+    isRendered: () => true,
+    name: window.t('game.action_play'),
   },
 ]);
 </script>

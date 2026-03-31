@@ -3,9 +3,9 @@ import { GameLetter } from '@/application/types.ts';
 import { getLetterSvgHtml } from '@/gui/mappings.ts';
 withDefaults(
   defineProps<{
-    letter: GameLetter;
     isInverted?: boolean;
     isSaturated?: boolean;
+    letter: GameLetter;
   }>(),
   { isInverted: false, isSaturated: false },
 );

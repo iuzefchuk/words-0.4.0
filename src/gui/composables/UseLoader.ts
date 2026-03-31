@@ -7,6 +7,26 @@ export default class UseLoader {
   static readonly LETTERS = [GameLetter.W, GameLetter.O, GameLetter.R, GameLetter.D, GameLetter.S];
   readonly isRendered = ref(false);
 
+  private get isBuildingPhase(): boolean {
+    return this.step > 0 && this.step <= this.lettersLength;
+  }
+
+  private get isEmphasizedPhase(): boolean {
+    return this.step === this.lettersLength + 1;
+  }
+
+  private get isFinishedPhase(): boolean {
+    return this.step > this.lettersLength + 1;
+  }
+
+  private get lettersLength(): number {
+    return UseLoader.LETTERS.length;
+  }
+
+  private get step(): number {
+    return this.counter.value;
+  }
+
   private constructor(
     private readonly props: { isActive: boolean },
     private readonly emit: (event: 'derendered') => void,
@@ -30,28 +50,10 @@ export default class UseLoader {
     return this.isItemVisible(idx);
   }
 
-  private get lettersLength(): number {
-    return UseLoader.LETTERS.length;
-  }
-
-  private get step(): number {
-    return this.counter.value;
-  }
-
-  private get isBuildingPhase(): boolean {
-    return this.step > 0 && this.step <= this.lettersLength;
-  }
-
-  private get isEmphasizedPhase(): boolean {
-    return this.step === this.lettersLength + 1;
-  }
-
-  private get isFinishedPhase(): boolean {
-    return this.step > this.lettersLength + 1;
-  }
-
-  private isItemVisible(idx: number): boolean {
-    return this.step > idx && this.isBuildingPhase;
+  private deinitRenderWithCounter(): void {
+    this.isRendered.value = false;
+    this.counter.stopCounter();
+    this.emit('derendered');
   }
 
   private initRenderWatcher(): void {
@@ -69,10 +71,8 @@ export default class UseLoader {
     this.counter.restartCounter(() => this.onIncrementCounter());
   }
 
-  private deinitRenderWithCounter(): void {
-    this.isRendered.value = false;
-    this.counter.stopCounter();
-    this.emit('derendered');
+  private isItemVisible(idx: number): boolean {
+    return this.step > idx && this.isBuildingPhase;
   }
 
   private onIncrementCounter(): void {

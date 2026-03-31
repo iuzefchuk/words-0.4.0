@@ -1,23 +1,50 @@
 import { Player } from '@/domain/enums.ts';
 
 export enum MatchResult {
-  Win = 'Win',
   Lose = 'Lose',
   Tie = 'Tie',
+  Win = 'Win',
 }
-
-export type MatchView = {
-  readonly isFinished: boolean;
-  getResultFor(player: Player): MatchResult | undefined;
-  getScoreFor(player: Player): number;
-};
 
 export type MatchSnapshot = {
   readonly results: Map<Player, MatchResult | undefined>;
   readonly scores: Map<Player, number>;
 };
 
+export type MatchView = {
+  getResultFor(player: Player): MatchResult | undefined;
+  getScoreFor(player: Player): number;
+  readonly isFinished: boolean;
+};
+
 export default class Match {
+  get isFinished(): boolean {
+    return this.results.values().some(Boolean);
+  }
+
+  get leaderByScore(): null | Player {
+    const scoresAreTied = this.userScore === this.opponentScore;
+    if (scoresAreTied) return null;
+    return this.userScore > this.opponentScore ? Player.User : Player.Opponent;
+  }
+
+  get loserByScore(): null | Player {
+    if (this.leaderByScore === null) return null;
+    return this.leaderByScore === Player.User ? Player.Opponent : Player.User;
+  }
+
+  get opponentScore(): number {
+    return this.scores.get(Player.Opponent)!;
+  }
+
+  get snapshot(): MatchSnapshot {
+    return { results: new Map(this.results), scores: new Map(this.scores) };
+  }
+
+  get userScore(): number {
+    return this.scores.get(Player.User)!;
+  }
+
   private constructor(
     private results: Map<Player, MatchResult | undefined>,
     private scores: Map<Player, number>,
@@ -31,33 +58,6 @@ export default class Match {
 
   static restoreFromSnapshot(snapshot: MatchSnapshot): Match {
     return new Match(new Map(snapshot.results), new Map(snapshot.scores));
-  }
-
-  get isFinished(): boolean {
-    return this.results.values().some(Boolean);
-  }
-
-  get snapshot(): MatchSnapshot {
-    return { results: new Map(this.results), scores: new Map(this.scores) };
-  }
-
-  get userScore(): number {
-    return this.scores.get(Player.User)!;
-  }
-
-  get opponentScore(): number {
-    return this.scores.get(Player.Opponent)!;
-  }
-
-  get leaderByScore(): Player | null {
-    const scoresAreTied = this.userScore === this.opponentScore;
-    if (scoresAreTied) return null;
-    return this.userScore > this.opponentScore ? Player.User : Player.Opponent;
-  }
-
-  get loserByScore(): Player | null {
-    if (this.leaderByScore === null) return null;
-    return this.leaderByScore === Player.User ? Player.Opponent : Player.User;
   }
 
   getResultFor(player: Player): MatchResult | undefined {

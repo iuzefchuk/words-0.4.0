@@ -1,15 +1,19 @@
 import { onUnmounted, ref } from 'vue';
 
 export default class UseCounter {
-  private readonly valueRef = ref(0);
+  get value(): number {
+    return this.valueRef.value;
+  }
   private interval: Interval | null = null;
+
+  private readonly valueRef = ref(0);
+
+  private set value(newValue: number) {
+    this.valueRef.value = newValue;
+  }
 
   constructor(private readonly intervalMs: number) {
     onUnmounted(() => this.stopCounter());
-  }
-
-  get value(): number {
-    return this.valueRef.value;
   }
 
   restartCounter(callback = () => {}): void {
@@ -20,10 +24,6 @@ export default class UseCounter {
   stopCounter(): void {
     if (this.interval) clearInterval(this.interval);
     this.interval = null;
-  }
-
-  private set value(newValue: number) {
-    this.valueRef.value = newValue;
   }
 
   private startCounter(callback = () => {}): void {

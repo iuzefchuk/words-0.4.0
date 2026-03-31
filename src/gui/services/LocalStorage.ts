@@ -1,7 +1,11 @@
-type StoragePayload = { timestamp: number; data: unknown };
+type StoragePayload = { data: unknown; timestamp: number };
 
 export default class LocalStorage {
-  static load(key: string, expireMs: number = 0): unknown | null {
+  static delete(key: string): void {
+    localStorage.removeItem(key);
+  }
+
+  static load(key: string, expireMs: number = 0): null | unknown {
     try {
       const raw = localStorage.getItem(key);
       if (raw === null) return null;
@@ -18,12 +22,8 @@ export default class LocalStorage {
   }
 
   static save(key: string, data: unknown): void {
-    const payload: StoragePayload = { timestamp: Date.now(), data };
+    const payload: StoragePayload = { data, timestamp: Date.now() };
     localStorage.setItem(key, JSON.stringify(payload));
-  }
-
-  static delete(key: string): void {
-    localStorage.removeItem(key);
   }
 
   private static isPayloadExpired(expireMs: number, timestamp: number): boolean {

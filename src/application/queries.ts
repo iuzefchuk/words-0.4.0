@@ -10,41 +10,39 @@ import {
 import Game from '@/domain/index.ts';
 
 export default class AppQueryBuilder {
-  private _previousTurnTilesRef: ReadonlyArray<GameTile> | undefined;
-  private _previousTurnTileSet: Set<GameTile> | undefined;
-
-  constructor(private readonly game: Game) {}
-
   get queries(): AppQueries {
     return {
-      getBonusDistribution: () => this.boardView.bonusDistribution,
-      getDifficulty: () => this.game.difficulty,
-      hasPriorTurns: () => this.turnsView.historyHasPriorTurns,
-      getTilesRemaining: () => this.inventoryView.unusedTilesCount,
-      getUserTiles: () => this.inventoryView.getTilesFor(GamePlayer.User),
-      getUserScore: () => this.game.matchView.getScoreFor(GamePlayer.User),
-      getOpponentScore: () => this.game.matchView.getScoreFor(GamePlayer.Opponent),
-      isCurrentPlayerUser: () => this.turnsView.currentPlayer === GamePlayer.User,
-      getCurrentTurnScore: () => this.turnsView.currentTurnScore,
-      isCurrentTurnValid: () => this.turnsView.currentTurnIsValid,
-      willUserPassBeResign: () => this.game.willPassBeResignFor(GamePlayer.User),
-      getEventLog: () => this.game.eventLog,
-      isMatchFinished: () => this.game.matchView.isFinished,
-      getMatchResult: () => this.game.matchView.getResultFor(GamePlayer.User),
       areTilesSame: (first: GameTile, second: GameTile) => this.inventoryView.areTilesEqual(first, second),
-      getTileLetter: (tile: GameTile) => this.inventoryView.getTileLetter(tile),
-      isCellCenter: (cell: GameCell) => this.boardView.isCellCenter(cell),
-      getCellBonus: (cell: GameCell) => this.boardView.getBonus(cell),
-      getCellRowIndex: (cell: GameCell) => this.boardView.getRowIndex(cell),
-      getCellColumnIndex: (cell: GameCell) => this.boardView.getColumnIndex(cell),
-      findTileOnCell: (cell: GameCell) => this.boardView.findTileByCell(cell),
       findCellWithTile: (tile: GameTile) => this.boardView.findCellByTile(tile),
-      isTilePlaced: (tile: GameTile) => this.boardView.isTilePlaced(tile),
+      findTileOnCell: (cell: GameCell) => this.boardView.findTileByCell(cell),
+      getBonusDistribution: () => this.boardView.bonusDistribution,
+      getCellBonus: (cell: GameCell) => this.boardView.getBonus(cell),
+      getCellColumnIndex: (cell: GameCell) => this.boardView.getColumnIndex(cell),
+      getCellRowIndex: (cell: GameCell) => this.boardView.getRowIndex(cell),
+      getCurrentTurnScore: () => this.turnsView.currentTurnScore,
       getCurrentTurnTopRightCell: () => this.getCurrentTurnTopRightCell(),
+      getDifficulty: () => this.game.difficulty,
+      getEventLog: () => this.game.eventLog,
+      getMatchResult: () => this.game.matchView.getResultFor(GamePlayer.User),
+      getOpponentScore: () => this.game.matchView.getScoreFor(GamePlayer.Opponent),
+      getTileLetter: (tile: GameTile) => this.inventoryView.getTileLetter(tile),
+      getTilesRemaining: () => this.inventoryView.unusedTilesCount,
+      getUserScore: () => this.game.matchView.getScoreFor(GamePlayer.User),
+      getUserTiles: () => this.inventoryView.getTilesFor(GamePlayer.User),
+      hasPriorTurns: () => this.turnsView.historyHasPriorTurns,
+      isCellCenter: (cell: GameCell) => this.boardView.isCellCenter(cell),
       isCellTopRightInCurrentTurn: (cell: GameCell) => this.isCellTopRightInCurrentTurn(cell),
+      isCurrentPlayerUser: () => this.turnsView.currentPlayer === GamePlayer.User,
+      isCurrentTurnValid: () => this.turnsView.currentTurnIsValid,
+      isMatchFinished: () => this.game.matchView.isFinished,
+      isTilePlaced: (tile: GameTile) => this.boardView.isTilePlaced(tile),
       wasTileUsedInPreviousTurn: (tile: GameTile) => this.wasTileUsedInPreviousTurn(tile),
+      willUserPassBeResign: () => this.game.willPassBeResignFor(GamePlayer.User),
     };
   }
+  private _previousTurnTileSet: Set<GameTile> | undefined;
+
+  private _previousTurnTilesRef: ReadonlyArray<GameTile> | undefined;
 
   private get boardView(): Readonly<GameBoardView> {
     return this.game.boardView;
@@ -57,6 +55,8 @@ export default class AppQueryBuilder {
   private get turnsView(): Readonly<GameTurnsView> {
     return this.game.turnsView;
   }
+
+  constructor(private readonly game: Game) {}
 
   private getCurrentTurnTopRightCell(): GameCell | undefined {
     const { currentTurnCells: cells } = this.game.turnsView;

@@ -3,21 +3,11 @@ import { GameBonus, GameLetter, GameMatchResult } from '@/domain/types.ts';
 export function getBonusName(bonus: GameBonus): string {
   return window.t(
     {
-      [GameBonus.DoubleWord]: 'game.bonus_dw',
-      [GameBonus.TripleWord]: 'game.bonus_tw',
       [GameBonus.DoubleLetter]: 'game.bonus_dl',
+      [GameBonus.DoubleWord]: 'game.bonus_dw',
       [GameBonus.TripleLetter]: 'game.bonus_tl',
+      [GameBonus.TripleWord]: 'game.bonus_tw',
     }[bonus] ?? '',
-  );
-}
-
-export function getMatchResultText(result: GameMatchResult): string {
-  return window.t(
-    {
-      [GameMatchResult.Win]: 'game.end_win',
-      [GameMatchResult.Lose]: 'game.end_lose',
-      [GameMatchResult.Tie]: 'game.end_tie',
-    }[result] ?? '',
   );
 }
 
@@ -77,5 +67,15 @@ export function getLetterSvgHtml(letter: GameLetter): string {
       [GameLetter.Z]:
         '<path d="M3.24121 15H9.1333V13.8345H4.9707V13.7378L9.03125 8.17334V7.24951H3.354V8.41504H7.31787V8.51172L3.24121 14.0762V15Z"/><path d="M12.4766 9H13.1797V3.36328H12.4805L10.9805 4.44141V5.18359L12.4141 4.14453H12.4766V9ZM16.7578 9.13281C18.0234 9.13281 18.75 8.0625 18.75 6.19141C18.75 4.32422 18.0117 3.23047 16.7578 3.23047C15.4961 3.23047 14.7578 4.32031 14.7578 6.17969C14.7578 8.05469 15.4883 9.13281 16.7578 9.13281ZM16.7578 8.51953C15.9258 8.51953 15.4648 7.6875 15.4648 6.17969C15.4648 4.69141 15.9336 3.84766 16.7578 3.84766C17.582 3.84766 18.043 4.68359 18.043 6.17969C18.043 7.69141 17.5898 8.51953 16.7578 8.51953Z"/>',
     }[letter] ?? ''
+  );
+}
+
+export function getMatchResultText(result: GameMatchResult): string {
+  return window.t(
+    {
+      [GameMatchResult.Lose]: 'game.end_lose',
+      [GameMatchResult.Tie]: 'game.end_tie',
+      [GameMatchResult.Win]: 'game.end_win',
+    }[result] ?? '',
   );
 }

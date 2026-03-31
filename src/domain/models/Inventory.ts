@@ -1,27 +1,27 @@
 import { Letter, Player } from '@/domain/enums.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
-export type TileId = Brand<string, 'TileId'>;
+export type InventorySnapshot = {
+  readonly discardPool: TilePoolSnapshot;
+  readonly drawPool: TilePoolSnapshot;
+  readonly playerPools: Map<Player, TilePoolSnapshot>;
+};
+
+export type InventoryView = {
+  areTilesEqual(firstTile: TileId, secondTile: TileId): boolean;
+  getTileLetter(tile: TileId): Letter;
+  getTilesFor(player: Player): ReadonlyArray<TileId>;
+  hasTilesFor(player: Player): boolean;
+  readonly unusedTilesCount: number;
+};
 
 export type TileCollection = ReadonlyMap<Letter, ReadonlyArray<TileId>>;
+
+export type TileId = Brand<string, 'TileId'>;
 
 type TilePoolSnapshot = {
   readonly capacity?: number;
   readonly tiles: Array<Tile>;
-};
-
-export type InventoryView = {
-  readonly unusedTilesCount: number;
-  getTilesFor(player: Player): ReadonlyArray<TileId>;
-  hasTilesFor(player: Player): boolean;
-  areTilesEqual(firstTile: TileId, secondTile: TileId): boolean;
-  getTileLetter(tile: TileId): Letter;
-};
-
-export type InventorySnapshot = {
-  readonly drawPool: TilePoolSnapshot;
-  readonly playerPools: Map<Player, TilePoolSnapshot>;
-  readonly discardPool: TilePoolSnapshot;
 };
 
 class Tile {
@@ -40,6 +40,28 @@ class Tile {
 }
 
 class TilePool {
+  get snapshot(): TilePoolSnapshot {
+    return { capacity: this.capacity, tiles: [...this.tiles] };
+  }
+
+  get tileCollection(): TileCollection {
+    const collection = new Map<Letter, Array<TileId>>();
+    for (const tile of this.tiles) {
+      let arr = collection.get(tile.letter);
+      if (!arr) collection.set(tile.letter, (arr = []));
+      arr.push(tile.id);
+    }
+    return collection;
+  }
+
+  get tileCount(): number {
+    return this.tiles.length;
+  }
+
+  get tileIdsView(): ReadonlyArray<TileId> {
+    return this.tileIds;
+  }
+
   private readonly tileIds: Array<TileId>;
 
   private constructor(
@@ -55,28 +77,6 @@ class TilePool {
 
   static restoreFromSnapshot(snapshot: TilePoolSnapshot): TilePool {
     return new TilePool(snapshot.capacity, snapshot.tiles);
-  }
-
-  get snapshot(): TilePoolSnapshot {
-    return { capacity: this.capacity, tiles: [...this.tiles] };
-  }
-
-  get tileCount(): number {
-    return this.tiles.length;
-  }
-
-  get tileIdsView(): ReadonlyArray<TileId> {
-    return this.tileIds;
-  }
-
-  get tileCollection(): TileCollection {
-    const collection = new Map<Letter, Array<TileId>>();
-    for (const tile of this.tiles) {
-      let arr = collection.get(tile.letter);
-      if (!arr) collection.set(tile.letter, (arr = []));
-      arr.push(tile.id);
-    }
-    return collection;
   }
 
   addTile(tile: Tile): void {
@@ -107,8 +107,6 @@ class TilePool {
 }
 
 export default class Inventory {
-  private static readonly PLAYER_POOL_CAPACITY = 7;
-
   private static readonly LETTER_CONFIG: Record<Letter, { distribution: number; points: number }> = {
     [Letter.A]: { distribution: 9, points: 1 },
     [Letter.B]: { distribution: 2, points: 4 },
@@ -138,6 +136,8 @@ export default class Inventory {
     [Letter.Z]: { distribution: 1, points: 10 },
   };
 
+  private static readonly PLAYER_POOL_CAPACITY = 7;
+
   private static readonly TILE_BY_ID: ReadonlyMap<TileId, Tile> = new Map(
     Object.values(Letter).flatMap(letter =>
       Array.from({ length: Inventory.LETTER_CONFIG[letter].distribution }, (_, i) => {
@@ -146,6 +146,18 @@ export default class Inventory {
       }),
     ),
   );
+
+  get snapshot(): InventorySnapshot {
+    return {
+      discardPool: this.discardPool.snapshot,
+      drawPool: this.drawPool.snapshot,
+      playerPools: new Map([...this.playerPools].map(([player, pool]) => [player, pool.snapshot])),
+    };
+  }
+
+  get unusedTilesCount(): number {
+    return this.drawPool.tileCount;
+  }
 
   private constructor(
     private drawPool: TilePool,
@@ -175,16 +187,26 @@ export default class Inventory {
     return new Inventory(drawPool, playerPools, discardPool);
   }
 
-  get snapshot(): InventorySnapshot {
-    return {
-      drawPool: this.drawPool.snapshot,
-      playerPools: new Map([...this.playerPools].map(([player, pool]) => [player, pool.snapshot])),
-      discardPool: this.discardPool.snapshot,
-    };
+  areTilesEqual(firstTile: TileId, secondTile: TileId): boolean {
+    return this.getTileById(firstTile).equals(this.getTileById(secondTile));
   }
 
-  get unusedTilesCount(): number {
-    return this.drawPool.tileCount;
+  discardTile({ player, tile }: { player: Player; tile: TileId }): void {
+    const removedTile = this.getTilePoolFor(player).discardTile(tile);
+    this.discardPool.addTile(removedTile);
+  }
+
+  getTileCollectionFor(player: Player): TileCollection {
+    return this.getTilePoolFor(player).tileCollection;
+  }
+
+  getTileLetter(tileId: TileId): Letter {
+    return this.getTileById(tileId).letter;
+  }
+
+  getTilePoints(tileId: TileId): number {
+    const letter = this.getTileLetter(tileId);
+    return Inventory.LETTER_CONFIG[letter].points;
   }
 
   getTilesFor(player: Player): ReadonlyArray<TileId> {
@@ -195,35 +217,15 @@ export default class Inventory {
     return this.getTilePoolFor(player).tileCount > 0;
   }
 
-  getTileCollectionFor(player: Player): TileCollection {
-    return this.getTilePoolFor(player).tileCollection;
-  }
-
-  areTilesEqual(firstTile: TileId, secondTile: TileId): boolean {
-    return this.getTileById(firstTile).equals(this.getTileById(secondTile));
-  }
-
-  getTilePoints(tileId: TileId): number {
-    const letter = this.getTileLetter(tileId);
-    return Inventory.LETTER_CONFIG[letter].points;
-  }
-
-  getTileLetter(tileId: TileId): Letter {
-    return this.getTileById(tileId).letter;
-  }
-
   replenishTilesFor(player: Player): void {
     const pool = this.getTilePoolFor(player);
     this.replenishPlayerPool(pool);
   }
 
-  discardTile({ player, tile }: { player: Player; tile: TileId }): void {
-    const removedTile = this.getTilePoolFor(player).discardTile(tile);
-    this.discardPool.addTile(removedTile);
-  }
-
-  private initializePlayerPools(): void {
-    this.playerPools.forEach(pool => this.replenishPlayerPool(pool));
+  private getTileById(tileId: TileId): Tile {
+    const tile = Inventory.TILE_BY_ID.get(tileId);
+    if (!tile) throw new Error(`Can't find tile ${tileId}`);
+    return tile;
   }
 
   private getTilePoolFor(player: Player): TilePool {
@@ -232,16 +234,14 @@ export default class Inventory {
     return pool;
   }
 
+  private initializePlayerPools(): void {
+    this.playerPools.forEach(pool => this.replenishPlayerPool(pool));
+  }
+
   private replenishPlayerPool(pool: TilePool): void {
     const drawCount = Math.min(Inventory.PLAYER_POOL_CAPACITY - pool.tileCount, this.unusedTilesCount);
     for (let i = 0; i < drawCount; i++) {
       pool.addTile(this.drawPool.popTile());
     }
-  }
-
-  private getTileById(tileId: TileId): Tile {
-    const tile = Inventory.TILE_BY_ID.get(tileId);
-    if (!tile) throw new Error(`Can't find tile ${tileId}`);
-    return tile;
   }
 }

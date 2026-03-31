@@ -19,14 +19,14 @@ class Application {
     }
   }
 
+  private async installAsyncPlugins(): Promise<void> {
+    await LocalesPlugin.create().install(this.app);
+  }
+
   private installPlugins(): void {
     this.app.use(createPinia());
     this.app.use(new DirectivesPlugin());
     this.app.use(new ProvidesPlugin());
-  }
-
-  private async installAsyncPlugins(): Promise<void> {
-    await LocalesPlugin.create().install(this.app);
   }
 
   private mount(): void {
