@@ -4,8 +4,12 @@ import { computed } from 'vue';
 import { getMatchResultText } from '@/gui/mappings.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 const matchStore = MatchStore.INSTANCE();
-const { matchResult } = storeToRefs(matchStore);
-const text = computed(() => (matchResult.value && getMatchResultText(matchResult.value)) || '');
+const { matchResult, opponentScore, userScore } = storeToRefs(matchStore);
+const scoreDifference = Math.abs(userScore.value - opponentScore.value);
+const text = computed(() => {
+  if (matchResult.value === undefined) throw new Error('AppEndscreen should be rendered after match results assign');
+  return getMatchResultText(matchResult.value, scoreDifference);
+});
 </script>
 
 <template>
@@ -22,6 +26,6 @@ const text = computed(() => (matchResult.value && getMatchResultText(matchResult
   display: grid;
   place-items: center;
   z-index: var(--z-index-level-3);
-  color: var(--primary-color);
+  font-size: var(--font-size-big);
 }
 </style>

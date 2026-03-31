@@ -70,12 +70,13 @@ export function getLetterSvgHtml(letter: GameLetter): string {
   );
 }
 
-export function getMatchResultText(result: GameMatchResult): string {
+export function getMatchResultText(result: GameMatchResult, points: number): string {
   return window.t(
     {
       [GameMatchResult.Lose]: 'game.end_lose',
       [GameMatchResult.Tie]: 'game.end_tie',
       [GameMatchResult.Win]: 'game.end_win',
     }[result] ?? '',
+    { points },
   );
 }

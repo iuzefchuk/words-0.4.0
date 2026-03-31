@@ -6,8 +6,8 @@ import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
 const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
-const { anyTileIsPlaced } = storeToRefs(rackStore);
 const buttons = UseButtons.create();
+const { anyTileIsPlaced } = storeToRefs(rackStore);
 const { allActionsAreDisabled } = buttons;
 const items = reactive([
   {
@@ -94,7 +94,7 @@ const items = reactive([
     }
     &:disabled {
       border-color: transparent;
-      opacity: var(--opacity-disabled);
+      color: var(--secondary-color);
       cursor: not-allowed;
     }
   }

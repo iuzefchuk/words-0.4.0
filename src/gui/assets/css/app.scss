@@ -33,16 +33,19 @@
   --opacity-disabled: 0.7;
 }
 
-.app {
-  color: var(--primary-color);
+#app {
   background: var(--primary-bg);
+  color: var(--primary-color);
   font-size: var(--font-size);
   font-weight: var(--font-weight-small);
+}
+
+.app {
   display: flex;
   flex-direction: column;
   align-items: center;
   &--blurred {
-    filter: blur(0.3rem);
+    filter: blur(0.5rem);
   }
   &__width-content {
     max-width: calc(

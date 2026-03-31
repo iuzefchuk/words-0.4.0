@@ -42,8 +42,8 @@ const selectedOption = computed({
   }
   &--disabled {
     .select__custom {
-      opacity: var(--opacity-disabled);
       pointer-events: none;
+      text-decoration: none;
     }
     .select__native {
       cursor: not-allowed;

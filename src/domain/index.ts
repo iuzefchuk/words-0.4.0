@@ -66,6 +66,10 @@ export default class Game {
     return this.match;
   }
 
+  get settingsChangeIsAllowed(): boolean {
+    return !this.turns.historyHasPriorTurns;
+  }
+
   get snapshot(): GameSnapshot {
     return {
       board: this.board.snapshot,
@@ -133,13 +137,12 @@ export default class Game {
   }
 
   changeBonusDistribution(bonusDistribution: GameBonusDistribution): void {
-    if (this.turns.historyHasPriorTurns)
-      throw new Error('Cannot change bonus distribution after turns have been played');
+    this.ensureSettingsMutability();
     this.board.changeBonusDistribution(bonusDistribution);
   }
 
   changeDifficulty(newValue: GameDifficulty) {
-    if (this.turns.historyHasPriorTurns) throw new Error('Cannot change difficulty after turns have been played');
+    this.ensureSettingsMutability();
     this.difficulty = newValue;
   }
 
@@ -240,6 +243,10 @@ export default class Game {
 
   private ensureMutability(): void {
     if (this.match.isFinished) throw new Error('Match is finished');
+  }
+
+  private ensureSettingsMutability(): void {
+    if (!this.settingsChangeIsAllowed) throw new Error('Settings change is not allowed');
   }
 
   private startTurnForNextPlayer(): void {

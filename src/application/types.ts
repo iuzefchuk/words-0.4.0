@@ -100,6 +100,7 @@ export type AppQueries = {
   isCurrentTurnValid: () => boolean;
   isMatchFinished: () => boolean;
   isTilePlaced: (tile: GameTile) => boolean;
+  settingsChangeIsAllowed: () => boolean;
   wasTileUsedInPreviousTurn: (tile: GameTile) => boolean;
   willUserPassBeResign: () => boolean;
 };

@@ -26,7 +26,7 @@
   "dialog_html": "Are you sure you want to resign?",
   "dialog_confirm": "Resign",
   "dialog_cancel": "Cancel",
-  "end_win": "You won 🏆",
-  "end_lose": "You lost 🦨",
+  "end_win": "You won by {points} 🏆",
+  "end_lose": "You lost by {points} 🦨",
   "end_tie": "It's a tie 👔"
 }

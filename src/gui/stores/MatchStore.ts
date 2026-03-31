@@ -93,6 +93,7 @@ class MatchQueries {
   readonly matchIsFinished = computed(() => this.readState(() => this.appQueries.isMatchFinished()));
   readonly matchResult = computed(() => this.readState(() => this.appQueries.getMatchResult()));
   readonly opponentScore = computed(() => this.readState(() => this.appQueries.getOpponentScore()));
+  readonly settingsChangeIsAllowed = computed(() => this.readState(() => this.appQueries.settingsChangeIsAllowed()));
   readonly tilesRemaining = computed(() => this.readState(() => this.appQueries.getTilesRemaining()));
   readonly userPassWillBeResign = computed(() => this.readState(() => this.appQueries.willUserPassBeResign()));
   readonly userScore = computed(() => this.readState(() => this.appQueries.getUserScore()));

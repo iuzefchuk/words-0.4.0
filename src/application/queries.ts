@@ -36,6 +36,7 @@ export default class AppQueryBuilder {
       isCurrentTurnValid: () => this.turnsView.currentTurnIsValid,
       isMatchFinished: () => this.game.matchView.isFinished,
       isTilePlaced: (tile: GameTile) => this.boardView.isTilePlaced(tile),
+      settingsChangeIsAllowed: () => this.game.settingsChangeIsAllowed,
       wasTileUsedInPreviousTurn: (tile: GameTile) => this.wasTileUsedInPreviousTurn(tile),
       willUserPassBeResign: () => this.game.willPassBeResignFor(GamePlayer.User),
     };
