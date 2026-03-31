@@ -81,6 +81,7 @@ class MatchState {
 
 class MatchQueries {
   readonly bonusDistribution = computed(() => this.readBoard(() => this.appQueries.getBonusDistribution()));
+  readonly hasPriorTurns = computed(() => this.readState(() => this.appQueries.hasPriorTurns()));
   readonly tilesRemaining = computed(() => this.readState(() => this.appQueries.getTilesRemaining()));
   readonly userTiles = computed(() => this.readState(() => this.appQueries.getUserTiles()));
   readonly userScore = computed(() => this.readState(() => this.appQueries.getUserScore()));

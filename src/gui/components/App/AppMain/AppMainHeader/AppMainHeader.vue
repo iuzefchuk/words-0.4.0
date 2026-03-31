@@ -21,18 +21,22 @@ const options = [
 
 <template>
   <header class="header">
-    <p>
-      {{ t('game.settings_bonuses') }}:
-      <AppMainHeaderSelect
-        :model-value="matchStore.bonusDistribution"
-        :options="options"
-        @change="matchStore.changeBonusDistribution"
-      />
-    </p>
-    <!-- <p>
+    <Transition name="fade">
+      <template v-if="!matchStore.hasPriorTurns">
+        <p>
+          {{ t('game.settings_bonuses') }}:
+          <AppMainHeaderSelect
+            :model-value="matchStore.bonusDistribution"
+            :options="options"
+            @change="matchStore.changeBonusDistribution"
+          />
+        </p>
+        <!-- <p>
       {{ t('game.settings_difficulty') }}:
       <AppMainHeaderSelect :text="t('game.difficulty_low')" />
     </p> -->
+      </template>
+    </Transition>
     <p v-for="player in players" :key="player.name">
       {{ player.name }}: <span v-animate-number="{ number: player.score() }" class="header__player-score" />
     </p>

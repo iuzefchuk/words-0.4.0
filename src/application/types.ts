@@ -1,4 +1,4 @@
-import { Clock, PersistentStorage, Scheduler } from '@/application/ports.ts';
+import { Clock, Scheduler, VersionProvider } from '@/application/ports.ts';
 import type { DictionaryRepository, GameRepository } from '@/domain/ports.ts';
 import { IdGenerator } from '@/domain/ports.ts';
 import type {
@@ -50,6 +50,7 @@ export type AppConfig = {
 
 export type AppQueries = {
   getBonusDistribution: () => GameBonusDistribution;
+  hasPriorTurns: () => boolean;
   getTilesRemaining: () => number;
   getUserTiles: () => ReadonlyArray<GameTile>;
   getUserScore: () => number;
@@ -90,8 +91,11 @@ export type AppDependencies = {
   idGenerator: IdGenerator;
   clock: Clock;
   scheduler: Scheduler;
-  gameRepository: GameRepository;
-  dictionaryRepository: DictionaryRepository;
+  versionProvider: VersionProvider;
+  repositories: {
+    game: GameRepository;
+    dictionary: DictionaryRepository;
+  };
 };
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;

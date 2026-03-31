@@ -13,11 +13,12 @@ export default class Application {
   ) {}
 
   static async create(settings: GameSettings): Promise<Application> {
-    const { idGenerator, clock, scheduler, gameRepository, dictionaryRepository } =
+    const { idGenerator, clock, scheduler, versionProvider, repositories } =
       await Infrastructure.createAppDependencies();
-    const game = await this.fetchGameInstance(gameRepository, dictionaryRepository, idGenerator, settings);
+    const version = versionProvider.version;
+    const game = await this.fetchGameInstance(version, idGenerator, repositories, settings);
     const queryBuilder = new AppQueryBuilder(game);
-    const commandBuilder = new AppCommandBuilder(game, clock, scheduler, gameRepository);
+    const commandBuilder = new AppCommandBuilder(game, clock, scheduler, repositories.game);
     return new Application(queryBuilder, commandBuilder, game);
   }
 
@@ -37,25 +38,25 @@ export default class Application {
   }
 
   private static async fetchGameInstance(
-    gameRepository: GameRepository,
-    dictionaryRepository: DictionaryRepository,
+    version: string,
     idGenerator: IdGenerator,
+    repositories: { game: GameRepository; dictionary: DictionaryRepository },
     settings: GameSettings,
   ): Promise<Game> {
-    const dictionary = await this.fetchDictionary(dictionaryRepository);
-    const snapshot = await gameRepository.load();
+    const dictionary = await this.fetchDictionary(repositories.dictionary);
+    const snapshot = await repositories.game.load();
     if (snapshot) {
-      const restoredGame = Game.restoreFromSnapshot(snapshot, idGenerator, dictionary);
+      const restoredGame = Game.restoreFromSnapshot(version, snapshot, idGenerator, dictionary);
       if (restoredGame) return restoredGame;
     }
-    return Game.create(idGenerator, dictionary, settings);
+    return Game.create(version, idGenerator, dictionary, settings);
   }
 
-  private static async fetchDictionary(dictionaryRepository: DictionaryRepository): Promise<GameDictionary> {
-    const snapshot = await dictionaryRepository.load();
+  private static async fetchDictionary(repository: DictionaryRepository): Promise<GameDictionary> {
+    const snapshot = await repository.load();
     if (snapshot) return GameDictionary.restoreFromSnapshot(snapshot);
     const dictionary = GameDictionary.create();
-    dictionaryRepository.save(dictionary.snapshot);
+    repository.save(dictionary.snapshot);
     return dictionary;
   }
 }

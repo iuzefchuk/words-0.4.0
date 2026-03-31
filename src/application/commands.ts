@@ -30,9 +30,8 @@ export default class AppCommandBuilder {
 
   get commands(): AppCommands {
     return {
-      changeBonusDistribution: (bonusDistribution: GameBonusDistribution) => {
-        this.game.changeBonusDistribution(bonusDistribution);
-      },
+      changeBonusDistribution: (bonusDistribution: GameBonusDistribution) =>
+        this.changeBonusDistribution(bonusDistribution),
       placeTile: (args: { cell: GameCell; tile: GameTile }) => this.placeTile(args),
       undoPlaceTile: (tile: GameTile) => this.undoPlaceTile(tile),
       clearTiles: () => {
@@ -62,7 +61,11 @@ export default class AppCommandBuilder {
   }
 
   private clearPersistence(): void {
-    this.gameRepository.clear();
+    this.gameRepository.delete();
+  }
+
+  private changeBonusDistribution(bonusDistribution: GameBonusDistribution): void {
+    this.game.changeBonusDistribution(bonusDistribution);
   }
 
   private placeTile({ cell, tile }: { cell: GameCell; tile: GameTile }): void {

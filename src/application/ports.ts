@@ -6,3 +6,7 @@ export type Clock = {
 export type Scheduler = {
   yield(): Promise<void>;
 };
+
+export type VersionProvider = {
+  get version(): string;
+};

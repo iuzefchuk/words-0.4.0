@@ -24,6 +24,7 @@ import {
 
 export default class Game {
   private constructor(
+    private readonly version: string,
     private readonly board: Board,
     private readonly dictionary: Dictionary,
     private readonly inventory: Inventory,
@@ -32,31 +33,36 @@ export default class Game {
     private readonly events: Events,
   ) {}
 
-  static create(idGenerator: IdGenerator, dictionary: Dictionary, settings: GameSettings): Game {
+  static create(version: string, idGenerator: IdGenerator, dictionary: Dictionary, settings: GameSettings): Game {
     const players = Object.values(GamePlayer);
     const board = Board.create(settings.bonusDistribution);
     const inventory = Inventory.create(players);
     const match = Match.create(players);
     const turns = Turns.create(idGenerator);
     const events = Events.create();
-    const game = new Game(board, dictionary, inventory, match, turns, events);
+    const game = new Game(version, board, dictionary, inventory, match, turns, events);
     game.startTurnForNextPlayer();
     return game;
   }
 
-  static restoreFromSnapshot(snapshot: GameSnapshot, idGenerator: IdGenerator, dictionary: Dictionary): Game | null {
-    if (snapshot.version !== APP_VERSION) return null;
+  static restoreFromSnapshot(
+    version: string,
+    snapshot: GameSnapshot,
+    idGenerator: IdGenerator,
+    dictionary: Dictionary,
+  ): Game | null {
+    if (snapshot.version !== version) return null;
     const board = Board.restoreFromSnapshot(snapshot.board);
     const inventory = Inventory.restoreFromSnapshot(snapshot.inventory);
     const match = Match.restoreFromSnapshot(snapshot.match);
     const turns = Turns.restoreFromSnapshot(snapshot.turns, idGenerator);
     const events = Events.restoreFromSnapshot(snapshot.events);
-    return new Game(board, dictionary, inventory, match, turns, events);
+    return new Game(version, board, dictionary, inventory, match, turns, events);
   }
 
   get snapshot(): GameSnapshot {
     return {
-      version: APP_VERSION,
+      version: this.version,
       board: this.board.snapshot,
       inventory: this.inventory.snapshot,
       turns: this.turns.snapshot,
@@ -86,6 +92,7 @@ export default class Game {
   }
 
   changeBonusDistribution(bonusDistribution: GameBonusDistribution): void {
+    if (this.turns.historyHasPriorTurns) throw new Error('Cannot change bonus distribution after turns have been played');
     this.board.changeBonusDistribution(bonusDistribution);
   }
 
