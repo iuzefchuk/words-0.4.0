@@ -6,6 +6,7 @@ import {
   AppQueries,
   GameBonusDistribution,
   GameCell,
+  GameDifficulty,
   GameSettings,
   GameTile,
 } from '@/application/types.ts';
@@ -40,7 +41,10 @@ export default class MatchStore {
 
   private static loadSettings(): GameSettings {
     const cache = LocalStorage.load('settings') as Partial<GameSettings> | null;
-    return cache?.bonusDistribution ? { bonusDistribution: cache.bonusDistribution } : DEFAULT_SETTINGS;
+    return {
+      bonusDistribution: cache?.bonusDistribution ?? DEFAULT_SETTINGS.bonusDistribution,
+      difficulty: cache?.difficulty ?? DEFAULT_SETTINGS.difficulty,
+    };
   }
 }
 
@@ -81,6 +85,7 @@ class MatchState {
 
 class MatchQueries {
   readonly bonusDistribution = computed(() => this.readBoard(() => this.appQueries.getBonusDistribution()));
+  readonly difficulty = computed(() => this.readState(() => this.appQueries.getDifficulty()));
   readonly hasPriorTurns = computed(() => this.readState(() => this.appQueries.hasPriorTurns()));
   readonly tilesRemaining = computed(() => this.readState(() => this.appQueries.getTilesRemaining()));
   readonly userTiles = computed(() => this.readState(() => this.appQueries.getUserTiles()));
@@ -129,8 +134,13 @@ class MatchCommands {
   ) {}
 
   changeBonusDistribution = (bonusDistribution: GameBonusDistribution): void => {
-    LocalStorage.save('settings', { bonusDistribution });
+    LocalStorage.save('settings', { bonusDistribution }); // TODO key to const
     return this.matchState.writeBoard(() => this.appCommands.changeBonusDistribution(bonusDistribution));
+  };
+
+  changeDifficulty = (difficulty: GameDifficulty): void => {
+    LocalStorage.save('settings', { difficulty });
+    return this.matchState.writeState(() => this.appCommands.changeDifficulty(difficulty));
   };
 
   placeTile = (args: { cell: GameCell; tile: GameTile }): void => {

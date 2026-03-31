@@ -1,4 +1,4 @@
-import { GameBonusDistribution, GameEventType, GameSettings } from '@/application/types.ts';
+import { GameBonusDistribution, GameEventType, GameDifficulty, GameSettings } from '@/application/types.ts';
 import { Sound } from '@/gui/services/SoundPlayer.ts';
 
 export const GAME_EVENT_SOUNDS: Partial<Record<GameEventType, Sound>> = {
@@ -15,4 +15,5 @@ export const GAME_EVENT_SOUNDS: Partial<Record<GameEventType, Sound>> = {
 
 export const DEFAULT_SETTINGS: GameSettings = {
   bonusDistribution: GameBonusDistribution.Classic,
+  difficulty: GameDifficulty.Low,
 };

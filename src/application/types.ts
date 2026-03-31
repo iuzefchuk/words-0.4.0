@@ -5,6 +5,7 @@ import type {
   GameBoardView,
   GameCell,
   GameEvent,
+  GameGeneratorResult,
   GameInventoryView,
   GameMatchView,
   GameSettings,
@@ -15,6 +16,7 @@ import {
   GameBonus,
   GameBonusDistribution,
   GameDictionary,
+  GameDifficulty,
   GameEventType,
   GameLetter,
   GameMatchResult,
@@ -31,10 +33,12 @@ export type {
   GameMatchView,
   GameTurnsView,
   GameSettings,
+  GameGeneratorResult,
 };
 export {
   GameBonus,
   GameEventType,
+  GameDifficulty,
   GameLetter,
   GamePlayer,
   GameMatchResult,
@@ -50,6 +54,7 @@ export type AppConfig = {
 
 export type AppQueries = {
   getBonusDistribution: () => GameBonusDistribution;
+  getDifficulty: () => GameDifficulty;
   hasPriorTurns: () => boolean;
   getTilesRemaining: () => number;
   getUserTiles: () => ReadonlyArray<GameTile>;
@@ -78,6 +83,7 @@ export type AppQueries = {
 
 export type AppCommands = {
   changeBonusDistribution: (bonusDistribution: GameBonusDistribution) => void;
+  changeDifficulty: (difficulty: GameDifficulty) => void;
   placeTile: (args: { cell: GameCell; tile: GameTile }) => void;
   undoPlaceTile: (tile: GameTile) => void;
   clearTiles: () => void;

@@ -1,8 +1,17 @@
 <script lang="ts" setup>
-import { GameBonusDistribution } from '@/application/types.ts';
+import { GameBonusDistribution, GameDifficulty } from '@/application/types.ts';
 import AppMainHeaderSelect from '@/gui/components/App/AppMain/AppMainHeader/AppMainHeaderSelect.vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 const matchStore = MatchStore.INSTANCE();
+const bonusOptions = [
+  { text: window.t('game.bonus_distribution_classic'), value: GameBonusDistribution.Classic },
+  { text: window.t('game.bonus_distribution_random'), value: GameBonusDistribution.Random },
+];
+const difficultyOptions = [
+  { text: window.t('game.difficulty_low'), value: GameDifficulty.Low },
+  { text: window.t('game.difficulty_medium'), value: GameDifficulty.Medium },
+  { text: window.t('game.difficulty_high'), value: GameDifficulty.High },
+];
 const players = [
   {
     name: window.t('game.player_user'),
@@ -12,10 +21,6 @@ const players = [
     name: window.t('game.player_opponent'),
     score: () => matchStore.opponentScore,
   },
-];
-const options = [
-  { text: window.t('game.bonus_distribution_classic'), value: GameBonusDistribution.Classic },
-  { text: window.t('game.bonus_distribution_random'), value: GameBonusDistribution.Random },
 ];
 </script>
 
@@ -27,14 +32,18 @@ const options = [
           {{ t('game.settings_bonuses') }}:
           <AppMainHeaderSelect
             :model-value="matchStore.bonusDistribution"
-            :options="options"
+            :options="bonusOptions"
             @change="matchStore.changeBonusDistribution"
           />
         </p>
-        <!-- <p>
-      {{ t('game.settings_difficulty') }}:
-      <AppMainHeaderSelect :text="t('game.difficulty_low')" />
-    </p> -->
+        <p>
+          {{ t('game.settings_difficulty') }}:
+          <AppMainHeaderSelect
+            :model-value="matchStore.difficulty"
+            :options="difficultyOptions"
+            @change="matchStore.changeDifficulty"
+          />
+        </p>
       </template>
     </Transition>
     <p v-for="player in players" :key="player.name">

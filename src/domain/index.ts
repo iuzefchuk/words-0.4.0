@@ -11,6 +11,7 @@ import {
   GameBoardView,
   GameBonusDistribution,
   GameCell,
+  GameDifficulty,
   GameEvent,
   GameEventType,
   GameInventoryView,
@@ -31,6 +32,7 @@ export default class Game {
     private readonly match: Match,
     private readonly turns: Turns,
     private readonly events: Events,
+    public difficulty: GameDifficulty,
   ) {}
 
   static create(version: string, idGenerator: IdGenerator, dictionary: Dictionary, settings: GameSettings): Game {
@@ -40,7 +42,7 @@ export default class Game {
     const match = Match.create(players);
     const turns = Turns.create(idGenerator);
     const events = Events.create();
-    const game = new Game(version, board, dictionary, inventory, match, turns, events);
+    const game = new Game(version, board, dictionary, inventory, match, turns, events, settings.difficulty);
     game.startTurnForNextPlayer();
     return game;
   }
@@ -57,7 +59,7 @@ export default class Game {
     const match = Match.restoreFromSnapshot(snapshot.match);
     const turns = Turns.restoreFromSnapshot(snapshot.turns, idGenerator);
     const events = Events.restoreFromSnapshot(snapshot.events);
-    return new Game(version, board, dictionary, inventory, match, turns, events);
+    return new Game(version, board, dictionary, inventory, match, turns, events, GameDifficulty.Low);
   }
 
   get snapshot(): GameSnapshot {
@@ -91,8 +93,14 @@ export default class Game {
     return this.events.logView;
   }
 
+  changeDifficulty(newValue: GameDifficulty) {
+    if (this.turns.historyHasPriorTurns) throw new Error('Cannot change difficulty after turns have been played');
+    this.difficulty = newValue;
+  }
+
   changeBonusDistribution(bonusDistribution: GameBonusDistribution): void {
-    if (this.turns.historyHasPriorTurns) throw new Error('Cannot change bonus distribution after turns have been played');
+    if (this.turns.historyHasPriorTurns)
+      throw new Error('Cannot change bonus distribution after turns have been played');
     this.board.changeBonusDistribution(bonusDistribution);
   }
 
@@ -161,6 +169,23 @@ export default class Game {
       inventory: this.inventory,
       turns: Turns.clone(this.turns),
     };
+  }
+
+  scoreGeneratorResult(result: GeneratorResult): number {
+    const board = Board.clone(this.board);
+    const turns = Turns.clone(this.turns);
+    for (let i = 0; i < result.tiles.length; i++) {
+      board.placeTile(result.cells[i], result.tiles[i]);
+      turns.recordPlacedTile(result.tiles[i]);
+    }
+    const validationResult = CurrentTurnValidator.execute({
+      board,
+      dictionary: this.dictionary,
+      inventory: this.inventory,
+      turns,
+    } as ValidatorContext);
+    turns.recordValidationResult(validationResult);
+    return turns.currentTurnScore ?? 0;
   }
 
   applyGeneratedTurn(result: GeneratorResult): { words: ReadonlyArray<string>; score: number } {

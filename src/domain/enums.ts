@@ -15,7 +15,7 @@ export enum EventType {
   MatchLost = 'MatchLost',
 }
 
-export enum GeneratorDifficulty {
+export enum Difficulty {
   Low = 'Low',
   Medium = 'Medium',
   High = 'High',

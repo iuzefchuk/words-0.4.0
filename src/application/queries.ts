@@ -18,6 +18,7 @@ export default class AppQueryBuilder {
   get queries(): AppQueries {
     return {
       getBonusDistribution: () => this.boardView.bonusDistribution,
+      getDifficulty: () => this.game.difficulty,
       hasPriorTurns: () => this.turnsView.historyHasPriorTurns,
       getTilesRemaining: () => this.inventoryView.unusedTilesCount,
       getUserTiles: () => this.inventoryView.getTilesFor(GamePlayer.User),

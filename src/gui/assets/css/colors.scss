@@ -44,8 +44,11 @@ $colors: (
 
 @mixin setColors($is-wide-gamut: false) {
   @each $color, $value in $colors {
-    $final: if($is-wide-gamut, getWideGamutColor($value), $value);
-    --color-#{$color}: #{$final};
+    @if $is-wide-gamut {
+      --color-#{$color}: #{getWideGamutColor($value)};
+    } @else {
+      --color-#{$color}: #{$value};
+    }
   }
 }
 
