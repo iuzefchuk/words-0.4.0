@@ -1,16 +1,14 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
 import AppMainAnnotation from '@/gui/components/App/AppMain/AppMainAnnotation.vue';
 import AppMainBoard from '@/gui/components/App/AppMain/AppMainBoard/AppMainBoard.vue';
 import AppMainFooter from '@/gui/components/App/AppMain/AppMainFooter/AppMainFooter.vue';
 import AppMainHeader from '@/gui/components/App/AppMain/AppMainHeader/AppMainHeader.vue';
 import RackStore from '@/gui/stores/RackStore.ts';
-const isBlurred = ref(false);
 const rackStore = RackStore.INSTANCE();
 </script>
 
 <template>
-  <main :class="{ main: true, 'main--blurred': isBlurred }" @click="rackStore.deselectTile()">
+  <main class="main" @click="rackStore.deselectTile()">
     <Transition name="fade-down-up" appear>
       <AppMainHeader />
     </Transition>
@@ -40,10 +38,6 @@ const rackStore = RackStore.INSTANCE();
   padding-left: var(--primary-padding);
   padding-right: var(--primary-padding);
   justify-items: center;
-  &--blurred {
-    filter: blur(0.2rem);
-    opacity: 0.9;
-  }
   &__center {
     position: relative;
   }

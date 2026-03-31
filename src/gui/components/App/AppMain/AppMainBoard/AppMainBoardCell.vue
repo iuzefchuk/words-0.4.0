@@ -61,7 +61,6 @@ const isTileSaturated = computed(() => tile.value != null && matchStore.wasTileU
 <style lang="scss" scoped>
 .cell {
   max-width: var(--cell-tile-width);
-  aspect-ratio: 1 / 1;
   border-radius: var(--primary-border-radius);
   background: var(--cell-bg);
   user-select: none;

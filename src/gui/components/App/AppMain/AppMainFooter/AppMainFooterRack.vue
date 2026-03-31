@@ -54,16 +54,11 @@ const { allActionsAreDisabled } = buttons;
   &__count {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
     color: var(--secondary-color);
     font-size: var(--font-size-small);
     user-select: none;
-  }
-  &__count-item {
-    width: max-content;
-    height: max-content;
-    position: static;
   }
 }
 </style>

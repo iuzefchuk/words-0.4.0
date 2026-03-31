@@ -50,7 +50,7 @@
   &__width-content {
     max-width: calc(
       var(--cell-count-per-axis) *
-        (var(--cell-tile-gap) + var(--cell-tile-width))
+        (var(--cell-tile-gap) + var(--cell-tile-width)) - var(--cell-tile-gap)
     );
     width: 100%;
   }
@@ -58,14 +58,13 @@
     @mixin grid($columns, $rows, $gap: var(--cell-tile-gap)) {
       display: grid;
       grid-template-columns: repeat($columns, minmax(0, 1fr));
-      grid-template-rows: repeat($rows, minmax(0, 1fr));
+      grid-template-rows: repeat($rows, auto);
       gap: $gap;
       > * {
-        position: relative;
+        display: grid;
         aspect-ratio: 1 / 1;
         > * {
-          position: absolute;
-          inset: 0;
+          grid-area: 1 / 1;
         }
       }
     }

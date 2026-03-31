@@ -23,9 +23,3 @@ const matchStore = MatchStore.INSTANCE();
     <AppMainBoardOutline />
   </ul>
 </template>
-
-<style lang="scss" scoped>
-.grid {
-  aspect-ratio: 1 / 1;
-}
-</style>
