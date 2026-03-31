@@ -10,7 +10,7 @@ import {
   GameSettings,
   GameTile,
 } from '@/application/types.ts';
-import { DEFAULT_SETTINGS, GAME_EVENT_SOUNDS } from '@/gui/constants.ts';
+import { DEFAULT_SETTINGS, GAME_EVENT_SOUNDS, SETTINGS_STORAGE_KEY } from '@/gui/constants.ts';
 import LocalStorage from '@/gui/services/LocalStorage.ts';
 import SoundPlayer from '@/gui/services/SoundPlayer.ts';
 
@@ -21,12 +21,12 @@ class MatchCommands {
   ) {}
 
   changeBonusDistribution = (bonusDistribution: GameBonusDistribution): void => {
-    LocalStorage.save('settings', { bonusDistribution }); // TODO key to const
+    MatchStore.saveSettings({ bonusDistribution });
     return this.matchState.writeBoard(() => this.appCommands.changeBonusDistribution(bonusDistribution));
   };
 
   changeDifficulty = (difficulty: GameDifficulty): void => {
-    LocalStorage.save('settings', { difficulty });
+    MatchStore.saveSettings({ difficulty });
     return this.matchState.writeState(() => this.appCommands.changeDifficulty(difficulty));
   };
 
@@ -180,13 +180,22 @@ export default class MatchStore {
     this.commands = new MatchCommands(app.commands, matchState);
   }
 
+  static saveSettings(data: { bonusDistribution?: GameBonusDistribution; difficulty?: GameDifficulty }): void {
+    const existingCache = this.loadSettings();
+    const newCache = {
+      bonusDistribution: data?.bonusDistribution ?? existingCache?.bonusDistribution,
+      difficulty: data?.difficulty ?? existingCache?.difficulty,
+    };
+    LocalStorage.save(SETTINGS_STORAGE_KEY, newCache);
+  }
+
   static async start(): Promise<void> {
     const settings = MatchStore.loadSettings();
     MatchStore.app = markRaw(await Application.create(settings));
   }
 
   private static loadSettings(): GameSettings {
-    const cache = LocalStorage.load('settings') as null | Partial<GameSettings>;
+    const cache = LocalStorage.load(SETTINGS_STORAGE_KEY) as null | Partial<GameSettings>;
     return {
       bonusDistribution: cache?.bonusDistribution ?? DEFAULT_SETTINGS.bonusDistribution,
       difficulty: cache?.difficulty ?? DEFAULT_SETTINGS.difficulty,

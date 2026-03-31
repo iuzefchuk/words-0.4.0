@@ -15,25 +15,39 @@ const selectedOption = computed({
 </script>
 
 <template>
-  <select v-model="selectedOption" :class="{ select: true, 'select--disabled': isDisabled }">
-    <option v-for="option in options" :key="option.text" :value="option.value">
-      {{ option.text }}
-    </option>
-  </select>
+  <div :class="{ select: true, 'select--disabled': isDisabled }">
+    <button class="select__custom">
+      {{ options.find(option => option.value === modelValue)?.text }}
+    </button>
+    <select v-model="selectedOption" :disabled="isDisabled" class="select__native">
+      <option v-for="option in options" :key="option.text" :value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <style lang="scss" scoped>
 .select {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: inherit;
-  font-weight: inherit;
-  border-bottom: var(--primary-border);
-  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  &__custom {
+    text-decoration: underline;
+  }
+  &__native {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
   &--disabled {
-    opacity: var(--opacity-disabled);
-    pointer-events: none;
+    .select__custom {
+      opacity: var(--opacity-disabled);
+      pointer-events: none;
+    }
+    .select__native {
+      cursor: not-allowed;
+    }
   }
 }
 </style>

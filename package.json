@@ -7,7 +7,7 @@
 		"serve": "vite",
 		"build": "vite build",
 		"lint": "eslint src/ --fix",
-		"test": "vitest run",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"pinia": "3.0.4",

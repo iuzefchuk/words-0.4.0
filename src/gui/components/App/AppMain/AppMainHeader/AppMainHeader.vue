@@ -45,7 +45,7 @@ const players = [
       />
     </p>
     <p v-for="player in players" :key="player.name">
-      {{ player.name }}: <span v-animate-number="{ number: player.score() }" class="header__player-score" />
+      {{ player.name }}: <span v-animate-number="{ number: player.score() }" />
     </p>
   </header>
 </template>
@@ -59,8 +59,8 @@ const players = [
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  &__player-score {
-    font-weight: var(--font-weight);
-  }
+  // &__player-score {
+  //   font-weight: var(--font-weight);
+  // }
 }
 </style>

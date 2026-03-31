@@ -17,3 +17,5 @@ export const DEFAULT_SETTINGS: GameSettings = {
   bonusDistribution: GameBonusDistribution.Classic,
   difficulty: GameDifficulty.Low,
 };
+
+export const SETTINGS_STORAGE_KEY = 'settings';
