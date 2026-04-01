@@ -5,15 +5,16 @@ import { getMatchResultText } from '@/gui/mappings.ts';
 import MatchStore from '@/gui/stores/MatchStore.ts';
 const matchStore = MatchStore.INSTANCE();
 const { matchResult, opponentScore, userScore } = storeToRefs(matchStore);
-const scoreDifference = Math.abs(userScore.value - opponentScore.value);
 const text = computed(() => {
   if (matchResult.value === undefined) throw new Error('AppEndscreen should be rendered after match results assign');
-  return getMatchResultText(matchResult.value, scoreDifference);
+  return getMatchResultText(matchResult.value, `${userScore.value} - ${opponentScore.value}`);
 });
 </script>
 
 <template>
-  <div class="endscreen">{{ text }}</div>
+  <div class="endscreen">
+    <p>{{ text }}</p>
+  </div>
 </template>
 
 <style lang="scss">
@@ -23,9 +24,9 @@ const text = computed(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  display: grid;
-  place-items: center;
   z-index: var(--z-index-level-3);
   font-size: var(--font-size-big);
+  display: grid;
+  place-items: center;
 }
 </style>

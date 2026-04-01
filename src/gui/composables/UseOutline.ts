@@ -26,6 +26,14 @@ export default class UseOutline {
     return groups;
   }
 
+  isTooltipRendered(groups: ReadonlyArray<OutlineGroup>, idx: number): boolean {
+    if (this.matchStore.currentTurnScore === undefined) return false;
+    const minRow = Math.min(...groups.map(g => g.row));
+    const topRowGroups = groups.map((g, i) => ({ g, i })).filter(({ g }) => g.row === minRow);
+    const rightmost = topRowGroups.reduce((a, b) => (a.g.col + a.g.colSpan > b.g.col + b.g.colSpan ? a : b));
+    return idx === rightmost.i;
+  }
+
   private boundsToGroup(bounds: ReturnType<typeof this.createBounds>): OutlineGroup {
     return {
       col: bounds.minCol,

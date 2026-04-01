@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { GameBonusDistribution, GameDifficulty } from '@/application/types.ts';
 import AppMainHeaderSelect from '@/gui/components/App/AppMain/AppMainHeader/AppMainHeaderSelect.vue';
 import MatchStore from '@/gui/stores/MatchStore.ts';
+type OptionValue = GameBonusDistribution | GameDifficulty;
 const matchStore = MatchStore.INSTANCE();
 const optionsAreDisabled = computed(() => !matchStore.settingsChangeIsAllowed);
 const options = [
@@ -13,7 +14,7 @@ const options = [
     ],
     label: window.t('game.settings_bonuses'),
     modelValue: () => matchStore.bonusDistribution,
-    onChange: value => matchStore.changeBonusDistribution(value), // TODO value typing
+    onChange: (value: OptionValue) => matchStore.changeBonusDistribution(value as GameBonusDistribution),
   },
   {
     items: [
@@ -23,7 +24,7 @@ const options = [
     ],
     label: window.t('game.settings_difficulty'),
     modelValue: () => matchStore.difficulty,
-    onChange: value => matchStore.changeDifficulty(value),
+    onChange: (value: OptionValue) => matchStore.changeDifficulty(value as GameDifficulty),
   },
 ];
 const players = [

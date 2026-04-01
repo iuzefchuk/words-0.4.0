@@ -3,9 +3,7 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import AppMainBoardTooltip from '@/gui/components/App/AppMain/AppMainBoard/AppMainBoardTooltip.vue';
 import UseOutline from '@/gui/composables/UseOutline.ts';
-import MatchStore from '@/gui/stores/MatchStore.ts';
 import RackStore from '@/gui/stores/RackStore.ts';
-const matchStore = MatchStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
 const outline = new UseOutline();
 const { tiles } = storeToRefs(rackStore);
@@ -26,7 +24,7 @@ const CELL_STEP = 'calc((100% + var(--cell-tile-gap)) / var(--cell-count-per-axi
     }"
   >
     <Transition name="fade" appear>
-      <AppMainBoardTooltip v-if="matchStore.currentTurnScore !== undefined" />
+      <AppMainBoardTooltip v-if="outline.isTooltipRendered(outlineGroups, idx)" />
     </Transition>
   </div>
 </template>

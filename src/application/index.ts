@@ -40,7 +40,7 @@ export default class Application {
   private static async fetchDictionary(repository: DictionaryRepository): Promise<GameDictionary> {
     const snapshot = await repository.load();
     if (snapshot) return GameDictionary.restoreFromSnapshot(snapshot);
-    const dictionary = GameDictionary.create();
+    const dictionary = await GameDictionary.create();
     repository.save(dictionary.snapshot);
     return dictionary;
   }

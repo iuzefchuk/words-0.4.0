@@ -1,4 +1,3 @@
-import { DICTIONARY_DATA } from '@/domain/constants.ts';
 import { Letter } from '@/domain/enums.ts';
 
 export type DictionarySnapshot = {
@@ -82,7 +81,8 @@ export default class Dictionary {
     public readonly allLetters: ReadonlySet<Letter>,
   ) {}
 
-  static create(): Dictionary {
+  static async create(): Promise<Dictionary> {
+    const { DICTIONARY_DATA } = await import('@/domain/constants.ts');
     const rootNode = DictionaryTreeBuilder.execute(DICTIONARY_DATA);
     const nodeById = new Map<NodeId, FrozenNode>();
     const allLetters = new Set<Letter>();
