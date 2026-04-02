@@ -51,12 +51,9 @@ export default class LocalesPlugin {
   }
 
   private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
-    return new Intl.NumberFormat(
-      LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma,
-      {
-        maximumFractionDigits: 2,
-      },
-    ).format(Number(number));
+    return new Intl.NumberFormat(LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma, {
+      maximumFractionDigits: 2,
+    }).format(Number(number));
   };
 
   private getLocalizedText: LocaleTextGetter = (string: string, props?: object) => {

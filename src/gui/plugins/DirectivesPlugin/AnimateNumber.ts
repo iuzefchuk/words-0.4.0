@@ -33,9 +33,7 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
       if (nowTime < this.startTime) return this.handleNextFrame();
       const progress = Math.min((nowTime - this.startTime) / this.duration, 1); // 0 - 1
       const animationIsUnfinished = progress < 1;
-      const nextValue = animationIsUnfinished
-        ? Math.floor(this.startValue + (this.endValue - this.startValue) * progress)
-        : this.endValue;
+      const nextValue = animationIsUnfinished ? Math.floor(this.startValue + (this.endValue - this.startValue) * progress) : this.endValue;
       this.element.textContent = window.n(nextValue);
       if (animationIsUnfinished) this.handleNextFrame();
     }
@@ -45,13 +43,13 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
     }
   };
 
-  beforeUpdate(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
+  override beforeUpdate(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
     const { oldValue, value } = binding;
     if (value.number === oldValue?.number) return;
     AnimateNumber.Animator.create(element, binding.value, oldValue?.number).execute();
   }
 
-  mounted(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
+  override mounted(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
     AnimateNumber.Animator.create(element, binding.value).execute();
   }
 }

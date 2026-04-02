@@ -47,17 +47,10 @@ const players = [
       :class="{ header__item: true, 'header__item--disabled': optionsAreDisabled }"
     >
       {{ label }}:
-      <AppMainHeaderSelect
-        :model-value="modelValue()"
-        :options="items"
-        :is-disabled="optionsAreDisabled"
-        @change="onChange"
-      />
+      <AppMainHeaderSelect :model-value="modelValue()" :options="items" :is-disabled="optionsAreDisabled" @change="onChange" />
     </p>
     <template v-if="optionsAreDisabled">
-      <p v-for="player in players" :key="player.name">
-        {{ player.name }}: <span v-animate-number="{ number: player.score() }" />
-      </p>
+      <p v-for="player in players" :key="player.name">{{ player.name }}: <span v-animate-number="{ number: player.score() }" /></p>
     </template>
   </header>
 </template>

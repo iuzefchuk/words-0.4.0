@@ -14,12 +14,7 @@ const { isRendered } = loader;
     <div v-if="isRendered" class="loader">
       <div class="loader__logo">
         <template v-for="(letter, idx) in UseLoader.LETTERS" :key="idx">
-          <GameTile
-            v-if="loader.isItemRendered(idx)"
-            class="loader__tile"
-            :letter="letter"
-            :is-saturated="loader.isItemEmphasized()"
-          />
+          <GameTile v-if="loader.isItemRendered(idx)" class="loader__tile" :letter="letter" :is-saturated="loader.isItemEmphasized()" />
         </template>
       </div>
     </div>

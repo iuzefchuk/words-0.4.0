@@ -1,12 +1,4 @@
-import {
-  AppQueries,
-  GameBoardView,
-  GameCell,
-  GameInventoryView,
-  GamePlayer,
-  GameTile,
-  GameTurnsView,
-} from '@/application/types.ts';
+import { AppQueries, GameBoardView, GameCell, GameInventoryView, GamePlayer, GameTile, GameTurnsView } from '@/application/types.ts';
 import Game from '@/domain/index.ts';
 
 export default class AppQueryBuilder {

@@ -26,8 +26,7 @@ export default class AppCommandBuilder {
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
   get commands(): AppCommands {
     return {
-      changeBonusDistribution: (bonusDistribution: GameBonusDistribution) =>
-        this.changeBonusDistribution(bonusDistribution),
+      changeBonusDistribution: (bonusDistribution: GameBonusDistribution) => this.changeBonusDistribution(bonusDistribution),
       changeDifficulty: (difficulty: GameDifficulty) => this.changeDifficulty(difficulty),
       clearAllEvents: () => this.drainNewEvents(),
       clearTiles: () => this.clearTiles(),

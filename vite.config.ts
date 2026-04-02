@@ -1,47 +1,39 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath, URL } from 'node:url';
+import path from 'node:path';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vitest/config';
 
-const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'));
-
 export default defineConfig({
   build: {
-    chunkSizeWarningLimit: 2200,
+    chunkSizeWarningLimit: 1000,
     emptyOutDir: true,
-    outDir: fileURLToPath(new URL('./dist', import.meta.url)),
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['vue', 'pinia'],
-        },
-      },
-    },
+    outDir: 'dist',
+    target: 'esnext',
   },
-  cacheDir: fileURLToPath(new URL('./node_modules/.vite', import.meta.url)),
   define: {
-    APP_VERSION: JSON.stringify(version),
+    APP_VERSION: JSON.stringify(process.env.npm_package_version),
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
+  optimizeDeps: {
+    include: ['vue', 'pinia'],
   },
   plugins: [vue()],
-  publicDir: fileURLToPath(new URL('./public', import.meta.url)),
+  publicDir: 'public',
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-      $: fileURLToPath(new URL('./tests', import.meta.url)),
+      '@': path.resolve(__dirname, './src'),
+      $: path.resolve(__dirname, './tests'),
     },
   },
   root: 'src/gui',
   server: {
-    hmr: {
-      host: 'localhost',
-      protocol: 'ws',
-    },
-    port: Number(process.env.LOCALHOST_PORT) || 5173,
+    port: Number(process.env.VITE_PORT) || 5173,
   },
   test: {
     environment: 'happy-dom',
     globals: true,
-    include: ['../../tests/**/*.test.ts'],
+    include: ['tests/**/*.test.ts'],
     restoreMocks: true,
   },
 });

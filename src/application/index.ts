@@ -28,8 +28,7 @@ export default class Application {
   ) {}
 
   static async create(settings: GameSettings): Promise<Application> {
-    const { clock, idGenerator, repositories, scheduler, versionProvider } =
-      await Infrastructure.createAppDependencies();
+    const { clock, idGenerator, repositories, scheduler, versionProvider } = await Infrastructure.createAppDependencies();
     const version = versionProvider.version;
     const game = await this.fetchGameInstance(version, idGenerator, repositories, settings);
     const queryBuilder = new AppQueryBuilder(game);

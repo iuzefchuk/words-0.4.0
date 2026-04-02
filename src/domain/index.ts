@@ -109,12 +109,7 @@ export default class Game {
     return game;
   }
 
-  static restoreFromSnapshot(
-    version: string,
-    snapshot: GameSnapshot,
-    idGenerator: IdGenerator,
-    dictionary: Dictionary,
-  ): Game | null {
+  static restoreFromSnapshot(version: string, snapshot: GameSnapshot, idGenerator: IdGenerator, dictionary: Dictionary): Game | null {
     if (snapshot.version !== version) return null;
     const board = Board.restoreFromSnapshot(snapshot.board);
     const inventory = Inventory.restoreFromSnapshot(snapshot.inventory);
@@ -196,12 +191,7 @@ export default class Game {
   saveTurn(): { words: ReadonlyArray<string> } {
     this.ensureMutability();
     if (!this.turnsView.currentTurnIsValid) throw new Error('Turn is not valid');
-    const {
-      currentPlayer: player,
-      currentTurnScore: score,
-      currentTurnTiles: tiles,
-      currentTurnWords: words,
-    } = this.turnsView;
+    const { currentPlayer: player, currentTurnScore: score, currentTurnTiles: tiles, currentTurnWords: words } = this.turnsView;
     if (words === undefined) throw new Error('Current turn words do not exist');
     if (score === undefined) throw new Error('Current turn score does not exist');
     tiles.forEach(tile => this.inventory.discardTile({ player, tile }));

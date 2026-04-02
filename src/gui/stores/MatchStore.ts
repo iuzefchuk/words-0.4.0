@@ -1,15 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, markRaw, ref } from 'vue';
 import Application from '@/application/index.ts';
-import {
-  AppCommands,
-  AppQueries,
-  GameBonusDistribution,
-  GameCell,
-  GameDifficulty,
-  GameSettings,
-  GameTile,
-} from '@/application/types.ts';
+import { AppCommands, AppQueries, GameBonusDistribution, GameCell, GameDifficulty, GameSettings, GameTile } from '@/application/types.ts';
 import { DEFAULT_SETTINGS, GAME_EVENT_SOUNDS, SETTINGS_STORAGE_KEY } from '@/gui/constants.ts';
 import LocalStorage from '@/gui/services/LocalStorage.ts';
 import SoundPlayer from '@/gui/services/SoundPlayer.ts';

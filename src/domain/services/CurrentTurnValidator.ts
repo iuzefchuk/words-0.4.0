@@ -44,10 +44,7 @@ export default class CurrentTurnValidator {
       return { error, status: ValidationStatus.Invalid };
     }
 
-    static pass<State extends PipelineInput, NewValue extends ComputedValue>(
-      state: State,
-      newValue: NewValue,
-    ): PendingResult<NewValue & State> {
+    static pass<State extends PipelineInput, NewValue extends ComputedValue>(state: State, newValue: NewValue): PendingResult<NewValue & State> {
       Object.assign(state, newValue);
       return { state: state as NewValue & State, status: ValidationStatus.Pending };
     }
@@ -90,14 +87,10 @@ export default class CurrentTurnValidator {
       if (!turns.historyHasPriorTurns) return false;
       return board.getAdjacentCells(cell).some(adj => board.isCellOccupied(adj) && !placementCells.has(adj));
     });
-    return someCellsAreAnchor
-      ? this.Pipeline.pass(state, { cells })
-      : this.Pipeline.fail(ValidationError.NoCellsUsableAsFirst);
+    return someCellsAreAnchor ? this.Pipeline.pass(state, { cells }) : this.Pipeline.fail(ValidationError.NoCellsUsableAsFirst);
   }
 
-  private static computeAndValidatePlacements(
-    state: PipelineState<SequencesOutput>,
-  ): PipelineThroughput<PipelineState<ComputedTilesOutput>> {
+  private static computeAndValidatePlacements(state: PipelineState<SequencesOutput>): PipelineThroughput<PipelineState<ComputedTilesOutput>> {
     const { board, turns } = state.context;
     const tiles = turns.currentTurnTiles;
     const primaryAxis = board.calculateAxis(state.cells);
@@ -116,9 +109,7 @@ export default class CurrentTurnValidator {
     return this.Pipeline.pass(state, { placements: result });
   }
 
-  private static computeAndValidateScore(
-    state: PipelineState<WordsOutput>,
-  ): PipelineThroughput<PipelineState<ScoreOutput>> {
+  private static computeAndValidateScore(state: PipelineState<WordsOutput>): PipelineThroughput<PipelineState<ScoreOutput>> {
     const { board, inventory } = state.context;
     const newCells = new Set(state.cells);
     const score = ScoreCalculator.execute(
@@ -131,9 +122,7 @@ export default class CurrentTurnValidator {
     return this.Pipeline.pass(state, { score });
   }
 
-  private static computeAndValidateWords(
-    state: PipelineState<ComputedTilesOutput>,
-  ): PipelineThroughput<PipelineState<WordsOutput>> {
+  private static computeAndValidateWords(state: PipelineState<ComputedTilesOutput>): PipelineThroughput<PipelineState<WordsOutput>> {
     const { dictionary, inventory } = state.context;
     const words: Array<string> = [];
     for (let i = 0; i < state.placements.length; i++) {
@@ -141,8 +130,6 @@ export default class CurrentTurnValidator {
       for (const { tile } of state.placements[i]) letters.push(inventory.getTileLetter(tile));
       words[i] = letters.join('');
     }
-    return dictionary.containsWords(words)
-      ? this.Pipeline.pass(state, { words })
-      : this.Pipeline.fail(ValidationError.WordNotInDictionary);
+    return dictionary.containsWords(words) ? this.Pipeline.pass(state, { words }) : this.Pipeline.fail(ValidationError.WordNotInDictionary);
   }
 }

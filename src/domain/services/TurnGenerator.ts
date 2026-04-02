@@ -118,10 +118,7 @@ export default class TurnGenerator {
       return { type: GenerationCommandType.StopExecute };
     }
 
-    async *execute(
-      dispatcher: (task: Task) => TaskCommand,
-      yieldControl: () => Promise<void>,
-    ): AsyncGenerator<GeneratorResult> {
+    async *execute(dispatcher: (task: Task) => TaskCommand, yieldControl: () => Promise<void>): AsyncGenerator<GeneratorResult> {
       let taskCount = 0;
       while (this.stack.length > 0) {
         const task = this.popFromStack();
@@ -209,10 +206,7 @@ export default class TurnGenerator {
       return this.emitContinue();
     }
 
-    private calculateAndExploreResolution(
-      traversal: Traversal,
-      candidate: Candidate,
-    ): ContinueTaskCommand | StopTaskCommand {
+    private calculateAndExploreResolution(traversal: Traversal, candidate: Candidate): ContinueTaskCommand | StopTaskCommand {
       const { cell, position } = candidate;
       const generator = this.dictionary.createNextNodeGenerator({ startNode: traversal.node });
       const anchorLetters = this.lettersComputer.getFor({ axis: this.computeds.oppositeAxis, cell });
@@ -253,16 +247,14 @@ export default class TurnGenerator {
       const { traversal } = task;
       const position = traversal.position + traversal.direction;
       const cell = this.computeds.axisCells[position];
+      if (cell === undefined) throw new Error('Axis cell position is wrong');
       const tile = this.board.findTileByCell(cell);
       const resolution: Resolution | undefined = tile ? { tile } : undefined;
       const candidate: Candidate = { cell, position, resolution };
       return this.emitContinue([{ ...task, candidate, type: GenerationTask.ResolveCandidate }]);
     }
 
-    private createTraversalFromCandidate(
-      traversal: Traversal,
-      candidate: Candidate,
-    ): ContinueTaskCommand | StopTaskCommand {
+    private createTraversalFromCandidate(traversal: Traversal, candidate: Candidate): ContinueTaskCommand | StopTaskCommand {
       const { position, resolution } = candidate;
       if (!resolution) throw new Error('Resolution has to exist');
       const nextNode = this.dictionary.getNode(this.inventory.getTileLetter(resolution.tile), traversal.node);
@@ -335,11 +327,7 @@ export default class TurnGenerator {
     }
   };
 
-  static async *execute(
-    context: GeneratorContext,
-    player: Player,
-    yieldControl: () => Promise<void>,
-  ): AsyncGenerator<GeneratorResult> {
+  static async *execute(context: GeneratorContext, player: Player, yieldControl: () => Promise<void>): AsyncGenerator<GeneratorResult> {
     const { board, dictionary, inventory, turns } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;

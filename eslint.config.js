@@ -10,9 +10,6 @@ const gitignorePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 
 export default defineConfigWithVueTs([
   includeIgnoreFile(gitignorePath),
-  {
-    files: ['**/*.{js,ts,vue}'],
-  },
   pluginVue.configs['flat/recommended'],
   vueTsConfigs.recommended,
   perfectionist.configs['recommended-alphabetical'],
@@ -61,10 +58,10 @@ export default defineConfigWithVueTs([
           newlinesBetween: 0,
         },
       ],
-      'prettier/prettier': [1, { arrowParens: 'avoid', semicolons: false, singleQuote: true }],
       'vue/component-definition-name-casing': ['error', 'PascalCase'],
       'vue/component-name-in-template-casing': ['error', 'PascalCase', { registeredComponentsOnly: false }],
       'vue/multi-word-component-names': 'off',
+      'vue/no-unused-refs': 'warn',
       'vue/no-v-html': 'off',
     },
   },

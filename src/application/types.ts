@@ -24,17 +24,7 @@ import type {
   GameTurnsView,
 } from '@/domain/types.ts';
 
-export type {
-  GameBoardView,
-  GameCell,
-  GameEvent,
-  GameGeneratorResult,
-  GameInventoryView,
-  GameMatchView,
-  GameSettings,
-  GameTile,
-  GameTurnsView,
-};
+export type { GameBoardView, GameCell, GameEvent, GameGeneratorResult, GameInventoryView, GameMatchView, GameSettings, GameTile, GameTurnsView };
 export {
   GameBonus,
   GameBonusDistribution,

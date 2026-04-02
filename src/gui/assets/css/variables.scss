@@ -37,9 +37,7 @@
   --transition-timing-function: ease;
 
   --box-shadow-level-0: 0 1px 2px var(--color-gray-faint);
-  --box-shadow-level-1:
-    0 1px 3px 0 var(--color-gray-lightest),
-    0 1px 2px -1px var(--color-gray-lightest);
+  --box-shadow-level-1: 0 1px 3px 0 var(--color-gray-lightest), 0 1px 2px -1px var(--color-gray-lightest);
   --box-shadow-inner: inset 0 1px 2px 0 var(--color-gray-lightest);
   --box-shadow-inner-dark: inset 0 1px 2px 0 var(--color-gray-darkest);
 

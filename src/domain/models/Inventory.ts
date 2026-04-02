@@ -169,9 +169,7 @@ export default class Inventory {
     const tiles = [...Inventory.TILE_BY_ID.values()];
     shuffleWithFisherYates(tiles);
     const drawPool = TilePool.create({ tiles });
-    const playerPools = new Map(
-      players.map(player => [player, TilePool.create({ capacity: this.PLAYER_POOL_CAPACITY })]),
-    );
+    const playerPools = new Map(players.map(player => [player, TilePool.create({ capacity: this.PLAYER_POOL_CAPACITY })]));
     const discardPool = TilePool.create();
     const inventory = new Inventory(drawPool, playerPools, discardPool);
     inventory.initializePlayerPools();
@@ -180,9 +178,7 @@ export default class Inventory {
 
   static restoreFromSnapshot(snapshot: InventorySnapshot): Inventory {
     const drawPool = TilePool.restoreFromSnapshot(snapshot.drawPool);
-    const playerPools = new Map(
-      [...snapshot.playerPools].map(([player, pool]) => [player, TilePool.restoreFromSnapshot(pool)]),
-    );
+    const playerPools = new Map([...snapshot.playerPools].map(([player, pool]) => [player, TilePool.restoreFromSnapshot(pool)]));
     const discardPool = TilePool.restoreFromSnapshot(snapshot.discardPool);
     return new Inventory(drawPool, playerPools, discardPool);
   }

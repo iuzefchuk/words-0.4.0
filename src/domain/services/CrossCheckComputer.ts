@@ -4,9 +4,7 @@ import Dictionary from '@/domain/models/Dictionary.ts';
 import Inventory from '@/domain/models/Inventory.ts';
 
 export default class CrossCheckComputer {
-  private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(
-    Object.values(Axis).map(axis => [axis, new Map()]),
-  );
+  private cache = new Map<Axis, Map<CellIndex, ReadonlySet<Letter>>>(Object.values(Axis).map(axis => [axis, new Map()]));
 
   constructor(
     private readonly board: Board,
@@ -25,11 +23,7 @@ export default class CrossCheckComputer {
     return newResult;
   }
 
-  private collectAdjacentTileLetters(
-    axisCells: ReadonlyArray<CellIndex>,
-    startPosition: number,
-    direction: -1 | 1,
-  ): string {
+  private collectAdjacentTileLetters(axisCells: ReadonlyArray<CellIndex>, startPosition: number, direction: -1 | 1): string {
     let result = '';
     for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
       const tile = this.board.findTileByCell(axisCells[i]);

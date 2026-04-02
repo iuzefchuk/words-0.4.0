@@ -46,10 +46,7 @@
     filter: blur(0.5rem);
   }
   &__width-content {
-    max-width: calc(
-      var(--cell-count-per-axis) *
-        (var(--cell-tile-gap) + var(--cell-tile-width)) - var(--cell-tile-gap)
-    );
+    max-width: calc(var(--cell-count-per-axis) * (var(--cell-tile-gap) + var(--cell-tile-width)) - var(--cell-tile-gap));
     width: 100%;
   }
   &__grid {
