@@ -36,10 +36,12 @@ export default defineConfig({
       host: 'localhost',
       protocol: 'ws',
     },
+    port: Number(process.env.LOCALHOST_PORT) || 5173,
   },
   test: {
     environment: 'happy-dom',
     globals: true,
     include: ['../../tests/**/*.test.ts'],
+    restoreMocks: true,
   },
 });

@@ -4,9 +4,9 @@
     "target": "esnext",
     "module": "nodenext",
     "paths": { "@/*": ["./src/*"], "$/*": ["./tests/*"] },
-    "types": ["vue"], 
+    "types": ["vue", "vitest/globals"],
     "noEmit": true,
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["src", "tests", "vite.config.ts"]
+  "include": ["src", "tests", "vite.config.ts", "playwright.config.ts"]
 }

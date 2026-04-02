@@ -1,9 +1,15 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { includeIgnoreFile } from '@eslint/compat';
 import prettierConfig from '@vue/eslint-config-prettier';
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
 import perfectionist from 'eslint-plugin-perfectionist';
 import pluginVue from 'eslint-plugin-vue';
 
+const gitignorePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.gitignore');
+
 export default defineConfigWithVueTs([
+  includeIgnoreFile(gitignorePath),
   {
     files: ['**/*.{js,ts,vue}'],
   },

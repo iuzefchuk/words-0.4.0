@@ -3,6 +3,7 @@ node_modules
 dist
 dist-ssr
 coverage
+.results
 *.local
 *.lock
 __MACOSX
