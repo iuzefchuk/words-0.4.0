@@ -174,19 +174,15 @@ describe('Board', () => {
     });
 
     it('should return correct values for left edge', () => {
-      expect(board.isCellPositionOnLeftEdge(INDICES.center)).toBe(false);
-      expect(board.isCellPositionOnLeftEdge(INDICES.col0Row0)).toBe(true);
-      expect(board.isCellPositionOnLeftEdge(INDICES.col0Row1)).toBe(true);
-      expect(board.isCellPositionOnLeftEdge(INDICES.col14Row0)).toBe(false);
-      expect(board.isCellPositionOnLeftEdge(INDICES.col14Row14)).toBe(false);
+      expect(board.isCellPositionOnLeftEdge(0)).toBe(true);
+      expect(board.isCellPositionOnLeftEdge(7)).toBe(false);
+      expect(board.isCellPositionOnLeftEdge(14)).toBe(false);
     });
 
     it('should return correct values for right edge', () => {
-      expect(board.isCellPositionOnRightEdge(INDICES.center)).toBe(false);
-      expect(board.isCellPositionOnRightEdge(INDICES.col0Row0)).toBe(false);
-      expect(board.isCellPositionOnRightEdge(INDICES.col0Row1)).toBe(false);
-      expect(board.isCellPositionOnRightEdge(INDICES.col14Row0)).toBe(true);
-      expect(board.isCellPositionOnRightEdge(INDICES.col14Row14)).toBe(true);
+      expect(board.isCellPositionOnRightEdge(0)).toBe(false);
+      expect(board.isCellPositionOnRightEdge(7)).toBe(false);
+      expect(board.isCellPositionOnRightEdge(14)).toBe(true);
     });
 
     beforeEach(() => {
