@@ -1,8 +1,8 @@
 import { Player } from '@/domain/enums.ts';
 import Turns, { ValidationError, ValidationStatus } from '@/domain/models/Turns.ts';
 import areEqual from '$/areEqual.ts';
-import { createCellIndex, createTileId } from '$/unit/helpers/casts.ts';
-import { StubIdGenerator } from '$/unit/helpers/stubs.ts';
+import { castCellIndex, castTileId } from '$/casts.ts';
+import { StubIdGenerator } from '$/stubs.ts';
 
 describe('Turns', () => {
   describe('initial state', () => {
@@ -13,11 +13,11 @@ describe('Turns', () => {
     });
 
     it('should display current turn properties correctly', () => {
+      expect(turns.currentTurnCells).toBeUndefined();
       expect(turns.currentTurnIsValid).toBe(false);
       expect(turns.currentTurnScore).toBeUndefined();
-      expect(turns.currentTurnWords).toBeUndefined();
-      expect(turns.currentTurnCells).toBeUndefined();
       expect(turns.currentTurnTiles).toHaveLength(0);
+      expect(turns.currentTurnWords).toBeUndefined();
     });
 
     it('should not have current player', () => {
@@ -55,7 +55,7 @@ describe('Turns', () => {
     let turns: Turns;
 
     it('should register valid result correctly', () => {
-      const cells = [createCellIndex(112), createCellIndex(113), createCellIndex(114)];
+      const cells = [castCellIndex(112), castCellIndex(113), castCellIndex(114)];
       const score = 10;
       const words = ['CAT'];
       turns.recordValidationResult({ cells, placements: [], score, status: ValidationStatus.Valid, words });
@@ -80,8 +80,8 @@ describe('Turns', () => {
     let turns: Turns;
 
     it('should reset properties correctly', () => {
-      turns.recordPlacedTile(createTileId('A-0'));
-      turns.recordValidationResult({ cells: [createCellIndex(112)], placements: [], score: 5, status: ValidationStatus.Valid, words: ['AT'] });
+      turns.recordPlacedTile(castTileId('A-0'));
+      turns.recordValidationResult({ cells: [castCellIndex(112)], placements: [], score: 5, status: ValidationStatus.Valid, words: ['AT'] });
       turns.resetCurrentTurn();
       expect(turns.currentTurnTiles).toHaveLength(0);
       expect(turns.currentTurnIsValid).toBe(false);
@@ -104,7 +104,7 @@ describe('Turns', () => {
 
     it('should display previous turn correctly', () => {
       expect(turns.previousTurnTiles).toBeUndefined();
-      const tileId = createTileId('A-0');
+      const tileId = castTileId('A-0');
       turns.recordPlacedTile(tileId);
       turns.startTurnFor(Player.Opponent);
       expect(turns.currentTurnTiles).not.toContain(tileId);
@@ -121,14 +121,14 @@ describe('Turns', () => {
     let turns: Turns;
 
     it('should record tile correctly', () => {
-      const tileId = createTileId('A-0');
+      const tileId = castTileId('A-0');
       turns.recordPlacedTile(tileId);
       expect(turns.currentTurnTiles).toContain(tileId);
     });
 
     it('should record multiple tiles correctly', () => {
-      const firstTileId = createTileId('A-0');
-      const secondTileId = createTileId('B-0');
+      const firstTileId = castTileId('A-0');
+      const secondTileId = castTileId('B-0');
       turns.recordPlacedTile(firstTileId);
       turns.recordPlacedTile(secondTileId);
       expect(turns.currentTurnTiles).toContain(firstTileId);
@@ -136,20 +136,20 @@ describe('Turns', () => {
     });
 
     it('should not record a duplicate tile', () => {
-      const tileId = createTileId('A-0');
+      const tileId = castTileId('A-0');
       turns.recordPlacedTile(tileId);
       expect(() => turns.recordPlacedTile(tileId)).toThrow();
     });
 
     it('should undo record correctly', () => {
-      const tileId = createTileId('A-0');
+      const tileId = castTileId('A-0');
       turns.recordPlacedTile(tileId);
       turns.undoRecordPlacedTile({ tile: tileId });
       expect(turns.currentTurnTiles).not.toContain(tileId);
     });
 
     it('should not undo record for tile not in current turn', () => {
-      expect(() => turns.undoRecordPlacedTile({ tile: createTileId('A-0') })).toThrow();
+      expect(() => turns.undoRecordPlacedTile({ tile: castTileId('A-0') })).toThrow();
     });
 
     beforeEach(() => {
@@ -162,7 +162,7 @@ describe('Turns', () => {
     let turns: Turns;
 
     it('should capture and restore history', () => {
-      turns.recordPlacedTile(createTileId('A-0'));
+      turns.recordPlacedTile(castTileId('A-0'));
       const { history } = turns.snapshot;
       const restoredTurns = Turns.restoreFromSnapshot(new StubIdGenerator(), turns.snapshot);
       expect(areEqual(restoredTurns.snapshot.history, history)).toBe(true);

@@ -4,6 +4,7 @@ dist
 dist-ssr
 coverage
 .results
+visual.spec.ts-snapshots
 *.local
 *.lock
 __MACOSX

@@ -1,7 +1,7 @@
 import { Letter, Player } from '@/domain/enums.ts';
 import Inventory from '@/domain/models/Inventory.ts';
-import { createTileId } from '$/unit/helpers/casts.ts';
 import areEqual from '$/areEqual.ts';
+import { castTileId } from '$/casts.ts';
 
 describe('Inventory', () => {
   describe('initial state', () => {
@@ -18,13 +18,13 @@ describe('Inventory', () => {
 
     it('should have the correct distribution for known letters', () => {
       // A has 9 tiles: A-0 through A-8
-      expect(inventory.getTileLetter(createTileId('A-8'))).toBe(Letter.A);
+      expect(inventory.getTileLetter(castTileId('A-8'))).toBe(Letter.A);
       // Z has 1 tile: Z-0
-      expect(inventory.getTileLetter(createTileId('Z-0'))).toBe(Letter.Z);
+      expect(inventory.getTileLetter(castTileId('Z-0'))).toBe(Letter.Z);
       // J has 1 tile: J-0
-      expect(inventory.getTileLetter(createTileId('J-0'))).toBe(Letter.J);
+      expect(inventory.getTileLetter(castTileId('J-0'))).toBe(Letter.J);
       // E has 12: E-0 through E-11
-      expect(inventory.getTileLetter(createTileId('E-11'))).toBe(Letter.E);
+      expect(inventory.getTileLetter(castTileId('E-11'))).toBe(Letter.E);
     });
 
     beforeEach(() => {
@@ -36,22 +36,22 @@ describe('Inventory', () => {
     let inventory: Inventory;
 
     it('should return letter correctly', () => {
-      expect(inventory.getTileLetter(createTileId('A-0'))).toBe(Letter.A);
-      expect(inventory.getTileLetter(createTileId('K-0'))).toBe(Letter.K);
-      expect(inventory.getTileLetter(createTileId('Z-0'))).toBe(Letter.Z);
-      expect(() => inventory.getTileLetter(createTileId('INVALID'))).toThrow();
+      expect(inventory.getTileLetter(castTileId('A-0'))).toBe(Letter.A);
+      expect(inventory.getTileLetter(castTileId('K-0'))).toBe(Letter.K);
+      expect(inventory.getTileLetter(castTileId('Z-0'))).toBe(Letter.Z);
+      expect(() => inventory.getTileLetter(castTileId('INVALID'))).toThrow();
     });
 
     it('should return points correctly', () => {
-      expect(inventory.getTilePoints(createTileId('A-0'))).toBe(1);
-      expect(inventory.getTilePoints(createTileId('K-0'))).toBe(5);
-      expect(inventory.getTilePoints(createTileId('Z-0'))).toBe(10);
-      expect(() => inventory.getTilePoints(createTileId('INVALID'))).toThrow();
+      expect(inventory.getTilePoints(castTileId('A-0'))).toBe(1);
+      expect(inventory.getTilePoints(castTileId('K-0'))).toBe(5);
+      expect(inventory.getTilePoints(castTileId('Z-0'))).toBe(10);
+      expect(() => inventory.getTilePoints(castTileId('INVALID'))).toThrow();
     });
 
     it('should measure equality correctly', () => {
-      const firstTileId = createTileId('A-0');
-      const secondTileId = createTileId('A-1');
+      const firstTileId = castTileId('A-0');
+      const secondTileId = castTileId('A-1');
       expect(inventory.areTilesEqual(firstTileId, firstTileId)).toBe(true);
       expect(inventory.areTilesEqual(firstTileId, secondTileId)).toBe(false);
     });

@@ -6,6 +6,9 @@ const URL = `http://localhost:${PORT}`;
 export default defineConfig({
   expect: {
     timeout: 5000,
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.01,
+    },
   },
   forbidOnly: Boolean(process.env.CI),
   outputDir: './tests/e2e/.results',

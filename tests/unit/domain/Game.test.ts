@@ -4,8 +4,8 @@ import { BonusDistribution } from '@/domain/models/Board.ts';
 import Dictionary from '@/domain/models/Dictionary.ts';
 import { MatchResult } from '@/domain/models/Match.ts';
 import areEqual from '$/areEqual.ts';
-import { createCellIndex } from '$/unit/helpers/casts.ts';
-import { StubIdGenerator } from '$/unit/helpers/stubs.ts';
+import { castCellIndex } from '$/casts.ts';
+import { StubIdGenerator } from '$/stubs.ts';
 
 let dictionary: Dictionary;
 
@@ -80,7 +80,7 @@ describe('Game', () => {
     let game: Game;
 
     it('should add tile to board and turn', () => {
-      const cellIndex = createCellIndex(0);
+      const cellIndex = castCellIndex(0);
       const tiles = game.inventoryView.getTilesFor(Player.User);
       const firstTileId = tiles[0]!;
       game.placeTile({ cell: cellIndex, tile: firstTileId });
@@ -89,7 +89,7 @@ describe('Game', () => {
     });
 
     it('should remove tile from board and turn', () => {
-      const cellIndex = createCellIndex(0);
+      const cellIndex = castCellIndex(0);
       const tiles = game.inventoryView.getTilesFor(Player.User);
       const firstTileId = tiles[0]!;
       game.placeTile({ cell: cellIndex, tile: firstTileId });
@@ -99,8 +99,8 @@ describe('Game', () => {
     });
 
     it('should reset turn tiles when clearing', () => {
-      const firstCellIndex = createCellIndex(0);
-      const secondCellIndex = createCellIndex(1);
+      const firstCellIndex = castCellIndex(0);
+      const secondCellIndex = castCellIndex(1);
       const tiles = game.inventoryView.getTilesFor(Player.User);
       const firstTileId = tiles[0]!;
       const secondTileId = tiles[1]!;
@@ -168,7 +168,7 @@ describe('Game', () => {
     let game: Game;
 
     it('should log correctly when doing place tile', () => {
-      const cellIndex = createCellIndex(0);
+      const cellIndex = castCellIndex(0);
       const tiles = game.inventoryView.getTilesFor(Player.User);
       const firstTileId = tiles[0]!;
       game.placeTile({ cell: cellIndex, tile: firstTileId });
@@ -178,7 +178,7 @@ describe('Game', () => {
     });
 
     it('should log correctly when undoing place tile', () => {
-      const cellIndex = createCellIndex(0);
+      const cellIndex = castCellIndex(0);
       const tiles = game.inventoryView.getTilesFor(Player.User);
       const firstTileId = tiles[0]!;
       game.placeTile({ cell: cellIndex, tile: firstTileId });
@@ -195,7 +195,8 @@ describe('Game', () => {
       expect(lastEvent.type === EventType.UserTurnPassed).toBe(true);
       game.passTurnForCurrentPlayer(); // Opponent passes
       expect(game.eventLog).toHaveLength(2);
-      expect(lastEvent.type === EventType.OpponentTurnPassed).toBe(true);
+      const newLastEvent = game.eventLog.at(-1)!;
+      expect(newLastEvent.type === EventType.OpponentTurnPassed).toBe(true);
     });
 
     it('should log correctly on match end', () => {
