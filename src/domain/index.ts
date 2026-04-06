@@ -131,16 +131,18 @@ export default class Game {
     }
     this.turns.recordValidationResult(result.validationResult);
     const { score } = result.validationResult;
-    const { words } = this.saveTurn();
+    const { words } = this.saveTurnForCurrentPlayer();
     return { score, words };
   }
 
   changeBonusDistribution(bonusDistribution: GameBonusDistribution): void {
+    this.ensureMutability();
     this.ensureSettingsMutability();
     this.board.changeBonusDistribution(bonusDistribution);
   }
 
   changeDifficulty(newValue: GameDifficulty) {
+    this.ensureMutability();
     this.ensureSettingsMutability();
     this.difficulty = newValue;
   }
@@ -161,6 +163,7 @@ export default class Game {
   }
 
   finishMatchByScore(): void {
+    this.ensureMutability();
     const { leaderByScore, loserByScore } = this.match;
     if (leaderByScore === null || loserByScore === null) {
       this.tieMatch();
@@ -171,9 +174,9 @@ export default class Game {
     this.events.record({ type: leaderByScore === GamePlayer.User ? GameEventType.MatchWon : GameEventType.MatchLost });
   }
 
-  passTurn(): void {
-    const { currentPlayer: player } = this.turnsView;
+  passTurnForCurrentPlayer(): void {
     this.ensureMutability();
+    const { currentPlayer: player } = this.turnsView;
     this.startTurnForNextPlayer();
     const type = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
     this.events.record({ type });
@@ -186,13 +189,14 @@ export default class Game {
     this.events.record({ type: GameEventType.TilePlaced });
   }
 
-  resignMatch(): void {
+  resignMatchForCurrentPlayer(): void {
+    this.ensureMutability();
     const { currentPlayer, nextPlayer } = this.turnsView;
     this.match.recordCompletion(nextPlayer, currentPlayer);
     this.events.record({ type: currentPlayer === GamePlayer.User ? GameEventType.MatchLost : GameEventType.MatchWon });
   }
 
-  saveTurn(): { words: ReadonlyArray<string> } {
+  saveTurnForCurrentPlayer(): { words: ReadonlyArray<string> } {
     this.ensureMutability();
     if (!this.turnsView.currentTurnIsValid) throw new Error('Turn is not valid');
     const { currentPlayer: player, currentTurnScore: score, currentTurnTiles: tiles, currentTurnWords: words } = this.turnsView;
@@ -215,6 +219,7 @@ export default class Game {
   }
 
   validateTurn(): void {
+    this.ensureMutability();
     const result = CurrentTurnValidator.execute({
       board: this.board,
       dictionary: this.dictionary,

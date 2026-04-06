@@ -1,9 +1,9 @@
 import { Player } from '@/domain/enums.ts';
 import Match, { MatchResult } from '@/domain/models/Match.ts';
-import { areMapsEqual } from '$/unit/helpers/equality.ts';
+import areEqual from '$/areEqual.ts';
 
 describe('Match', () => {
-  describe('initial config', () => {
+  describe('initial state', () => {
     let match: Match;
 
     it('should start with scores at 0', () => {
@@ -142,14 +142,14 @@ describe('Match', () => {
       match.incrementScore(Player.Opponent, 50);
       const { scores } = match.snapshot;
       const restoredMatch = Match.restoreFromSnapshot(match.snapshot);
-      expect(areMapsEqual(restoredMatch.snapshot.scores, scores)).toBe(true);
+      expect(areEqual(restoredMatch.snapshot.scores, scores)).toBe(true);
     });
 
     it('should capture and restore results', () => {
       match.recordCompletion(Player.User, Player.Opponent);
       const { results } = match.snapshot;
       const restoredMatch = Match.restoreFromSnapshot(match.snapshot);
-      expect(areMapsEqual(restoredMatch.snapshot.results, results)).toBe(true);
+      expect(areEqual(restoredMatch.snapshot.results, results)).toBe(true);
     });
 
     beforeEach(() => {

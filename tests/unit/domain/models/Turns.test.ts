@@ -1,11 +1,11 @@
 import { Player } from '@/domain/enums.ts';
 import Turns, { ValidationError, ValidationStatus } from '@/domain/models/Turns.ts';
+import areEqual from '$/areEqual.ts';
 import { createCellIndex, createTileId } from '$/unit/helpers/casts.ts';
-import { areArraysEqual } from '$/unit/helpers/equality.ts';
 import { StubIdGenerator } from '$/unit/helpers/stubs.ts';
 
 describe('Turns', () => {
-  describe('initial config', () => {
+  describe('initial state', () => {
     let turns: Turns;
 
     it('should have empty history', () => {
@@ -165,7 +165,7 @@ describe('Turns', () => {
       turns.recordPlacedTile(createTileId('A-0'));
       const { history } = turns.snapshot;
       const restoredTurns = Turns.restoreFromSnapshot(new StubIdGenerator(), turns.snapshot);
-      expect(areArraysEqual(restoredTurns.snapshot.history, history)).toBe(true);
+      expect(areEqual(restoredTurns.snapshot.history, history)).toBe(true);
     });
 
     beforeEach(() => {

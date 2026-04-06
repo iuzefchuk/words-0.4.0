@@ -95,10 +95,10 @@ export default class AppCommandBuilder {
     }
     if (bestResult === null) {
       if (this.game.willPassBeResignFor(player)) {
-        this.game.resignMatch();
+        this.game.resignMatchForCurrentPlayer();
         return { type: GameEventType.MatchLost };
       }
-      this.game.passTurn();
+      this.game.passTurnForCurrentPlayer();
       return { type: GameEventType.OpponentTurnPassed };
     }
     const { score, words } = this.game.applyGeneratedTurn(bestResult);
@@ -149,11 +149,11 @@ export default class AppCommandBuilder {
   private handlePassTurn(): { opponentTurn?: Promise<AppTurnResponse> | undefined } {
     this.clearTiles();
     if (this.game.willPassBeResignFor(GamePlayer.User)) {
-      this.game.resignMatch();
+      this.game.resignMatchForCurrentPlayer();
       this.clearPersistence();
       return { opponentTurn: undefined };
     }
-    this.game.passTurn();
+    this.game.passTurnForCurrentPlayer();
     this.syncPersistence();
     const opponentTurn = this.currentPlayer === GamePlayer.Opponent ? this.executeOpponentTurn() : undefined;
     return { opponentTurn };
@@ -161,13 +161,13 @@ export default class AppCommandBuilder {
 
   private handleResignMatch(): void {
     this.clearTiles();
-    this.game.resignMatch();
+    this.game.resignMatchForCurrentPlayer();
     this.clearPersistence();
   }
 
   private handleSaveTurn(): { opponentTurn: Promise<AppTurnResponse> | undefined; userResponse: AppTurnResponse } {
     const player = this.currentPlayer;
-    const userResponse = this.saveTurn();
+    const userResponse = this.saveTurnForCurrentPlayer();
     if (!userResponse.ok) {
       return { opponentTurn: undefined, userResponse };
     }
@@ -191,9 +191,9 @@ export default class AppCommandBuilder {
     this.syncPersistence();
   }
 
-  private saveTurn(): AppTurnResponse {
+  private saveTurnForCurrentPlayer(): AppTurnResponse {
     if (!this.game.turnsView.currentTurnIsValid) return { error: 'Turn is not valid', ok: false };
-    const { words } = this.game.saveTurn();
+    const { words } = this.game.saveTurnForCurrentPlayer();
     return { ok: true, value: { words } };
   }
 

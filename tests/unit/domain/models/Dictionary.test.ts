@@ -1,5 +1,5 @@
 import Dictionary from '@/domain/models/Dictionary.ts';
-import { areMapsEqual, areObjectsEqual, areSetsEqual } from '$/unit/helpers/equality.ts';
+import areEqual from '$/areEqual.ts';
 
 let dictionary: Dictionary;
 
@@ -76,19 +76,19 @@ describe('Dictionary', () => {
     it('should capture and restore rootNode', () => {
       const { rootNode } = dictionary.snapshot;
       const restoredDictionary = Dictionary.restoreFromSnapshot(dictionary.snapshot);
-      expect(areObjectsEqual(restoredDictionary.snapshot.rootNode, rootNode)).toBe(true);
+      expect(areEqual(restoredDictionary.snapshot.rootNode, rootNode)).toBe(true);
     });
 
     it('should capture and restore nodeById', () => {
       const { nodeById } = dictionary.snapshot;
       const restoredDictionary = Dictionary.restoreFromSnapshot(dictionary.snapshot);
-      expect(areMapsEqual(restoredDictionary.snapshot.nodeById, nodeById)).toBe(true);
+      expect(areEqual(restoredDictionary.snapshot.nodeById, nodeById)).toBe(true);
     });
 
     it('should capture and restore allLetters', () => {
       const { allLetters } = dictionary.snapshot;
       const restoredDictionary = Dictionary.restoreFromSnapshot(dictionary.snapshot);
-      expect(areSetsEqual(restoredDictionary.snapshot.allLetters, allLetters)).toBe(true);
+      expect(areEqual(restoredDictionary.snapshot.allLetters, allLetters)).toBe(true);
     });
   });
 });

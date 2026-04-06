@@ -292,7 +292,7 @@ export default class Board {
         if (!historyHasPriorTurns) return isCenter;
         if (this.isCellOccupied(cell)) return false;
         const hasUsedAdjacentCells = this.layout.getAdjacentCells(cell).some((adjacentCell: CellIndex) => this.isCellOccupied(adjacentCell));
-        return isCenter || hasUsedAdjacentCells;
+        return hasUsedAdjacentCells;
       }),
     );
   }

@@ -1,10 +1,10 @@
 import { Letter, Player } from '@/domain/enums.ts';
 import Inventory from '@/domain/models/Inventory.ts';
 import { createTileId } from '$/unit/helpers/casts.ts';
-import { areMapsEqual, areObjectsEqual } from '$/unit/helpers/equality.ts';
+import areEqual from '$/areEqual.ts';
 
 describe('Inventory', () => {
-  describe('initial config', () => {
+  describe('initial state', () => {
     let inventory: Inventory;
 
     it('should have correct number of player tiles', () => {
@@ -132,19 +132,19 @@ describe('Inventory', () => {
     it('should capture and restore drawPool', () => {
       const { drawPool } = inventory.snapshot;
       const restoredInventory = Inventory.restoreFromSnapshot(inventory.snapshot);
-      expect(areObjectsEqual(restoredInventory.snapshot.drawPool, drawPool)).toBe(true);
+      expect(areEqual(restoredInventory.snapshot.drawPool, drawPool)).toBe(true);
     });
 
     it('should capture and restore playerPools', () => {
       const { playerPools } = inventory.snapshot;
       const restoredInventory = Inventory.restoreFromSnapshot(inventory.snapshot);
-      expect(areMapsEqual(restoredInventory.snapshot.playerPools, playerPools)).toBe(true);
+      expect(areEqual(restoredInventory.snapshot.playerPools, playerPools)).toBe(true);
     });
 
     it('should capture and restore discardPool', () => {
       const { discardPool } = inventory.snapshot;
       const restoredInventory = Inventory.restoreFromSnapshot(inventory.snapshot);
-      expect(areObjectsEqual(restoredInventory.snapshot.discardPool, discardPool)).toBe(true);
+      expect(areEqual(restoredInventory.snapshot.discardPool, discardPool)).toBe(true);
     });
 
     beforeEach(() => {

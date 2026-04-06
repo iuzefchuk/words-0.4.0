@@ -1,13 +1,13 @@
 import Board, { Axis, Bonus, BonusDistribution } from '@/domain/models/Board.ts';
+import areEqual from '$/areEqual.ts';
 import { createCellIndex, createTileId } from '$/unit/helpers/casts.ts';
-import { areMapsEqual, areObjectsEqual } from '$/unit/helpers/equality.ts';
 
 const CELLS_PER_AXIS = 15;
 const TOTAL_CELLS = CELLS_PER_AXIS * CELLS_PER_AXIS;
 const CENTER_INDEX = Math.floor(TOTAL_CELLS / 2);
 
 describe('Board', () => {
-  describe('initial config', () => {
+  describe('initial state', () => {
     let board: Board;
 
     it('should have correct number of cells', () => {
@@ -348,12 +348,6 @@ describe('Board', () => {
       expect(cells.has(cellIndex)).toBe(false);
     });
 
-    it('should always include the center cell as an anchor even with prior turns', () => {
-      // TODO change logic
-      const cells = board.getAnchorCells(true);
-      expect(cells.has(createCellIndex(CENTER_INDEX))).toBe(true);
-    });
-
     beforeEach(() => {
       board = Board.create(BonusDistribution.Classic);
     });
@@ -447,13 +441,13 @@ describe('Board', () => {
       board.placeTile(cellIndex, tileId);
       const { tileByCell } = board.snapshot;
       const restoredBoard = Board.restoreFromSnapshot(board.snapshot);
-      expect(areMapsEqual(restoredBoard.snapshot.tileByCell, tileByCell)).toBe(true);
+      expect(areEqual(restoredBoard.snapshot.tileByCell, tileByCell)).toBe(true);
     });
 
     it('should capture and restore layout', () => {
       const { layout } = board.snapshot;
       const restoredBoard = Board.restoreFromSnapshot(board.snapshot);
-      expect(areObjectsEqual(restoredBoard.snapshot.layout, layout)).toBe(true);
+      expect(areEqual(restoredBoard.snapshot.layout, layout)).toBe(true);
     });
 
     beforeEach(() => {
