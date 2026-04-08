@@ -22,8 +22,10 @@ export default class Dictionary {
   ) {}
 
   static async create(): Promise<Dictionary> {
-    const { DICTIONARY_DATA } = await import('@/domain/constants.ts');
-    const trie = TrieService.createTrie(DICTIONARY_DATA);
+    const gzippedData = await fetch('/dictionary.gz');
+    const decompressedData = gzippedData.body!.pipeThrough(new DecompressionStream('gzip'));
+    const textData = await new Response(decompressedData).text();
+    const trie = TrieService.createTrie(textData.split('\n') as ReadonlyArray<string>);
     const nodeById = new Map<NodeId, FrozenNode>();
     const allLetters = new Set<Letter>();
     this.freezeTree(trie);

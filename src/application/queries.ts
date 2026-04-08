@@ -27,14 +27,10 @@ export default class AppQueryBuilder {
       isMatchFinished: () => this.game.matchView.isFinished,
       isTilePlaced: (tile: GameTile) => this.boardView.isTilePlaced(tile),
       settingsChangeIsAllowed: () => this.game.settingsChangeIsAllowed,
-      wasTileUsedInPreviousTurn: (tile: GameTile) => this.wasTileUsedInPreviousTurn(tile),
+      wasTileUsedInPreviousTurn: (tile: GameTile) => this.game.wasTileUsedInPreviousTurn(tile),
       willUserPassBeResign: () => this.game.willPassBeResignFor(GamePlayer.User),
     };
   }
-  private _previousTurnTileSet: Set<GameTile> | undefined;
-
-  private _previousTurnTilesRef: ReadonlyArray<GameTile> | undefined;
-
   private get boardView(): Readonly<GameBoardView> {
     return this.game.boardView;
   }
@@ -48,14 +44,4 @@ export default class AppQueryBuilder {
   }
 
   constructor(private readonly game: Game) {}
-
-  private wasTileUsedInPreviousTurn(tile: GameTile): boolean {
-    const { previousTurnTiles: tiles } = this.game.turnsView;
-    if (!tiles?.length) return false;
-    if (tiles !== this._previousTurnTilesRef) {
-      this._previousTurnTilesRef = tiles;
-      this._previousTurnTileSet = new Set(tiles);
-    }
-    return this._previousTurnTileSet!.has(tile);
-  }
 }

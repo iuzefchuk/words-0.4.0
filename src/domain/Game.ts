@@ -226,6 +226,10 @@ export default class Game {
     this.turns.recordValidationResult(result);
   }
 
+  wasTileUsedInPreviousTurn(tile: GameTile): boolean {
+    return this.turns.previousTurnTiles?.includes(tile) ?? false;
+  }
+
   willPassBeResignFor(player: GamePlayer): boolean {
     const passType = player === GamePlayer.User ? GameEventType.UserTurnPassed : GameEventType.OpponentTurnPassed;
     const saveType = player === GamePlayer.User ? GameEventType.UserTurnSaved : GameEventType.OpponentTurnSaved;
