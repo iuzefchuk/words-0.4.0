@@ -6,9 +6,13 @@ import { Tile } from '@/domain/models/inventory/types.ts';
 
 export default class Board {
   static readonly CELLS_PER_AXIS = 15;
+
   static readonly TOTAL_CELLS = Board.CELLS_PER_AXIS ** 2;
+
   static readonly CELLS_BY_INDEX: ReadonlyArray<Cell> = Array.from({ length: Board.TOTAL_CELLS }, (_, i) => i as Cell);
+
   static readonly CENTER_CELL = Math.floor(Board.TOTAL_CELLS / 2) as Cell;
+
   private static readonly DEFAULT_AXIS = Axis.X;
 
   get cells(): ReadonlyArray<Cell> {

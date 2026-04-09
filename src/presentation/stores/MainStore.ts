@@ -79,19 +79,33 @@ class Actions {
 
 class Getters {
   readonly boardType = computed(() => this.readBoard(() => this.queriesService.getBoardType()));
+
   readonly currentPlayerIsUser = computed(() => this.readState(() => this.queriesService.isCurrentPlayerUser()));
+
   readonly currentTurnIsValid = computed(() => this.readBoard(() => this.queriesService.isCurrentTurnValid()));
+
   readonly currentTurnScore = computed(() => this.readBoard(() => this.queriesService.getCurrentTurnScore()));
+
   readonly difficulty = computed(() => this.readState(() => this.queriesService.getDifficulty()));
+
   readonly eventLog = computed(() => this.readState(() => this.queriesService.getEventLog()));
+
   readonly hasPriorTurns = computed(() => this.readState(() => this.queriesService.hasPriorTurns()));
+
   readonly matchIsFinished = computed(() => this.readState(() => this.queriesService.isMatchFinished()));
+
   readonly matchResult = computed(() => this.readState(() => this.queriesService.getMatchResult()));
+
   readonly opponentScore = computed(() => this.readState(() => this.queriesService.getOpponentScore()));
+
   readonly settingsChangeIsAllowed = computed(() => this.readState(() => this.queriesService.settingsChangeIsAllowed()));
+
   readonly tilesRemaining = computed(() => this.readState(() => this.queriesService.getTilesRemaining()));
+
   readonly userPassWillBeResign = computed(() => this.readState(() => this.queriesService.willUserPassBeResign()));
+
   readonly userScore = computed(() => this.readState(() => this.queriesService.getUserScore()));
+
   readonly userTiles = computed(() => this.readState(() => this.queriesService.getUserTiles()));
 
   constructor(
@@ -100,14 +114,23 @@ class Getters {
   ) {}
 
   areTilesSame = (firstTile: GameTile, secondTile: GameTile) => this.queriesService.areTilesSame(firstTile, secondTile);
+
   findCellWithTile = (tile: GameTile) => this.readBoard(() => this.queriesService.findCellWithTile(tile));
+
   findTileOnCell = (cell: GameCell) => this.readBoard(() => this.queriesService.findTileOnCell(cell));
+
   getCellBonus = (cell: GameCell) => this.readBoard(() => this.queriesService.getCellBonus(cell));
+
   getCellColumnIndex = (cell: GameCell) => this.queriesService.getCellColumnIndex(cell);
+
   getCellRowIndex = (cell: GameCell) => this.queriesService.getCellRowIndex(cell);
+
   getTileLetter = (tile: GameTile) => this.queriesService.getTileLetter(tile);
+
   isCellCenter = (cell: GameCell) => this.queriesService.isCellCenter(cell);
+
   isTilePlaced = (tile: GameTile) => this.readBoard(() => this.queriesService.isTilePlaced(tile));
+
   wasTileUsedInPreviousTurn = (tile: GameTile) => this.readBoard(() => this.queriesService.wasTileUsedInPreviousTurn(tile));
 
   private readBoard<T>(fn: () => T): T {
@@ -121,6 +144,7 @@ class Getters {
 
 class State {
   private readonly boardVersion = ref(0);
+
   private readonly stateVersion = ref(0);
 
   incrementVersions(): void {

@@ -10,9 +10,14 @@ export default abstract class Directive<DirectiveHtmlElement extends HTMLElement
       ...(this.updated && { updated: this.updated.bind(this) }),
     };
   }
+
   beforeMount?(el: DirectiveHtmlElement, binding: DirectiveBinding<BindingValue>): void;
+
   beforeUpdate?(el: DirectiveHtmlElement, binding: DirectiveBinding<BindingValue>): void;
+
   mounted?(el: DirectiveHtmlElement, binding: DirectiveBinding<BindingValue>): void;
+
   unmounted?(el: DirectiveHtmlElement): void;
+
   updated?(el: DirectiveHtmlElement, binding: DirectiveBinding<BindingValue>): void;
 }

@@ -4,6 +4,7 @@ export default class UseCounter {
   get value(): number {
     return this.valueRef.value;
   }
+
   private interval: Interval | null = null;
 
   private readonly valueRef = ref(0);

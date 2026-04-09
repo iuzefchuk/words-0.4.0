@@ -89,8 +89,11 @@ export default class Game {
   }
 
   private board!: Board;
+
   private inventory!: Inventory;
+
   private match!: Match;
+
   private turns!: Turns;
 
   constructor(

@@ -38,18 +38,29 @@ export default class DialogStore {
   });
 
   private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
+
   private static readonly DEFAULT_CANCEL_TEXT = '';
+
   private static readonly DEFAULT_CONFIRM_IS_HIDDEN = false;
+
   private static readonly DEFAULT_CONFIRM_TEXT = '';
+
   private static readonly DEFAULT_HTML = '';
+
   private static readonly DEFAULT_TITLE = '';
 
   private cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
+
   private cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
+
   private confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
+
   private confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
+
   private htmlRef = ref(DialogStore.DEFAULT_HTML);
+
   private pendingResolve: ((result: DialogResult) => void) | null = null;
+
   private titleRef = ref(DialogStore.DEFAULT_TITLE);
 
   private set cancelIsHidden(newValue: boolean) {

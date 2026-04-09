@@ -3,7 +3,9 @@ import { AnchorCoordinates, Cell } from '@/domain/models/board/types.ts';
 
 export default class LayoutService {
   static readonly CELLS_PER_AXIS = 15;
+
   static readonly TOTAL_CELLS = this.CELLS_PER_AXIS ** 2;
+
   static readonly CENTER_CELL = Math.floor(this.TOTAL_CELLS / 2) as Cell;
 
   static calculateAdjacentCells(cell: Cell): ReadonlyArray<Cell> {

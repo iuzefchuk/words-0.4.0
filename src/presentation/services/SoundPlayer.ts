@@ -17,7 +17,9 @@ type Note = { duration: number; frequency: number; gain: number; ramp?: number; 
 
 export default class SoundPlayer {
   private static context = new AudioContext();
+
   private static readonly FADE_OUT_MS = 0.03;
+
   private static readonly NOTES: Record<Sound, ReadonlyArray<Note>> = {
     [Sound.GameLongBad]: [
       { duration: 0.15, frequency: 370, gain: 0.06, type: 'square' },
@@ -68,6 +70,7 @@ export default class SoundPlayer {
       { duration: 0.04, frequency: 370, gain: 0.06, type: 'triangle' },
     ],
   };
+
   private static queueEnd = 0;
 
   static play(sound: Sound): void {

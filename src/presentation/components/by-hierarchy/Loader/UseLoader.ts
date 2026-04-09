@@ -5,6 +5,7 @@ import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
 
 export default class UseLoader {
   static readonly LETTERS = [GameLetter.W, GameLetter.O, GameLetter.R, GameLetter.D, GameLetter.S];
+
   readonly isRendered = ref(false);
 
   private get isBuildingPhase(): boolean {

@@ -1,15 +1,17 @@
 import { AppDependencies } from '@/application/types.ts';
 import { DictionaryRepository, EventRepository, GameEvent } from '@/domain/types.ts';
 import AsyncSchedulingService from '@/infrastructure/services/AsyncSchedulingService.ts';
-import CryptoIdentityService from '@/infrastructure/services/CryptoIdentityService.ts'
-import CryptoSeedingService from '@/infrastructure/services/CryptoSeedingService.ts'
+import CryptoIdentityService from '@/infrastructure/services/CryptoIdentityService.ts';
+import CryptoSeedingService from '@/infrastructure/services/CryptoSeedingService.ts';
 import StorageService from '@/infrastructure/services/StorageService.ts';
 import VersioningService from '@/infrastructure/services/VersioningService.ts';
 import type { DictionarySnapshot } from '@/domain/models/dictionary/types.ts';
 
 class IndexedDbDictionaryRepository implements DictionaryRepository {
   private static readonly CACHE_KEY = 'state';
+
   private static readonly DB_NAME = 'words-dictionary';
+
   private static readonly STORE_NAME = 'dictionary';
 
   private readonly db = new StorageService<DictionarySnapshot>(
@@ -31,7 +33,9 @@ class IndexedDbDictionaryRepository implements DictionaryRepository {
 
 class IndexedDbEventRepository implements EventRepository {
   private static readonly CACHE_KEY = 'events';
+
   private static readonly DB_NAME = 'words-game';
+
   private static readonly STORE_NAME = 'game';
 
   private readonly db = new StorageService<ReadonlyArray<GameEvent>>(

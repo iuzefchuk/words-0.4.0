@@ -48,6 +48,7 @@ export default defineConfigWithVueTs([
           selector: 'enumMember',
         },
       ],
+      'lines-between-class-members': ['error', 'always'],
       'no-console': 'warn',
       'no-debugger': 'warn',
       'perfectionist/sort-imports': [
