@@ -95,7 +95,7 @@ watch(title, newValue => {
   &__button {
     cursor: pointer;
     padding: var(--space-s);
-    border: var(--dialog-button-border);
+    border: var(--dialog-btn-border);
     border-radius: var(--base-border-radius);
     transition-property: box-shadow;
     transition-duration: var(--transition-duration-half);
@@ -104,10 +104,10 @@ watch(title, newValue => {
       color: var(--color-red);
     }
     &:hover {
-      background: var(--dialog-button-bg-hover);
+      background: var(--dialog-btn-bg-hover);
     }
     &:active {
-      background: var(--dialog-button-bg-active);
+      background: var(--dialog-btn-bg-active);
     }
   }
 }

@@ -8,7 +8,7 @@ const mainStore = MainStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
 const buttons = UseButtons.create();
 const { anyTileIsPlaced } = storeToRefs(rackStore);
-const { allActionsAreDisabled } = buttons;
+const { allActionsAreDisabled } = storeToRefs(mainStore);
 const items = reactive([
   {
     action: () => buttons.handleResign(),
@@ -45,7 +45,7 @@ const items = reactive([
 
 <template>
   <div class="buttons">
-    <ul class="buttons__list app__limit-max-width app__pop-text">
+    <ul class="buttons__list app__limit-max-width app__btn">
       <template v-for="{ name, action, isRendered, isDisabled } in items" :key="name">
         <li v-if="isRendered()" class="buttons__list-item">
           <button class="buttons__btn" :disabled="isDisabled()" @click="action()">
@@ -81,18 +81,22 @@ const items = reactive([
     border-radius: var(--base-border-radius);
     width: 100%;
     height: 100%;
-    border: var(--base-border);
     user-select: none;
     letter-spacing: 0.5px;
     box-shadow: var(--box-shadow-level-1);
     transition-property: box-shadow;
     transition-duration: var(--transition-duration-half);
     transition-timing-function: var(--transition-timing-function);
+    border: var(--base-border);
+    font-size: var(--btn-font-size);
+    color: var(--btn-color);
+    font-weight: var(--btn-font-weight);
     &:hover:not(:active):not(:disabled) {
-      background: var(--button-bg-hover);
+      background: var(--btn-bg-hover);
+      border-color: var(--btn-border-color-hover);
     }
     &:active:not(:disabled) {
-      background: var(--button-bg-active);
+      background: var(--btn-bg-active);
     }
     &:disabled {
       border-color: transparent;
