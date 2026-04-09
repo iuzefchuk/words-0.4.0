@@ -102,6 +102,11 @@ export default class CommandsService {
     this.syncPersistence();
   }
 
+  restartGame(): void {
+    this.game.restart();
+    this.clearPersistence();
+  }
+
   undoPlaceTile(tile: GameTile): void {
     this.game.undoPlaceTile({ tile });
     this.game.validateTurn();

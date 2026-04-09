@@ -14,7 +14,7 @@ const mainIsRendered = ref(false);
 const showEndscreen = ref(false);
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 watch(matchIsFinished, finished => {
-  if (finished) showEndscreen.value = true;
+  showEndscreen.value = finished;
 });
 onMounted(() => {
   loaderIsActive.value = false;

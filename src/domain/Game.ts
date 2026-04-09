@@ -258,6 +258,14 @@ export default class Game {
     this.applyEvent({ type: GameEventType.MatchFinished, winner });
   }
 
+  restart(): void {
+    const seed = this.seedingService.createSeed();
+    const settings: GameSettings = { boardType: this.board.type, difficulty: this.difficulty };
+    const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
+    this.eventLog.reset(event);
+    this.initialize(Game.createInitParams(seed, settings, this.seedingService, this.identityService));
+  }
+
   saveTurnForCurrentPlayer(): { words: ReadonlyArray<string> } {
     this.ensureMutability();
     if (!this.turnsView.currentTurnIsValid) throw new Error('Turn is not valid');

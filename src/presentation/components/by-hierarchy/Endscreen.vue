@@ -9,16 +9,13 @@ const text = computed(() => {
   if (matchResult.value === undefined) throw new Error('AppEndscreen should be rendered after match results assign');
   return getMatchResultText(matchResult.value);
 });
-function reloadPage() {
-  window.location.reload();
-}
 </script>
 
 <template>
-  <button class="endscreen" @dblclick="reloadPage">
+  <button class="endscreen" @dblclick="mainStore.restartGame">
     <p class="endscreen__score">{{ userScore }} - {{ opponentScore }}</p>
     <p>{{ text }}</p>
-    <p>{{ t('game.action_new_match') }}</p>
+    <p class="endscreen__hint">{{ t('game.action_new_match') }}</p>
   </button>
 </template>
 
@@ -37,6 +34,37 @@ function reloadPage() {
   font-size: var(--font-size-big);
   &__score {
     font-size: var(--font-size-bigger);
+  }
+  &__hint {
+    animation: double-tap 3s var(--transition-timing-function) infinite;
+    transform-origin: center;
+  }
+}
+
+@keyframes double-tap {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  5% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  10% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  15% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 </style>

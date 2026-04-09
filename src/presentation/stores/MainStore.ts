@@ -43,6 +43,10 @@ class Actions {
     return this.writeAndPlaySound(() => this.commandsService.handleResignMatch());
   };
 
+  restartGame = (): void => {
+    return this.state.write(() => this.commandsService.restartGame());
+  };
+
   save = (): void => {
     const { opponentTurn } = this.writeAndPlaySound(() => this.commandsService.handleSaveTurn());
     opponentTurn?.then(() => this.syncAndPlaySound());
