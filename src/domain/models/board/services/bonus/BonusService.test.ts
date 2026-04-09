@@ -2,6 +2,7 @@ import Board from '@/domain/models/board/Board.ts';
 import { BoardType, Bonus } from '@/domain/models/board/enums.ts';
 import BonusService from '@/domain/models/board/services/bonus/BonusService.ts';
 import { BonusDistribution } from '@/domain/models/board/types.ts';
+import CryptoSeedingService from '@/infrastructure/services/CryptoSeedingService.ts';
 
 function countBonuses(distribution: BonusDistribution): {
   dl: number;
@@ -34,20 +35,22 @@ describe('BonusService', () => {
   });
 
   beforeEach(() => {
+    const seedingService = new CryptoSeedingService();
     classicDistribution = BonusService.createBonusDistribution(BoardType.Classic);
-    randomDistribution = BonusService.createBonusDistribution(BoardType.Random);
+    randomDistribution = BonusService.createBonusDistribution(BoardType.Random, seedingService.createRandomizer(seedingService.createSeed()));
   });
 });
 
 describe('Board using BonusService', () => {
   it('applies distribution correctly', () => {
+    const seedingService = new CryptoSeedingService();
     Object.values(BoardType).forEach(type => {
-      const board = Board.create(type);
-      // TODO add seed
-      // const distribution = BonusService.createBonusDistribution(type);
-      // distribution.forEach((bonus, cell) => {
-      //   expect(board.getBonus(cell)).toBe(bonus);
-      // });
+      const seed = seedingService.createSeed();
+      const board = Board.create(type, seedingService.createRandomizer(seed));
+      const distribution = BonusService.createBonusDistribution(type, seedingService.createRandomizer(seed));
+      distribution.forEach((bonus, cell) => {
+        expect(board.getBonus(cell)).toBe(bonus);
+      });
     });
   });
 });

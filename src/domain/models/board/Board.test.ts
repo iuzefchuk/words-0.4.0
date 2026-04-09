@@ -2,6 +2,7 @@ import Board from '@/domain/models/board/Board.ts';
 import { BoardType } from '@/domain/models/board/enums.ts';
 import BonusService from '@/domain/models/board/services/bonus/BonusService.ts';
 import { Cell } from '@/domain/models/board/types.ts';
+import CryptoSeedingService from '@/infrastructure/services/CryptoSeedingService.ts';
 
 describe('Board', () => {
   describe('initial state', () => {
@@ -22,9 +23,11 @@ describe('Board', () => {
 
   describe('bonus system', () => {
     it('returns multipliers correctly', () => {
+      const seedingService = new CryptoSeedingService();
       Object.values(BoardType).forEach(type => {
-        const board = Board.create(type);
-        const distribution = BonusService.createBonusDistribution(type);
+        const seed = seedingService.createSeed();
+        const board = Board.create(type, seedingService.createRandomizer(seed));
+        const distribution = BonusService.createBonusDistribution(type, seedingService.createRandomizer(seed));
         distribution.forEach((bonus, cell) => {
           expect(board.getMultiplierForLetter(cell)).not.toBeNull();
           expect(board.getMultiplierForWord(cell)).not.toBeNull();

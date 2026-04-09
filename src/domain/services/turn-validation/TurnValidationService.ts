@@ -76,7 +76,7 @@ export default class TurnValidationService {
   }
 
   private static computeAndValidateCells(state: PipelineInput): PipelineThroughput<PipelineState<SequencesOutput>> {
-    // TODO to separate service
+    // TODO to separate service (same as ScoringService)
     const { board, turns } = state.context;
     const tiles = turns.currentTurnTiles;
     if (tiles.length === 0) return this.Pipeline.fail(ValidationError.InvalidTilePlacement);
@@ -92,7 +92,7 @@ export default class TurnValidationService {
   }
 
   private static computeAndValidatePlacements(state: PipelineState<SequencesOutput>): PipelineThroughput<PipelineState<ComputedTilesOutput>> {
-    // TODO to separate service
+    // TODO to separate service (same as ScoringService)
     const { board, turns } = state.context;
     const tiles = turns.currentTurnTiles;
     const primaryAxis = board.calculateAxis(state.cells);
@@ -127,7 +127,7 @@ export default class TurnValidationService {
   }
 
   private static computeAndValidateWords(state: PipelineState<ComputedTilesOutput>): PipelineThroughput<PipelineState<WordsOutput>> {
-    // TODO to separate service
+    // TODO to separate service (same as ScoringService)
     const { dictionary, inventory } = state.context;
     const words: Array<string> = [];
     for (let i = 0; i < state.placements.length; i++) {

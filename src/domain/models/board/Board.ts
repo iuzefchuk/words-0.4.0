@@ -34,8 +34,8 @@ export default class Board {
     private readonly cellByTile: Map<Tile, Cell>,
   ) {}
 
-  static create(type: BoardType): Board {
-    const bonusByCell = BonusService.createBonusDistribution(type);
+  static create(type: BoardType, randomizer?: () => number): Board {
+    const bonusByCell = BonusService.createBonusDistribution(type, randomizer);
     return new Board(bonusByCell, type, new Map(), new Map());
   }
 

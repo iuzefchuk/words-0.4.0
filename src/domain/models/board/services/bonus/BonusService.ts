@@ -4,8 +4,8 @@ import { BonusDistribution, Cell } from '@/domain/models/board/types.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export default class BonusService {
-  static createBonusDistribution(type: BoardType): BonusDistribution {
-    return type === BoardType.Classic ? this.createClassicDistribution() : this.createRandomDistribution();
+  static createBonusDistribution(type: BoardType, randomizer?: () => number): BonusDistribution {
+    return type === BoardType.Classic ? this.createClassicDistribution() : this.createRandomDistribution(randomizer);
   }
 
   private static createClassicDistribution(): BonusDistribution {
@@ -21,7 +21,7 @@ export default class BonusService {
     ]);
   }
 
-  private static createRandomDistribution(): BonusDistribution {
+  private static createRandomDistribution(randomizer?: () => number): BonusDistribution {
     const classicMap = this.createClassicDistribution();
     const counts = [
       {
@@ -42,7 +42,10 @@ export default class BonusService {
       },
     ];
     const availableCells = Board.CELLS_BY_INDEX.filter(cell => cell !== Board.CENTER_CELL);
-    shuffleWithFisherYates({ array: availableCells });
+    shuffleWithFisherYates({
+      array: availableCells,
+      ...(randomizer && { randomizer }),
+    });
     const result = new Map<Cell, Bonus>();
     let offset = 0;
     for (const { bonus, count } of counts)

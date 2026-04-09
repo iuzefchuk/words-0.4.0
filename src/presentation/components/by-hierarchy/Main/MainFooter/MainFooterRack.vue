@@ -9,7 +9,7 @@ const rackStore = RackStore.INSTANCE();
 const { tilesRemaining } = storeToRefs(mainStore);
 const { tiles } = storeToRefs(rackStore);
 const buttons = UseButtons.create();
-const { allActionsAreDisabled } = buttons; // TODO move to main store
+const { allActionsAreDisabled } = buttons; // TODO move allActionsAreDisabled to main store
 </script>
 
 <template>

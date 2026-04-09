@@ -104,8 +104,8 @@ type ValidateTask = { traversal: Traversal; type: GenerationTask.ValidateTravers
 export default class TurnGenerator {
   private static readonly YIELD_INTERVAL = 100;
 
+  // TODO to separate service
   private static TaskCommandResolver = class TaskCommandResolver {
-    // TODO separate
     private constructor(private readonly stack: Array<Task>) {}
 
     static continueExecute(newTasks: Array<Task>): ContinueTaskCommand {
@@ -151,8 +151,8 @@ export default class TurnGenerator {
     }
   };
 
+  // TODO to separate service
   private static TaskDispatcher = class TaskDispatcher {
-    // TODO separate
     private get board(): Board {
       return this.context.board;
     }
