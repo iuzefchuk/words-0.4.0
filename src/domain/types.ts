@@ -7,56 +7,47 @@ import {
   type GeneratorResult as GameGeneratorResult,
   default as GameTurnGenerator,
 } from '@/domain/services/turn-generation/TurnGenerationService.ts';
-import type { BoardSnapshot, BoardView as GameBoardView, Cell as GameCell } from '@/domain/models/board/types.ts';
-import type { InventoryView as GameInventoryView, Tile as GameTile, InventorySnapshot } from '@/domain/models/inventory/types.ts';
-import type { MatchView as GameMatchView, MatchSnapshot } from '@/domain/models/match/types.ts';
-import type { TurnsView as GameTurnsView, TurnsSnapshot } from '@/domain/models/turns/types.ts';
+import type { BoardView as GameBoardView, Cell as GameCell } from '@/domain/models/board/types.ts';
+import type { InventoryView as GameInventoryView, Tile as GameTile } from '@/domain/models/inventory/types.ts';
+import type { MatchView as GameMatchView } from '@/domain/models/match/types.ts';
+import type { TurnsView as GameTurnsView, ValidationResult } from '@/domain/models/turns/types.ts';
 
 export type DictionaryRepository = {
   load(): Promise<DictionarySnapshot | null>;
   save(snapshot: DictionarySnapshot): Promise<void>;
 };
 
-export type EventsSnapshot = {
-  readonly log: Array<GameEvent>;
+export type EventRepository = {
+  delete(): Promise<void>;
+  load(): Promise<null | ReadonlyArray<GameEvent>>;
+  save(events: ReadonlyArray<GameEvent>): Promise<void>;
 };
 
 export type GameEvent =
-  | { score: number; type: GameEventType.OpponentTurnSaved; words: ReadonlyArray<string> }
-  | { score: number; type: GameEventType.UserTurnSaved; words: ReadonlyArray<string> }
-  | { type: GameEventType.MatchLost }
-  | { type: GameEventType.MatchTied }
-  | { type: GameEventType.MatchWon }
-  | { type: GameEventType.OpponentTurnPassed }
-  | { type: GameEventType.TilePlaced }
-  | { type: GameEventType.TileUndoPlaced }
-  | { type: GameEventType.UserTurnPassed };
-
-export type GameRepository = {
-  delete(): Promise<void>;
-  load(): Promise<GameSnapshot | null>;
-  save(snapshot: GameSnapshot): Promise<void>;
-};
+  | { cell: GameCell; tile: GameTile; type: GameEventType.TilePlaced }
+  | { cell: GameCell; tile: GameTile; type: GameEventType.TileUndoPlaced }
+  | { player: GamePlayer; score: number; type: GameEventType.TurnSaved; words: ReadonlyArray<string> }
+  | { player: GamePlayer; type: GameEventType.TurnPassed }
+  | { result: ValidationResult; type: GameEventType.TurnValidated }
+  | { seed: number; settings: GameSettings; type: GameEventType.MatchStarted }
+  | { type: GameEventType.MatchFinished; winner: GamePlayer | null };
 
 export type GameSettings = {
   boardType: GameBonusDistribution;
   difficulty: GameDifficulty;
 };
 
-export type GameSnapshot = {
-  board: BoardSnapshot;
-  difficulty: GameDifficulty;
-  events: EventsSnapshot;
-  inventory: InventorySnapshot;
-  match: MatchSnapshot;
-  turns: TurnsSnapshot;
+export type IdentityService = {
+  createUniqueId(): string;
 };
 
-export type IdGenerator = {
-  execute(): string;
+export type SeedingService = {
+  createRandomizer(seed: number): () => number;
+  createSeed(): number;
 };
 
-export type { GameBoardView, GameCell, GameGeneratorResult, GameInventoryView, GameMatchView, GameTile, GameTurnsView };
+export type { GameBoardView, GameCell, GameGeneratorResult, GameInventoryView, GameMatchView, GameTile, GameTurnsView, ValidationResult };
+
 export {
   GameBonus,
   GameBonusDistribution,

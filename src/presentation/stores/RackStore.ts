@@ -153,7 +153,7 @@ export default class RackStore {
   }
 
   private shuffle(): void {
-    shuffleWithFisherYates(this.tiles);
+    shuffleWithFisherYates({ array: this.tiles });
     triggerRef(this.tilesRef);
   }
 

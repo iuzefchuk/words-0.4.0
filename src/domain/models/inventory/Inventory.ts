@@ -111,9 +111,9 @@ export default class Inventory {
     private discardPool: TilePool,
   ) {}
 
-  static create(players: ReadonlyArray<Player>): Inventory {
+  static create(players: ReadonlyArray<Player>, randomizer: () => number): Inventory {
     const tiles = [...Inventory.LETTER_BY_TILE.keys()];
-    shuffleWithFisherYates(tiles);
+    shuffleWithFisherYates({ array: tiles, randomizer });
     const drawPool = TilePool.create({ tiles });
     const playerPools = new Map(players.map(player => [player, TilePool.create({ capacity: this.PLAYER_POOL_CAPACITY })]));
     const discardPool = TilePool.create();

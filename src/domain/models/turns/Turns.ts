@@ -3,7 +3,7 @@ import { Cell } from '@/domain/models/board/types.ts';
 import { Tile } from '@/domain/models/inventory/types.ts';
 import { ValidationError, ValidationStatus } from '@/domain/models/turns/enums.ts';
 import { TurnSnapshot, TurnsSnapshot, ValidationResult } from '@/domain/models/turns/types.ts';
-import { IdGenerator } from '@/domain/types.ts';
+import { IdentityService } from '@/domain/types.ts';
 
 class Turn {
   get cells(): ReadonlyArray<Cell> | undefined {
@@ -45,8 +45,8 @@ class Turn {
     return new Turn(turn.id, turn.player, [...turn.tiles], turn.validationResult);
   }
 
-  static create({ idGenerator, player }: { idGenerator: IdGenerator; player: Player }): Turn {
-    const id = idGenerator.execute();
+  static create({ identityService, player }: { identityService: IdentityService; player: Player }): Turn {
+    const id = identityService.createUniqueId();
     return new Turn(id, player, []);
   }
 
@@ -128,22 +128,22 @@ export default class Turns {
   }
 
   private constructor(
-    private readonly idGenerator: IdGenerator,
+    private readonly identityService: IdentityService,
     private history: Array<Turn>,
   ) {}
 
   static clone(turns: Turns): Turns {
     const clonedHistory = turns.history.map(turn => Turn.clone(turn));
-    return new Turns(turns.idGenerator, clonedHistory);
+    return new Turns(turns.identityService, clonedHistory);
   }
 
-  static create(idGenerator: IdGenerator): Turns {
-    return new Turns(idGenerator, []);
+  static create(identityService: IdentityService): Turns {
+    return new Turns(identityService, []);
   }
 
-  static restoreFromSnapshot(idGenerator: IdGenerator, snapshot: TurnsSnapshot): Turns {
+  static restoreFromSnapshot(identityService: IdentityService, snapshot: TurnsSnapshot): Turns {
     const history = snapshot.history.map(turn => Turn.restoreFromSnapshot(turn));
-    return new Turns(idGenerator, history);
+    return new Turns(identityService, history);
   }
 
   recordPlacedTile(tile: Tile): void {
@@ -160,7 +160,7 @@ export default class Turns {
 
   startTurnFor(player: Player): void {
     if (player !== this.nextPlayer) throw new Error(`Expected next player to be ${this.nextPlayer}, but got ${player}`);
-    this.history.push(Turn.create({ idGenerator: this.idGenerator, player }));
+    this.history.push(Turn.create({ identityService: this.identityService, player }));
   }
 
   undoRecordPlacedTile({ tile }: { tile: Tile }): void {

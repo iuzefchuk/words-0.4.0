@@ -13,7 +13,7 @@ export default class AppQueryBuilder {
       getCellRowIndex: (cell: GameCell) => this.boardView.getCellPositionInRow(cell),
       getCurrentTurnScore: () => this.turnsView.currentTurnScore,
       getDifficulty: () => this.game.difficulty,
-      getEventLog: () => this.game.eventLog,
+      getEventLog: () => this.game.eventLogView,
       getMatchResult: () => this.game.matchView.getResultFor(GamePlayer.User),
       getOpponentScore: () => this.game.matchView.getScoreFor(GamePlayer.Opponent),
       getTileLetter: (tile: GameTile) => this.inventoryView.getTileLetter(tile),

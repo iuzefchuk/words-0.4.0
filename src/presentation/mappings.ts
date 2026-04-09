@@ -1,4 +1,5 @@
-import { GameBonus, GameLetter, GameMatchResult } from '@/domain/types.ts';
+import { GameBonus, GameEvent, GameEventType, GameLetter, GameMatchResult, GamePlayer } from '@/domain/types.ts';
+import { Sound } from '@/presentation/services/SoundPlayer.ts';
 
 export function getBonusName(bonus: GameBonus): string {
   return window.t(
@@ -9,6 +10,24 @@ export function getBonusName(bonus: GameBonus): string {
       [GameBonus.TripleWord]: 'game.bonus_tw',
     }[bonus] ?? '',
   );
+}
+
+export function getEventSound(event: GameEvent): Sound | undefined {
+  switch (event.type) {
+    case GameEventType.MatchFinished:
+      if (event.winner === null) return Sound.GameLongNeutral;
+      return event.winner === GamePlayer.User ? Sound.GameLongGood : Sound.GameLongBad;
+    case GameEventType.TilePlaced:
+      return Sound.GameShortNeutral;
+    case GameEventType.TileUndoPlaced:
+      return Sound.GameShortNeutralReverse;
+    case GameEventType.TurnPassed:
+      return event.player === GamePlayer.User ? Sound.GameShortBad : Sound.GameShortAltBad;
+    case GameEventType.TurnSaved:
+      return event.player === GamePlayer.User ? Sound.GameShortGood : Sound.GameShortAltGood;
+    default:
+      return undefined;
+  }
 }
 
 export function getLetterSvgHtml(letter: GameLetter): string {

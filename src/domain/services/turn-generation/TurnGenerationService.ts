@@ -251,7 +251,7 @@ export default class TurnGenerator {
         newTasks.push(applyTask, evaluateTask, reverseTask);
       }
       if (newTasks.length === 0) return this.emitStop();
-      shuffleWithFisherYates(newTasks, 3);
+      shuffleWithFisherYates({ array: newTasks, groupSize: 3 });
       return this.emitContinue(newTasks);
     }
 

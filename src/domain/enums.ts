@@ -5,15 +5,13 @@ export enum Difficulty {
 }
 
 export enum EventType {
-  MatchLost = 'MatchLost',
-  MatchTied = 'MatchTied',
-  MatchWon = 'MatchWon',
-  OpponentTurnPassed = 'OpponentTurnPassed',
-  OpponentTurnSaved = 'OpponentTurnSaved',
+  MatchFinished = 'MatchFinished',
+  MatchStarted = 'MatchStarted',
   TilePlaced = 'TilePlaced',
   TileUndoPlaced = 'TileUndoPlaced',
-  UserTurnPassed = 'UserTurnPassed',
-  UserTurnSaved = 'UserTurnSaved',
+  TurnPassed = 'TurnPassed',
+  TurnSaved = 'TurnSaved',
+  TurnValidated = 'TurnValidated',
 }
 
 export enum Letter {

@@ -11,17 +11,18 @@ import {
 } from '@/domain/types.ts';
 import type {
   DictionaryRepository,
+  EventRepository,
   GameBoardView,
   GameCell,
   GameEvent,
   GameGeneratorResult,
   GameInventoryView,
   GameMatchView,
-  GameRepository,
   GameSettings,
   GameTile,
   GameTurnsView,
-  IdGenerator,
+  IdentityService,
+  SeedingService,
 } from '@/domain/types.ts';
 
 export type { GameBoardView, GameCell, GameEvent, GameGeneratorResult, GameInventoryView, GameMatchView, GameSettings, GameTile, GameTurnsView };
@@ -40,8 +41,8 @@ export {
 export type AppCommands = {
   changeBoardType: (boardType: GameBonusDistribution) => void;
   changeDifficulty: (difficulty: GameDifficulty) => void;
-  clearAllEvents: () => Array<GameEvent>;
   clearTiles: () => void;
+  drainNewEvents: () => Array<GameEvent>;
   handlePassTurn: () => { opponentTurn: Promise<AppTurnResponse> | undefined };
   handleResignMatch: () => void;
   handleSaveTurn: () => { opponentTurn: Promise<AppTurnResponse> | undefined; userResponse: AppTurnResponse };
@@ -55,13 +56,15 @@ export type AppConfig = {
 };
 
 export type AppDependencies = {
-  clock: Clock;
-  idGenerator: IdGenerator;
   repositories: {
     dictionary: DictionaryRepository;
-    game: GameRepository;
+    events: EventRepository;
   };
-  scheduler: Scheduler;
+  services: {
+    identity: IdentityService;
+    scheduling: SchedulingService;
+    seeding: SeedingService;
+  };
 };
 
 export type AppQueries = {
@@ -94,11 +97,8 @@ export type AppQueries = {
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;
 
-export type Clock = {
-  now(): number;
+export type SchedulingService = {
+  getCurrentTime(): number;
   wait(ms: number): Promise<void>;
-};
-
-export type Scheduler = {
   yield(): Promise<void>;
 };

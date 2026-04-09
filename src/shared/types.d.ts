@@ -2,7 +2,7 @@ declare const APP_VERSION: string;
 
 declare const brandSymbol: unique symbol;
 
-declare const scheduler: { yield(): Promise<void> };
+declare const schedulingService: { yield(): Promise<void> };
 
 type Brand<T, B extends string> = { readonly [brandSymbol]: B } & T;
 

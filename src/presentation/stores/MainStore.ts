@@ -2,53 +2,13 @@ import { defineStore } from 'pinia';
 import { computed, markRaw, ref } from 'vue';
 import Application from '@/application/index.ts';
 import { AppCommands, AppQueries, GameBonusDistribution, GameCell, GameDifficulty, GameSettings, GameTile } from '@/application/types.ts';
-import { DEFAULT_SETTINGS, GAME_EVENT_SOUNDS, SETTINGS_STORAGE_KEY } from '@/presentation/constants.ts';
+import { DEFAULT_SETTINGS } from '@/presentation/constants.ts';
+import { StorageKey } from '@/presentation/enums.ts';
+import { getEventSound } from '@/presentation/mappings.ts';
 import LocalStorage from '@/presentation/services/LocalStorage.ts';
 import SoundPlayer from '@/presentation/services/SoundPlayer.ts';
 
-class Getters {
-  readonly boardType = computed(() => this.readBoard(() => this.appQueries.getBoardType()));
-  readonly currentPlayerIsUser = computed(() => this.readState(() => this.appQueries.isCurrentPlayerUser()));
-  readonly currentTurnIsValid = computed(() => this.readBoard(() => this.appQueries.isCurrentTurnValid()));
-  readonly currentTurnScore = computed(() => this.readBoard(() => this.appQueries.getCurrentTurnScore()));
-  readonly difficulty = computed(() => this.readState(() => this.appQueries.getDifficulty()));
-  readonly eventLog = computed(() => this.readState(() => this.appQueries.getEventLog()));
-  readonly hasPriorTurns = computed(() => this.readState(() => this.appQueries.hasPriorTurns()));
-  readonly matchIsFinished = computed(() => this.readState(() => this.appQueries.isMatchFinished()));
-  readonly matchResult = computed(() => this.readState(() => this.appQueries.getMatchResult()));
-  readonly opponentScore = computed(() => this.readState(() => this.appQueries.getOpponentScore()));
-  readonly settingsChangeIsAllowed = computed(() => this.readState(() => this.appQueries.settingsChangeIsAllowed()));
-  readonly tilesRemaining = computed(() => this.readState(() => this.appQueries.getTilesRemaining()));
-  readonly userPassWillBeResign = computed(() => this.readState(() => this.appQueries.willUserPassBeResign()));
-  readonly userScore = computed(() => this.readState(() => this.appQueries.getUserScore()));
-  readonly userTiles = computed(() => this.readState(() => this.appQueries.getUserTiles()));
-
-  constructor(
-    private readonly appQueries: AppQueries,
-    private readonly state: State,
-  ) {}
-
-  areTilesSame = (firstTile: GameTile, secondTile: GameTile) => this.appQueries.areTilesSame(firstTile, secondTile);
-  findCellWithTile = (tile: GameTile) => this.readBoard(() => this.appQueries.findCellWithTile(tile));
-  findTileOnCell = (cell: GameCell) => this.readBoard(() => this.appQueries.findTileOnCell(cell));
-  getCellBonus = (cell: GameCell) => this.readBoard(() => this.appQueries.getCellBonus(cell));
-  getCellColumnIndex = (cell: GameCell) => this.appQueries.getCellColumnIndex(cell);
-  getCellRowIndex = (cell: GameCell) => this.appQueries.getCellRowIndex(cell);
-  getTileLetter = (tile: GameTile) => this.appQueries.getTileLetter(tile);
-  isCellCenter = (cell: GameCell) => this.appQueries.isCellCenter(cell);
-  isTilePlaced = (tile: GameTile) => this.readBoard(() => this.appQueries.isTilePlaced(tile));
-  wasTileUsedInPreviousTurn = (tile: GameTile) => this.readBoard(() => this.appQueries.wasTileUsedInPreviousTurn(tile));
-
-  private readBoard<T>(fn: () => T): T {
-    return this.state.readBoard(fn);
-  }
-
-  private readState<T>(fn: () => T): T {
-    return this.state.read(fn);
-  }
-}
-
-class Setters {
+class Actions {
   constructor(
     private readonly appCommands: AppCommands,
     private readonly state: State,
@@ -91,8 +51,8 @@ class Setters {
   };
 
   private playPendingSounds(): void {
-    for (const event of this.appCommands.clearAllEvents()) {
-      const sound = GAME_EVENT_SOUNDS[event.type];
+    for (const event of this.appCommands.drainNewEvents()) {
+      const sound = getEventSound(event);
       if (sound) SoundPlayer.play(sound);
     }
   }
@@ -112,6 +72,48 @@ class Setters {
     const response = this.state.writeBoard(callback);
     this.playPendingSounds();
     return response;
+  }
+}
+
+class Getters {
+  readonly boardType = computed(() => this.readBoard(() => this.appQueries.getBoardType()));
+  readonly currentPlayerIsUser = computed(() => this.readState(() => this.appQueries.isCurrentPlayerUser()));
+  readonly currentTurnIsValid = computed(() => this.readBoard(() => this.appQueries.isCurrentTurnValid()));
+  readonly currentTurnScore = computed(() => this.readBoard(() => this.appQueries.getCurrentTurnScore()));
+  readonly difficulty = computed(() => this.readState(() => this.appQueries.getDifficulty()));
+  readonly eventLog = computed(() => this.readState(() => this.appQueries.getEventLog()));
+  readonly hasPriorTurns = computed(() => this.readState(() => this.appQueries.hasPriorTurns()));
+  readonly matchIsFinished = computed(() => this.readState(() => this.appQueries.isMatchFinished()));
+  readonly matchResult = computed(() => this.readState(() => this.appQueries.getMatchResult()));
+  readonly opponentScore = computed(() => this.readState(() => this.appQueries.getOpponentScore()));
+  readonly settingsChangeIsAllowed = computed(() => this.readState(() => this.appQueries.settingsChangeIsAllowed()));
+  readonly tilesRemaining = computed(() => this.readState(() => this.appQueries.getTilesRemaining()));
+  readonly userPassWillBeResign = computed(() => this.readState(() => this.appQueries.willUserPassBeResign()));
+  readonly userScore = computed(() => this.readState(() => this.appQueries.getUserScore()));
+  readonly userTiles = computed(() => this.readState(() => this.appQueries.getUserTiles()));
+
+  constructor(
+    private readonly appQueries: AppQueries,
+    private readonly state: State,
+  ) {}
+
+  areTilesSame = (firstTile: GameTile, secondTile: GameTile) => this.appQueries.areTilesSame(firstTile, secondTile);
+  findCellWithTile = (tile: GameTile) => this.readBoard(() => this.appQueries.findCellWithTile(tile));
+  findTileOnCell = (cell: GameCell) => this.readBoard(() => this.appQueries.findTileOnCell(cell));
+  getCellBonus = (cell: GameCell) => this.readBoard(() => this.appQueries.getCellBonus(cell));
+  getCellColumnIndex = (cell: GameCell) => this.appQueries.getCellColumnIndex(cell);
+  getCellRowIndex = (cell: GameCell) => this.appQueries.getCellRowIndex(cell);
+  getTileLetter = (tile: GameTile) => this.appQueries.getTileLetter(tile);
+  isCellCenter = (cell: GameCell) => this.appQueries.isCellCenter(cell);
+  isTilePlaced = (tile: GameTile) => this.readBoard(() => this.appQueries.isTilePlaced(tile));
+  wasTileUsedInPreviousTurn = (tile: GameTile) => this.readBoard(() => this.appQueries.wasTileUsedInPreviousTurn(tile));
+
+  private readBoard<T>(fn: () => T): T {
+    return this.state.readBoard(fn);
+  }
+
+  private readState<T>(fn: () => T): T {
+    return this.state.read(fn);
   }
 }
 
@@ -158,18 +160,18 @@ export default class MainStore {
     return {
       ...MainStore.app.config,
       ...store.getters,
-      ...store.setters,
+      ...store.actions,
     };
   });
 
-  private readonly getters: Getters;
+  private readonly actions: Actions;
 
-  private readonly setters: Setters;
+  private readonly getters: Getters;
 
   private constructor(app: Application) {
     const state = new State();
     this.getters = new Getters(app.queries, state);
-    this.setters = new Setters(app.commands, state);
+    this.actions = new Actions(app.commands, state);
   }
 
   static async initiate(): Promise<void> {
@@ -183,11 +185,11 @@ export default class MainStore {
       boardType: data?.boardType ?? existingCache?.boardType,
       difficulty: data?.difficulty ?? existingCache?.difficulty,
     };
-    LocalStorage.save(SETTINGS_STORAGE_KEY, newCache);
+    LocalStorage.save(StorageKey.Settings, newCache);
   }
 
   private static loadSettings(): GameSettings {
-    const cache = LocalStorage.load(SETTINGS_STORAGE_KEY) as null | Partial<GameSettings>;
+    const cache = LocalStorage.load(StorageKey.Settings) as null | Partial<GameSettings>;
     return {
       boardType: cache?.boardType ?? DEFAULT_SETTINGS.boardType,
       difficulty: cache?.difficulty ?? DEFAULT_SETTINGS.difficulty,

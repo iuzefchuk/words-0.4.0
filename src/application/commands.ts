@@ -1,7 +1,6 @@
 import {
   AppCommands,
   AppTurnResponse,
-  Clock,
   GameBonusDistribution,
   GameCell,
   GameDifficulty,
@@ -12,11 +11,11 @@ import {
   GamePlayer,
   GameTile,
   GameTurnGenerator,
-  Scheduler,
+  SchedulingService,
 } from '@/application/types.ts';
 import Game from '@/domain/Game.ts';
 import { TIME } from '@/shared/constants.ts';
-import type { GameRepository, IdGenerator } from '@/domain/types.ts';
+import type { EventRepository, IdentityService } from '@/domain/types.ts';
 
 export default class AppCommandBuilder {
   private static readonly DIFFICULTY_RESULT_LIMITS: Record<GameDifficulty, number> = {
@@ -31,8 +30,8 @@ export default class AppCommandBuilder {
     return {
       changeBoardType: (boardType: GameBonusDistribution) => this.changeBoardType(boardType),
       changeDifficulty: (difficulty: GameDifficulty) => this.changeDifficulty(difficulty),
-      clearAllEvents: () => this.drainNewEvents(),
       clearTiles: () => this.clearTiles(),
+      drainNewEvents: () => this.drainNewEvents(),
       handlePassTurn: () => this.handlePassTurn(),
       handleResignMatch: () => this.handleResignMatch(),
       handleSaveTurn: () => this.handleSaveTurn(),
@@ -40,8 +39,6 @@ export default class AppCommandBuilder {
       undoPlaceTile: (tile: GameTile) => this.undoPlaceTile(tile),
     };
   }
-
-  private eventCursor: number;
 
   private get currentPlayer(): GamePlayer {
     return this.game.turnsView.currentPlayer;
@@ -53,13 +50,10 @@ export default class AppCommandBuilder {
 
   constructor(
     private readonly game: Game,
-    private readonly clock: Clock,
-    private readonly idGenerator: IdGenerator,
-    private readonly scheduler: Scheduler,
-    private readonly gameRepository: GameRepository,
-  ) {
-    this.eventCursor = game.eventLog.length;
-  }
+    private readonly identityService: IdentityService,
+    private readonly schedulingService: SchedulingService,
+    private readonly eventRepository: EventRepository,
+  ) {}
 
   private changeBoardType(boardType: GameBonusDistribution): void {
     this.game.changeBoardType(boardType);
@@ -70,7 +64,7 @@ export default class AppCommandBuilder {
   }
 
   private clearPersistence(): void {
-    this.gameRepository.delete();
+    this.eventRepository.delete();
   }
 
   private clearTiles(): void {
@@ -82,11 +76,11 @@ export default class AppCommandBuilder {
     const player = GamePlayer.Opponent;
     const { difficulty } = this.game;
     const attemptsLimit = AppCommandBuilder.DIFFICULTY_RESULT_LIMITS[difficulty];
-    const context = this.game.createGeneratorContext(this.idGenerator);
+    const context = this.game.createGeneratorContext(this.identityService);
     let bestResult: GameGeneratorResult | null = null;
     let bestScore = -1;
     let attemptsCount = 0;
-    for await (const result of GameTurnGenerator.execute(context, player, () => this.scheduler.yield())) {
+    for await (const result of GameTurnGenerator.execute(context, player, () => this.schedulingService.yield())) {
       if (attemptsLimit === 1) {
         bestResult = result;
         break;
@@ -100,28 +94,25 @@ export default class AppCommandBuilder {
     if (bestResult === null) {
       if (this.game.willPassBeResignFor(player)) {
         this.game.resignMatchForCurrentPlayer();
-        return { type: GameEventType.MatchLost };
+        return { type: GameEventType.MatchFinished, winner: GamePlayer.User };
       }
       this.game.passTurnForCurrentPlayer();
-      return { type: GameEventType.OpponentTurnPassed };
+      return { player: GamePlayer.Opponent, type: GameEventType.TurnPassed };
     }
     const { score, words } = this.game.applyGeneratedTurn(bestResult);
-    return { score, type: GameEventType.OpponentTurnSaved, words };
+    return { player: GamePlayer.Opponent, score, type: GameEventType.TurnSaved, words };
   }
 
   private drainNewEvents(): Array<GameEvent> {
-    const log = this.game.eventLog as Array<GameEvent>;
-    const newEvents = log.slice(this.eventCursor);
-    this.eventCursor = log.length;
-    return newEvents;
+    return this.game.drainPendingEvents();
   }
 
   private async ensureMinimumDuration<T>(callback: () => Promise<T> | T): Promise<T> {
-    const startTime = this.clock.now();
+    const startTime = this.schedulingService.getCurrentTime();
     const result = await callback();
-    const elapsed = this.clock.now() - startTime;
+    const elapsed = this.schedulingService.getCurrentTime() - startTime;
     const delay = AppCommandBuilder.OPPONENT_RESPONSE_MIN_TIME - elapsed;
-    if (delay > 0) await this.clock.wait(delay);
+    if (delay > 0) await this.schedulingService.wait(delay);
     return result;
   }
 
@@ -129,13 +120,13 @@ export default class AppCommandBuilder {
     const event = await this.ensureMinimumDuration(() => this.createOpponentTurn());
     let response: AppTurnResponse;
     switch (event.type) {
-      case GameEventType.MatchLost:
+      case GameEventType.MatchFinished:
         response = { ok: true, value: { words: [] } };
         break;
-      case GameEventType.OpponentTurnPassed:
+      case GameEventType.TurnPassed:
         response = { ok: true, value: { words: [] } };
         break;
-      case GameEventType.OpponentTurnSaved:
+      case GameEventType.TurnSaved:
         if (!this.inventoryView.hasTilesFor(GamePlayer.Opponent)) this.game.finishMatchByScore();
         response = { ok: true, value: { words: event.words } };
         break;
@@ -202,7 +193,7 @@ export default class AppCommandBuilder {
   }
 
   private syncPersistence(): void {
-    this.gameRepository.save(this.game.snapshot);
+    this.eventRepository.save(this.game.eventLogView);
   }
 
   private undoPlaceTile(tile: GameTile): void {

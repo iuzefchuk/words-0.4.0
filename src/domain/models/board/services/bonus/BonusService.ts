@@ -42,7 +42,7 @@ export default class BonusService {
       },
     ];
     const availableCells = Board.CELLS_BY_INDEX.filter(cell => cell !== Board.CENTER_CELL);
-    shuffleWithFisherYates(availableCells);
+    shuffleWithFisherYates({ array: availableCells });
     const result = new Map<Cell, Bonus>();
     let offset = 0;
     for (const { bonus, count } of counts)

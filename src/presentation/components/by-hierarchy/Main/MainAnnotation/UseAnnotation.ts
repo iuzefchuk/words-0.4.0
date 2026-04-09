@@ -1,13 +1,6 @@
 import { computed } from 'vue';
-import { GameEvent, GameEventType } from '@/application/types.ts';
+import { GameEvent, GameEventType, GamePlayer } from '@/application/types.ts';
 import MainStore from '@/presentation/stores/MainStore.ts';
-
-const ANNOTATION_EVENT_TYPES: ReadonlySet<GameEventType> = new Set([
-  GameEventType.OpponentTurnPassed,
-  GameEventType.OpponentTurnSaved,
-  GameEventType.UserTurnPassed,
-  GameEventType.UserTurnSaved,
-]);
 
 export default class UseAnnotation {
   private static readonly MAX_DISPLAYED_MESSAGES = 3;
@@ -21,7 +14,7 @@ export default class UseAnnotation {
   });
 
   private get annotationEvents(): ReadonlyArray<GameEvent> {
-    return this.mainStore.eventLog.filter(event => ANNOTATION_EVENT_TYPES.has(event.type));
+    return this.mainStore.eventLog.filter(event => this.isEventDisplayed(event));
   }
 
   private get mainStore() {
@@ -30,14 +23,14 @@ export default class UseAnnotation {
 
   private createEventHtml(event: GameEvent): string {
     switch (event.type) {
-      case GameEventType.OpponentTurnPassed:
-        return window.t('game.message_pass_opponent');
-      case GameEventType.OpponentTurnSaved:
-        return window.t('game.message_save_opponent', { score: event.score, words: event.words.join(', ') });
-      case GameEventType.UserTurnPassed:
-        return window.t('game.message_pass_user');
-      case GameEventType.UserTurnSaved:
-        return window.t('game.message_save_user', { score: event.score, words: event.words.join(', ') });
+      case GameEventType.TurnPassed:
+        return event.player === GamePlayer.User ? window.t('game.message_pass_user') : window.t('game.message_pass_opponent');
+      case GameEventType.TurnSaved: {
+        const words = event.words.join(', ');
+        return event.player === GamePlayer.User
+          ? window.t('game.message_save_user', { score: event.score, words })
+          : window.t('game.message_save_opponent', { score: event.score, words });
+      }
       default:
         return '';
     }
@@ -53,5 +46,9 @@ export default class UseAnnotation {
     const events = this.annotationEvents;
     const start = Math.max(0, events.length - UseAnnotation.MAX_DISPLAYED_MESSAGES);
     return events.slice(start);
+  }
+
+  private isEventDisplayed(event: GameEvent): boolean {
+    return event.type === GameEventType.TurnPassed || event.type === GameEventType.TurnSaved;
   }
 }
