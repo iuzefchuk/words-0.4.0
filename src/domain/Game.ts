@@ -63,54 +63,6 @@ class EventLog {
   }
 }
 
-class GameFactory {
-  static create(identityService: IdentityService, seedingService: SeedingService, dictionary: Dictionary, settings: GameSettings): Game {
-    const seed = seedingService.createSeed();
-    const firstEvent: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
-    const eventLog = EventLog.create([firstEvent]);
-    const { board, difficulty, inventory, match, turns } = GameFactory.provideGameParams(
-      firstEvent.seed,
-      firstEvent.settings,
-      seedingService,
-      identityService,
-    );
-    const game = new Game(dictionary, eventLog, identityService, seedingService, board, inventory, match, turns, difficulty);
-    turns.startTurnFor(turns.nextPlayer);
-    return game;
-  }
-
-  static createFromEvents(
-    events: ReadonlyArray<GameEvent>,
-    dictionary: Dictionary,
-    identityService: IdentityService,
-    seedingService: SeedingService,
-  ): Game {
-    if (!events[0]) throw new Error('Events have to exist');
-    const first = events[0];
-    if (first.type !== GameEventType.MatchStarted) throw new Error('First event must be MatchStarted');
-    const eventLog = EventLog.create([...events]);
-    const { board, difficulty, inventory, match, turns } = GameFactory.provideGameParams(first.seed, first.settings, seedingService, identityService);
-    const game = new Game(dictionary, eventLog, identityService, seedingService, board, inventory, match, turns, difficulty);
-    turns.startTurnFor(turns.nextPlayer);
-    for (let i = 1; i < events.length; i++) {
-      game.applyToState(events[i]!);
-    }
-    return game;
-  }
-
-  static provideGameParams(seed: number, settings: GameSettings, seedingService: SeedingService, identityService: IdentityService) {
-    const players = Object.values(GamePlayer);
-    const randomizer = seedingService.createRandomizer(seed);
-    return {
-      board: Board.create(settings.boardType, randomizer),
-      difficulty: settings.difficulty,
-      inventory: Inventory.create(players, randomizer),
-      match: Match.create(players),
-      turns: Turns.create(identityService),
-    };
-  }
-}
-
 export default class Game {
   get boardView(): Readonly<GameBoardView> {
     return this.board;
@@ -136,20 +88,26 @@ export default class Game {
     return this.turns;
   }
 
+  private board!: Board;
+  private inventory!: Inventory;
+  private match!: Match;
+  private turns!: Turns;
+
   constructor(
     private readonly dictionary: Dictionary,
     private readonly eventLog: EventLog,
     private readonly identityService: IdentityService,
     private readonly seedingService: SeedingService,
-    private board: Board,
-    private inventory: Inventory,
-    private match: Match,
-    private turns: Turns,
     public difficulty: GameDifficulty,
   ) {}
 
   static create(identityService: IdentityService, seedingService: SeedingService, dictionary: Dictionary, settings: GameSettings): Game {
-    return GameFactory.create(identityService, seedingService, dictionary, settings);
+    const seed = seedingService.createSeed();
+    const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
+    const eventLog = EventLog.create([event]);
+    const game = new Game(dictionary, eventLog, identityService, seedingService, settings.difficulty);
+    game.initialize(Game.createInitParams(seed, settings, seedingService, identityService));
+    return game;
   }
 
   static createFromEvents(
@@ -158,7 +116,25 @@ export default class Game {
     identityService: IdentityService,
     seedingService: SeedingService,
   ): Game {
-    return GameFactory.createFromEvents(events, dictionary, identityService, seedingService);
+    if (!events[0]) throw new Error('Events have to exist');
+    const first = events[0];
+    if (first.type !== GameEventType.MatchStarted) throw new Error('First event must be MatchStarted');
+    const eventLog = EventLog.create([...events]);
+    const game = new Game(dictionary, eventLog, identityService, seedingService, first.settings.difficulty);
+    game.initialize(Game.createInitParams(first.seed, first.settings, seedingService, identityService));
+    for (let i = 1; i < events.length; i++) game.applyToState(events[i]!);
+    return game;
+  }
+
+  private static createInitParams(seed: number, settings: GameSettings, seedingService: SeedingService, identityService: IdentityService) {
+    const players = Object.values(GamePlayer);
+    const randomizer = seedingService.createRandomizer(seed);
+    return {
+      board: Board.create(settings.boardType, randomizer),
+      inventory: Inventory.create(players, randomizer),
+      match: Match.create(players),
+      turns: Turns.create(identityService),
+    };
   }
 
   applyGeneratedTurn(result: GeneratorResult): { score: number; words: ReadonlyArray<string> } {
@@ -319,15 +295,18 @@ export default class Game {
     if (!this.settingsChangeIsAllowed) throw new Error('Settings change is not allowed');
   }
 
+  private initialize(params: { board: Board; inventory: Inventory; match: Match; turns: Turns }): void {
+    this.board = params.board;
+    this.inventory = params.inventory;
+    this.match = params.match;
+    this.turns = params.turns;
+    this.turns.startTurnFor(this.turns.nextPlayer);
+  }
+
   private resetFromSettings(settings: GameSettings): void {
     const seed = this.seedingService.createSeed();
-    const state = GameFactory.provideGameParams(seed, settings, this.seedingService, this.identityService);
-    this.board = state.board;
-    this.difficulty = state.difficulty;
-    this.inventory = state.inventory;
-    this.match = state.match;
-    this.turns = state.turns;
+    this.difficulty = settings.difficulty;
+    this.initialize(Game.createInitParams(seed, settings, this.seedingService, this.identityService));
     this.eventLog.reset({ seed, settings, type: GameEventType.MatchStarted });
-    this.turns.startTurnFor(this.turns.nextPlayer);
   }
 }
