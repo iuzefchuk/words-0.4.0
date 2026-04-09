@@ -1,4 +1,4 @@
-import { computed, inject } from 'vue';
+import { inject } from 'vue';
 import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
 import SoundPlayer, { Sound } from '@/presentation/services/SoundPlayer.ts';
 import DialogStore from '@/presentation/stores/DialogStore.ts';
@@ -6,8 +6,6 @@ import MainStore from '@/presentation/stores/MainStore.ts';
 import RackStore from '@/presentation/stores/RackStore.ts';
 
 export default class UseButtons {
-  readonly allActionsAreDisabled = computed(() => !MainStore.INSTANCE().currentPlayerIsUser);
-
   private get dialogStore() {
     return DialogStore.INSTANCE();
   }

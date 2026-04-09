@@ -53,6 +53,8 @@ class TilePool {
 }
 
 export default class Inventory {
+  static readonly PLAYER_POOL_CAPACITY = 7;
+
   private static readonly LETTER_CONFIG: Record<Letter, { count: number; points: number }> = {
     [Letter.A]: { count: 9, points: 1 },
     [Letter.B]: { count: 2, points: 4 },
@@ -91,14 +93,16 @@ export default class Inventory {
     ),
   );
 
-  private static readonly PLAYER_POOL_CAPACITY = 7;
-
   get snapshot(): InventorySnapshot {
     return {
       discardPool: this.discardPool.snapshot,
       drawPool: this.drawPool.snapshot,
       playerPools: new Map([...this.playerPools].map(([player, pool]) => [player, pool.snapshot])),
     };
+  }
+
+  get tilesPerPlayer(): number {
+    return Inventory.PLAYER_POOL_CAPACITY;
   }
 
   get unusedTilesCount(): number {

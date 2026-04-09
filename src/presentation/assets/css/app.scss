@@ -77,6 +77,7 @@
   --cell-tile-width: var(--space-4xl);
   --cell-tile-gap: var(--space-2xs);
   --opacity-disabled: 0.7;
+  letter-spacing: 0.25px;
   @include light-scheme;
   @media (prefers-color-scheme: dark) {
     //  @include dark-scheme;

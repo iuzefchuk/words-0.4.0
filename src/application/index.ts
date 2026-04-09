@@ -14,6 +14,7 @@ export default class Application {
     return {
       boardCells: this.game.boardView.cells,
       boardCellsPerAxis: this.game.boardView.cellsPerAxis,
+      tilesPerPlayer: this.game.inventoryView.tilesPerPlayer,
     };
   }
 

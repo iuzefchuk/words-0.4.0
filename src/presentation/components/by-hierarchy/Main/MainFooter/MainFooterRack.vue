@@ -1,27 +1,31 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import UseButtons from '@/presentation/components/by-hierarchy/Main/MainFooter/MainFooterButtons/UseButtons.ts';
-import GameTile from '@/presentation/components/shared/AppTile/AppTile.vue';
+import { computed } from 'vue';
+import AppTile from '@/presentation/components/shared/AppTile/AppTile.vue';
 import MainStore from '@/presentation/stores/MainStore.ts';
 import RackStore from '@/presentation/stores/RackStore.ts';
+import type { GameTile } from '@/application/types.ts';
 const mainStore = MainStore.INSTANCE();
 const rackStore = RackStore.INSTANCE();
-const { tilesRemaining } = storeToRefs(mainStore);
+const { allActionsAreDisabled, tilesRemaining } = storeToRefs(mainStore);
 const { tiles } = storeToRefs(rackStore);
-const buttons = UseButtons.create();
-const { allActionsAreDisabled } = buttons;
+const paddedTiles = computed<Array<GameTile | null>>(() => {
+  const result: Array<GameTile | null> = [...tiles.value];
+  while (result.length < mainStore.tilesPerPlayer) result.push(null);
+  return result;
+});
 </script>
 
 <template>
   <ul class="rack app__limit-max-width app__create-grid--for-rack">
     <li
-      v-for="(tile, idx) in tiles"
-      :key="tile"
+      v-for="(tile, idx) in paddedTiles"
+      :key="idx"
       :class="{ rack__cell: true, 'rack__cell--disabled': allActionsAreDisabled }"
-      @click.stop="rackStore.handleClickFooterCell(idx)"
+      @click.stop="tile !== null && rackStore.handleClickFooterCell(idx)"
     >
-      <GameTile
-        v-if="rackStore.isTileVisible(tile)"
+      <AppTile
+        v-if="tile !== null && rackStore.isTileVisible(tile)"
         :letter="mainStore.getTileLetter(tile)"
         :is-inverted="rackStore.isTileSelected(tile)"
         @click.stop="rackStore.handleClickFooterTile(tile)"

@@ -11,6 +11,7 @@ export type InventoryView = {
   getTileLetter(tile: Tile): Letter;
   getTilesFor(player: Player): ReadonlyArray<Tile>;
   hasTilesFor(player: Player): boolean;
+  readonly tilesPerPlayer: number;
   readonly unusedTilesCount: number;
 };
 

@@ -41,15 +41,17 @@ const players = [
 
 <template>
   <header class="header">
-    <template v-if="optionsAreDisabled">
-      <p v-for="player in players" :key="player.name">{{ player.name }}: <span v-animate-number="{ number: player.score() }" /></p>
-    </template>
-    <template v-else>
-      <p v-for="{ items, label, modelValue, onChange } in options" :key="label">
-        {{ label }}:
-        <AppSelect :model-value="modelValue()" :options="items" :is-disabled="false" @change="onChange" />
-      </p>
-    </template>
+    <Transition name="fade" mode="out-in">
+      <div v-if="optionsAreDisabled" class="header__group">
+        <p v-for="player in players" :key="player.name">{{ player.name }}: <span v-animate-number="{ number: player.score() }" /></p>
+      </div>
+      <div v-else class="header__group">
+        <p v-for="{ items, label, modelValue, onChange } in options" :key="label">
+          {{ label }}:
+          <AppSelect :model-value="modelValue()" :options="items" :is-disabled="false" @change="onChange" />
+        </p>
+      </div>
+    </Transition>
   </header>
 </template>
 
@@ -59,8 +61,10 @@ const players = [
   z-index: var(--z-index-level-2);
   padding: var(--base-padding) 0;
   align-self: start;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
 }
 </style>

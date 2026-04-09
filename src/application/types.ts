@@ -28,6 +28,7 @@ import type {
 export type AppConfig = {
   boardCells: ReadonlyArray<GameCell>;
   boardCellsPerAxis: number;
+  tilesPerPlayer: number;
 };
 
 export type AppDependencies = {

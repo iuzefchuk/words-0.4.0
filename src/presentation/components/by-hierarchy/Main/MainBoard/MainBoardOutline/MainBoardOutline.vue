@@ -24,7 +24,7 @@ const CELL_STEP = 'calc((100% + var(--cell-tile-gap)) / var(--cell-count-per-axi
     }"
   >
     <Transition name="fade" appear>
-      <MainBoardTooltip v-if="outline.isTooltipRendered(outlineGroups, idx)" />
+      <MainBoardTooltip v-if="outline.isTooltipRendered(outlineGroups, idx)" :is-flipped="outline.isTooltipFlipped(outlineGroups, idx)" />
     </Transition>
   </div>
 </template>

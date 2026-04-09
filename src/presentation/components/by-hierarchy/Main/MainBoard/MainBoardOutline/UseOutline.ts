@@ -26,6 +26,12 @@ export default class UseOutline {
     return groups;
   }
 
+  isTooltipFlipped(groups: ReadonlyArray<OutlineGroup>, idx: number): boolean {
+    const group = groups[idx];
+    if (!group) return false;
+    return group.col + group.colSpan >= this.boardCellsPerAxis;
+  }
+
   isTooltipRendered(groups: ReadonlyArray<OutlineGroup>, idx: number): boolean {
     if (this.mainStore.currentTurnScore === undefined) return false;
     const minRow = Math.min(...groups.map(g => g.row));

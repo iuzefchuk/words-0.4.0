@@ -78,9 +78,11 @@ class Actions {
 }
 
 class Getters {
-  readonly boardType = computed(() => this.readBoard(() => this.queriesService.getBoardType()));
-
   readonly currentPlayerIsUser = computed(() => this.readState(() => this.queriesService.isCurrentPlayerUser()));
+
+  readonly allActionsAreDisabled = computed(() => !this.currentPlayerIsUser.value);
+
+  readonly boardType = computed(() => this.readBoard(() => this.queriesService.getBoardType()));
 
   readonly currentTurnIsValid = computed(() => this.readBoard(() => this.queriesService.isCurrentTurnValid()));
 

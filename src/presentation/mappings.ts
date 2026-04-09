@@ -89,13 +89,12 @@ export function getLetterSvgHtml(letter: GameLetter): string {
   );
 }
 
-export function getMatchResultText(result: GameMatchResult, score: string): string {
+export function getMatchResultText(result: GameMatchResult): string {
   return window.t(
     {
       [GameMatchResult.Lose]: 'game.end_lose',
       [GameMatchResult.Tie]: 'game.end_tie',
       [GameMatchResult.Win]: 'game.end_win',
     }[result] ?? '',
-    { score },
   );
 }

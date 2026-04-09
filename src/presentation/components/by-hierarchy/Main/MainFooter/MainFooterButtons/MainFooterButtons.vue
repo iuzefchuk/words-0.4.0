@@ -82,7 +82,6 @@ const items = reactive([
     width: 100%;
     height: 100%;
     user-select: none;
-    letter-spacing: 0.5px;
     box-shadow: var(--box-shadow-level-1);
     transition-property: box-shadow;
     transition-duration: var(--transition-duration-half);

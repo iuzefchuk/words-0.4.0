@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import MainStore from '@/presentation/stores/MainStore.ts';
+const props = defineProps<{ isFlipped?: boolean }>();
 const mainStore = MainStore.INSTANCE();
 const { currentTurnScore } = storeToRefs(mainStore);
 const SHIMMER_THRESHOLD_SCORE = 29;
 </script>
 
 <template>
-  <div v-if="currentTurnScore" class="tooltip">
+  <div v-if="currentTurnScore" :class="{ tooltip: true, 'tooltip--flipped': props.isFlipped }">
     <div :class="{ tooltip__score: true, 'tooltip__score--shimmer': currentTurnScore > SHIMMER_THRESHOLD_SCORE }">
       {{ currentTurnScore }}
     </div>
@@ -24,6 +25,10 @@ const SHIMMER_THRESHOLD_SCORE = 29;
   z-index: var(--z-index-level-2);
   display: grid;
   place-items: center;
+  &--flipped {
+    right: auto;
+    left: calc(-1 * var(--space-xl));
+  }
   &__score {
     width: max-content;
     height: max-content;
