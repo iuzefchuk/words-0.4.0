@@ -3,7 +3,7 @@ import Board from '@/domain/models/board/Board.ts';
 import { Axis } from '@/domain/models/board/enums.ts';
 import { AnchorCoordinates, Cell, Link } from '@/domain/models/board/types.ts';
 import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
-import { NodeId } from '@/domain/models/dictionary/types.ts';
+import { FrozenNode } from '@/domain/models/dictionary/types.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
 import { Tile, TileCollection } from '@/domain/models/inventory/types.ts';
 import { ValidationStatus } from '@/domain/models/turns/enums.ts';
@@ -97,7 +97,7 @@ type Task = ApplyTask | CalculateTask | EvaluateTask | ResolveTask | ReverseTask
 
 type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
 
-type Traversal = { direction: GenerationDirection; node: NodeId; position: number };
+type Traversal = { direction: GenerationDirection; node: FrozenNode; position: number };
 
 type ValidateTask = { traversal: Traversal; type: GenerationTask.ValidateTraversal };
 
@@ -361,7 +361,7 @@ export default class TurnGenerator {
     const firstTask: EvaluateTask = {
       traversal: {
         direction: GenerationDirection.Left,
-        node: dictionary.rootNodeId,
+        node: dictionary.rootNode,
         position: dispatcher.computeds.axisCells.indexOf(coords.cell),
       },
       type: GenerationTask.EvaluateTraversal,

@@ -45,7 +45,7 @@ export default class CrossCheckService {
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
     const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
     if (!prefix && !suffix) return this.dictionary.allLetters;
-    const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNodeId;
+    const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
     if (!prefixNode) return new Set();
     const anchorLetters = new Set<Letter>();
     const generator = this.dictionary.createNextNodeGenerator({ startNode: prefixNode });

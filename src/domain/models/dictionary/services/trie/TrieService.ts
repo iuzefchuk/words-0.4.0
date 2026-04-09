@@ -1,9 +1,7 @@
 import { Letter } from '@/domain/enums.ts';
-import { Node, NodeId } from '@/domain/models/dictionary/types.ts';
+import { Node } from '@/domain/models/dictionary/types.ts';
 
 export default class TrieService {
-  private currentId: NodeId = 0;
-
   static createTrie(sortedWords: ReadonlyArray<string>): Node {
     const serviceInstance = new TrieService();
     return serviceInstance.build(sortedWords);
@@ -34,7 +32,7 @@ export default class TrieService {
   }
 
   private createNode(): Node {
-    return { children: new Map(), id: this.currentId++, isFinal: false };
+    return { children: new Map(), isFinal: false };
   }
 
   private getCommonPrefixLength(a: string, b: string): number {

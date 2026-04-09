@@ -1,40 +1,58 @@
 import { Letter } from '@/domain/enums.ts';
 import TrieService from '@/domain/models/dictionary/services/trie/TrieService.ts';
-import { DictionarySnapshot, FrozenNode, NextNodeGenerator, NodeId } from '@/domain/models/dictionary/types.ts';
+import { DictionarySnapshot, FrozenNode, NextNodeGenerator } from '@/domain/models/dictionary/types.ts';
 
 export default class Dictionary {
-  get rootNodeId(): NodeId {
-    return this.trie.id;
+  get rootNode(): FrozenNode {
+    return this.trie;
   }
 
   get snapshot(): DictionarySnapshot {
     return {
       allLetters: this.allLetters,
-      nodeById: this.nodeById,
       trie: this.trie,
     };
   }
 
   private constructor(
     public readonly trie: FrozenNode,
-    public readonly nodeById: ReadonlyMap<NodeId, FrozenNode>,
     public readonly allLetters: ReadonlySet<Letter>,
   ) {}
 
   static async create(): Promise<Dictionary> {
-    const gzippedData = await fetch('/dictionary.gz');
-    const decompressedData = gzippedData.body!.pipeThrough(new DecompressionStream('gzip'));
-    const textData = await new Response(decompressedData).text();
+    // TODO to infra service CompressionService
+    const response = await fetch('/dictionary.gz');
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    // If the server transparently decompressed the gzip (e.g. via Content-Encoding: gzip),
+    // the body won't have the gzip magic bytes and can be decoded directly.
+    const isGzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
+    let textData: string;
+    if (isGzip) {
+      const stream = new DecompressionStream('gzip');
+      const writer = stream.writable.getWriter();
+      writer.write(bytes);
+      writer.close();
+      textData = await new Response(stream.readable).text();
+    } else {
+      textData = new TextDecoder().decode(buffer);
+    }
     const trie = TrieService.createTrie(textData.split('\n') as ReadonlyArray<string>);
-    const nodeById = new Map<NodeId, FrozenNode>();
     const allLetters = new Set<Letter>();
     this.freezeTree(trie);
-    this.traverseNode(nodeById, allLetters, trie);
-    return new Dictionary(trie, nodeById, allLetters);
+    this.collectLetters(allLetters, trie);
+    return new Dictionary(trie, allLetters);
   }
 
   static restoreFromSnapshot(snapshot: DictionarySnapshot): Dictionary {
-    return new Dictionary(snapshot.trie, snapshot.nodeById, snapshot.allLetters);
+    return new Dictionary(snapshot.trie, snapshot.allLetters);
+  }
+
+  private static collectLetters(allLetters: Set<Letter>, node: FrozenNode): void {
+    for (const [childLetter, childNode] of node.children) {
+      allLetters.add(childLetter);
+      this.collectLetters(allLetters, childNode);
+    }
   }
 
   private static freezeTree(node: FrozenNode): void {
@@ -43,36 +61,26 @@ export default class Dictionary {
     Object.freeze(node);
   }
 
-  private static traverseNode(nodeById: Map<NodeId, FrozenNode>, allLetters: Set<Letter>, node: FrozenNode): void {
-    nodeById.set(node.id, node);
-    for (const [childLetter, childNode] of node.children) {
-      allLetters.add(childLetter);
-      this.traverseNode(nodeById, allLetters, childNode);
-    }
-  }
-
   containsAllWords(words: ReadonlyArray<string>): boolean {
     if (words.length === 0) throw new Error('Words array is empty');
     return words.every(word => this.containsWord(word));
   }
 
-  createNextNodeGenerator({ startNode }: { startNode: NodeId }): NextNodeGenerator {
-    const node = this.findNodeById(startNode);
-    function* generator(node: FrozenNode): Generator<[Letter, NodeId]> {
+  createNextNodeGenerator({ startNode }: { startNode: FrozenNode }): NextNodeGenerator {
+    function* generator(node: FrozenNode): Generator<[Letter, FrozenNode]> {
       for (const [possibleNextLetter, nodeForPossibleNextLetter] of node.children) {
-        yield [possibleNextLetter, nodeForPossibleNextLetter.id] as [Letter, NodeId];
+        yield [possibleNextLetter, nodeForPossibleNextLetter];
       }
     }
-    return generator(node);
+    return generator(startNode);
   }
 
-  getNode(word: string, startNode: NodeId = this.rootNodeId): NodeId | null {
-    const node = this.findNodeForWord(word, startNode);
-    return node ? node.id : null;
+  getNode(word: string, startNode: FrozenNode = this.trie): FrozenNode | null {
+    return this.findNodeForWord(word, startNode);
   }
 
-  isNodeFinal(node: NodeId): boolean {
-    return this.findNodeById(node).isFinal;
+  isNodeFinal(node: FrozenNode): boolean {
+    return node.isFinal;
   }
 
   private containsWord(word: string): boolean {
@@ -80,14 +88,8 @@ export default class Dictionary {
     return node?.isFinal || false;
   }
 
-  private findNodeById(nodeId: NodeId): FrozenNode {
-    const node = this.nodeById.get(nodeId);
-    if (!node) throw new ReferenceError(`Node not found: ${nodeId}`);
-    return node;
-  }
-
-  private findNodeForWord(word: string, startNodeId: NodeId = this.rootNodeId): FrozenNode | null {
-    let currentNode = this.findNodeById(startNodeId);
+  private findNodeForWord(word: string, startNode: FrozenNode = this.trie): FrozenNode | null {
+    let currentNode = startNode;
     for (let i = 0; i < word.length; i++) {
       const letter = word[i] as Letter;
       const nextNode = currentNode.children.get(letter);
