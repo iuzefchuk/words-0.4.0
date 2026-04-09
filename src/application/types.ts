@@ -1,6 +1,6 @@
 import {
+  GameBoardType,
   GameBonus,
-  GameBonusDistribution,
   GameDictionary,
   GameDifficulty,
   GameEventType,
@@ -53,14 +53,4 @@ export type SchedulingService = {
 
 export type { GameBoardView, GameCell, GameEvent, GameGeneratorResult, GameInventoryView, GameMatchView, GameSettings, GameTile, GameTurnsView };
 
-export {
-  GameBonus,
-  GameBonusDistribution,
-  GameDictionary,
-  GameDifficulty,
-  GameEventType,
-  GameLetter,
-  GameMatchResult,
-  GamePlayer,
-  GameTurnGenerator,
-};
+export { GameBoardType, GameBonus, GameDictionary, GameDifficulty, GameEventType, GameLetter, GameMatchResult, GamePlayer, GameTurnGenerator };

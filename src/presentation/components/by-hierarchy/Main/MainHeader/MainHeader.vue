@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { GameBonusDistribution, GameDifficulty } from '@/application/types.ts';
+import { GameBoardType, GameDifficulty } from '@/application/types.ts';
 import AppSelect from '@/presentation/components/shared/AppSelect/AppSelect.vue';
 import MainStore from '@/presentation/stores/MainStore.ts';
-type OptionValue = GameBonusDistribution | GameDifficulty;
+type OptionValue = GameBoardType | GameDifficulty;
 const mainStore = MainStore.INSTANCE();
 const optionsAreDisabled = computed(() => !mainStore.settingsChangeIsAllowed);
 const options = [
   {
     items: [
-      { text: window.t('game.bonus_distribution_classic'), value: GameBonusDistribution.Classic },
-      { text: window.t('game.bonus_distribution_random'), value: GameBonusDistribution.Random },
+      { text: window.t('game.bonus_distribution_classic'), value: GameBoardType.Classic },
+      { text: window.t('game.bonus_distribution_random'), value: GameBoardType.Random },
     ],
     label: window.t('game.settings_bonuses'),
     modelValue: () => mainStore.boardType,
-    onChange: (value: OptionValue) => mainStore.changeBoardType(value as GameBonusDistribution),
+    onChange: (value: OptionValue) => mainStore.changeBoardType(value as GameBoardType),
   },
   {
     items: [

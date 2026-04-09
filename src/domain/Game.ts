@@ -7,8 +7,8 @@ import Turns from '@/domain/models/turns/Turns.ts';
 import { GeneratorContext, GeneratorResult } from '@/domain/services/turn-generation/TurnGenerationService.ts';
 import TurnValidationService, { ValidatorContext } from '@/domain/services/turn-validation/TurnValidationService.ts';
 import {
+  GameBoardType,
   GameBoardView,
-  GameBonusDistribution,
   GameCell,
   GameDifficulty,
   GameEvent,
@@ -199,7 +199,7 @@ export default class Game {
     }
   }
 
-  changeBoardType(boardType: GameBonusDistribution): void {
+  changeBoardType(boardType: GameBoardType): void {
     this.ensureMutability();
     this.ensureSettingsMutability();
     const newSeed = this.seedingService.createSeed();

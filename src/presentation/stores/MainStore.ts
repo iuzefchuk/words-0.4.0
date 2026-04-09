@@ -3,7 +3,7 @@ import { computed, markRaw, ref } from 'vue';
 import Application from '@/application/index.ts';
 import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
-import { GameBonusDistribution, GameCell, GameDifficulty, GameSettings, GameTile } from '@/application/types.ts';
+import { GameBoardType, GameCell, GameDifficulty, GameSettings, GameTile } from '@/application/types.ts';
 import { DEFAULT_SETTINGS } from '@/presentation/constants.ts';
 import { StorageKey } from '@/presentation/enums.ts';
 import { getEventSound } from '@/presentation/mappings.ts';
@@ -16,7 +16,7 @@ class Actions {
     private readonly state: State,
   ) {}
 
-  changeBoardType = (boardType: GameBonusDistribution): void => {
+  changeBoardType = (boardType: GameBoardType): void => {
     MainStore.saveSettings({ boardType });
     return this.state.writeBoard(() => this.commandsService.changeBoardType(boardType));
   };
@@ -211,7 +211,7 @@ export default class MainStore {
     MainStore.app = markRaw(await Application.create(settings));
   }
 
-  static saveSettings(data: { boardType?: GameBonusDistribution; difficulty?: GameDifficulty }): void {
+  static saveSettings(data: { boardType?: GameBoardType; difficulty?: GameDifficulty }): void {
     const existingCache = this.loadSettings();
     const newCache = {
       boardType: data?.boardType ?? existingCache?.boardType,

@@ -1,5 +1,5 @@
 import { Difficulty as GameDifficulty, EventType as GameEventType, Letter as GameLetter, Player as GamePlayer } from '@/domain/enums.ts';
-import { Bonus as GameBonus, BoardType as GameBonusDistribution } from '@/domain/models/board/enums.ts';
+import { BoardType as GameBoardType, Bonus as GameBonus } from '@/domain/models/board/enums.ts';
 import { default as GameDictionary } from '@/domain/models/dictionary/Dictionary.ts';
 import { DictionarySnapshot } from '@/domain/models/dictionary/types.ts';
 import { MatchResult as GameMatchResult } from '@/domain/models/match/enums.ts';
@@ -24,7 +24,7 @@ export type EventRepository = {
 };
 
 export type GameEvent =
-  | { boardType: GameBonusDistribution; seed: number; type: GameEventType.BoardTypeChanged }
+  | { boardType: GameBoardType; seed: number; type: GameEventType.BoardTypeChanged }
   | { cell: GameCell; tile: GameTile; type: GameEventType.TilePlaced }
   | { cell: GameCell; tile: GameTile; type: GameEventType.TileUndoPlaced }
   | { difficulty: GameDifficulty; type: GameEventType.DifficultyChanged }
@@ -35,7 +35,7 @@ export type GameEvent =
   | { type: GameEventType.MatchFinished; winner: GamePlayer | null };
 
 export type GameSettings = {
-  boardType: GameBonusDistribution;
+  boardType: GameBoardType;
   difficulty: GameDifficulty;
 };
 
@@ -50,14 +50,4 @@ export type SeedingService = {
 
 export type { GameBoardView, GameCell, GameGeneratorResult, GameInventoryView, GameMatchView, GameTile, GameTurnsView, ValidationResult };
 
-export {
-  GameBonus,
-  GameBonusDistribution,
-  GameDictionary,
-  GameDifficulty,
-  GameEventType,
-  GameLetter,
-  GameMatchResult,
-  GamePlayer,
-  GameTurnGenerator,
-};
+export { GameBoardType, GameBonus, GameDictionary, GameDifficulty, GameEventType, GameLetter, GameMatchResult, GamePlayer, GameTurnGenerator };

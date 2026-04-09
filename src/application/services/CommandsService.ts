@@ -1,6 +1,6 @@
 import {
   AppTurnResponse,
-  GameBonusDistribution,
+  GameBoardType,
   GameCell,
   GameDifficulty,
   GameEvent,
@@ -40,7 +40,7 @@ export default class CommandsService {
     private readonly eventRepository: EventRepository,
   ) {}
 
-  changeBoardType(boardType: GameBonusDistribution): void {
+  changeBoardType(boardType: GameBoardType): void {
     this.game.changeBoardType(boardType);
   }
 

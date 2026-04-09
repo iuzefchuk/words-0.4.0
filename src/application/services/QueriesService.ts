@@ -1,7 +1,7 @@
 import {
+  GameBoardType,
   GameBoardView,
   GameBonus,
-  GameBonusDistribution,
   GameCell,
   GameDifficulty,
   GameEvent,
@@ -41,7 +41,7 @@ export default class QueriesService {
     return this.boardView.findTileByCell(cell);
   }
 
-  getBoardType(): GameBonusDistribution {
+  getBoardType(): GameBoardType {
     return this.boardView.type;
   }
 
