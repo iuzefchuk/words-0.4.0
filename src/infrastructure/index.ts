@@ -3,6 +3,7 @@ import { DictionaryRepository, EventRepository, GameEvent } from '@/domain/types
 import AsyncSchedulingService from '@/infrastructure/services/AsyncSchedulingService.ts';
 import CryptoIdentityService from '@/infrastructure/services/CryptoIdentityService.ts';
 import CryptoSeedingService from '@/infrastructure/services/CryptoSeedingService.ts';
+import FetchCompressionService from '@/infrastructure/services/FetchCompressionService.ts';
 import StorageService from '@/infrastructure/services/StorageService.ts';
 import VersioningService from '@/infrastructure/services/VersioningService.ts';
 import type { DictionarySnapshot } from '@/domain/models/dictionary/types.ts';
@@ -32,11 +33,11 @@ class IndexedDbDictionaryRepository implements DictionaryRepository {
 }
 
 class IndexedDbEventRepository implements EventRepository {
-  private static readonly CACHE_KEY = 'events';
+  private static readonly CACHE_KEY = 'state';
 
-  private static readonly DB_NAME = 'words-game';
+  private static readonly DB_NAME = 'words-events';
 
-  private static readonly STORE_NAME = 'game';
+  private static readonly STORE_NAME = 'events';
 
   private readonly db = new StorageService<ReadonlyArray<GameEvent>>(
     IndexedDbEventRepository.DB_NAME,
@@ -68,6 +69,7 @@ export default class Infrastructure {
         events: new IndexedDbEventRepository(version),
       },
       services: {
+        compression: new FetchCompressionService(),
         identity: new CryptoIdentityService(),
         scheduling: new AsyncSchedulingService(),
         seeding: new CryptoSeedingService(),

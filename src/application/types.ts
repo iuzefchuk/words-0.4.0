@@ -37,6 +37,7 @@ export type AppDependencies = {
     events: EventRepository;
   };
   services: {
+    compression: CompressionService;
     identity: IdentityService;
     scheduling: SchedulingService;
     seeding: SeedingService;
@@ -44,6 +45,10 @@ export type AppDependencies = {
 };
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;
+
+export type CompressionService = {
+  fetchAndDecompress(url: string): Promise<string>;
+};
 
 export type SchedulingService = {
   getCurrentTime(): number;

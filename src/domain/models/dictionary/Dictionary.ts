@@ -19,24 +19,7 @@ export default class Dictionary {
     public readonly allLetters: ReadonlySet<Letter>,
   ) {}
 
-  static async create(): Promise<Dictionary> {
-    // TODO to infra service CompressionService
-    const response = await fetch('/dictionary.gz');
-    const buffer = await response.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    // If the server transparently decompressed the gzip (e.g. via Content-Encoding: gzip),
-    // the body won't have the gzip magic bytes and can be decoded directly.
-    const isGzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
-    let textData: string;
-    if (isGzip) {
-      const stream = new DecompressionStream('gzip');
-      const writer = stream.writable.getWriter();
-      writer.write(bytes);
-      writer.close();
-      textData = await new Response(stream.readable).text();
-    } else {
-      textData = new TextDecoder().decode(buffer);
-    }
+  static create(textData: string): Dictionary {
     const trie = TrieService.createTrie(textData.split('\n') as ReadonlyArray<string>);
     const allLetters = new Set<Letter>();
     this.freezeTree(trie);

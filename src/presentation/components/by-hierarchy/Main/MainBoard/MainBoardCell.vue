@@ -65,7 +65,6 @@ const isTileSaturated = computed(() => tile.value != null && mainStore.wasTileUs
   user-select: none;
   box-shadow: var(--cell-shadow);
   cursor: pointer;
-  // transform: translateZ(0);
   &--center {
     background: var(--cell-bg-center);
   }

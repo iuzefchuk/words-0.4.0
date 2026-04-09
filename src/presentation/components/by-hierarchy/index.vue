@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 import Dialog from '@/presentation/components/by-hierarchy/Dialog.vue';
 import Endscreen from '@/presentation/components/by-hierarchy/Endscreen.vue';
 import Loader from '@/presentation/components/by-hierarchy/Loader/Loader.vue';
@@ -10,12 +10,9 @@ import MainStore from '@/presentation/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(mainStore);
 const loaderIsActive = ref(true);
-const mainIsRendered = ref(false);
-const showEndscreen = ref(false);
+const mainIsRendered = ref(!loaderIsActive.value);
+const showEndscreen = computed(() => matchIsFinished.value);
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
-watch(matchIsFinished, finished => {
-  showEndscreen.value = finished;
-});
 onMounted(() => {
   loaderIsActive.value = false;
 });
