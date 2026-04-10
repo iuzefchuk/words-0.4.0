@@ -1,4 +1,4 @@
-import { GameDictionarySnapshot } from '@/application/types/index.ts';
+import { GameTrie } from '@/application/types/index.ts';
 import { DictionaryRepository } from '@/application/types/repositories.ts';
 import IndexedDbService from '@/infrastructure/services/IndexedDbService.ts';
 
@@ -9,7 +9,7 @@ export default class IndexedDbDictionaryRepository implements DictionaryReposito
 
   private static readonly STORE_NAME = 'dictionary';
 
-  private readonly db = new IndexedDbService<GameDictionarySnapshot>(
+  private readonly db = new IndexedDbService<GameTrie>(
     IndexedDbDictionaryRepository.DB_NAME,
     IndexedDbDictionaryRepository.STORE_NAME,
     IndexedDbDictionaryRepository.CACHE_KEY,
@@ -17,11 +17,11 @@ export default class IndexedDbDictionaryRepository implements DictionaryReposito
 
   constructor(private readonly version: string) {}
 
-  async load(): Promise<GameDictionarySnapshot | null> {
+  async load(): Promise<GameTrie | null> {
     return this.db.load(this.version);
   }
 
-  async save(snapshot: GameDictionarySnapshot): Promise<void> {
-    await this.db.save(this.version, snapshot);
+  async save(trie: GameTrie): Promise<void> {
+    await this.db.save(this.version, trie);
   }
 }

@@ -2,12 +2,7 @@ import { Letter } from '@/domain/enums.ts';
 import { Node } from '@/domain/models/dictionary/types.ts';
 
 export default class TrieService {
-  static createTrie(sortedWords: ReadonlyArray<string>): Node {
-    const serviceInstance = new TrieService();
-    return serviceInstance.build(sortedWords);
-  }
-
-  private build(sortedWords: ReadonlyArray<string>): Node {
+  static createNodeTree(sortedWords: ReadonlyArray<string>): Node {
     const rootNode = this.createNode();
     const stack: Array<Node> = [rootNode];
     const lastNodeInStack = (): Node => {
@@ -31,11 +26,11 @@ export default class TrieService {
     return rootNode;
   }
 
-  private createNode(): Node {
+  private static createNode(): Node {
     return { children: new Map(), isFinal: false };
   }
 
-  private getCommonPrefixLength(a: string, b: string): number {
+  private static getCommonPrefixLength(a: string, b: string): number {
     let i = 0;
     while (i < a.length && i < b.length && a[i] === b[i]) i++;
     return i;

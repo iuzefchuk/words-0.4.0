@@ -94,19 +94,19 @@ describe('Board', () => {
     });
   });
 
-  describe('snapshot', () => {
-    let board: Board;
+  // describe('clone', () => {
+  //   let board: Board;
 
-    beforeEach(() => {
-      board = Board.create(BoardType.Classic);
-    });
+  //   beforeEach(() => {
+  //     board = Board.create(BoardType.Classic);
+  //   });
 
-    it('captures and restores', () => {
-      const { snapshot: originalSnapshot } = board;
-      const restoredBoard = Board.createFromSnapshot(originalSnapshot);
-      expect(restoredBoard.snapshot).toEqual(originalSnapshot);
-    });
-  });
+  //   it('captures and restores', () => {
+  //     const { clone: originalclone } = board;
+  //     const restoredBoard = Board.createFromclone(originalclone);
+  //     expect(restoredBoard.clone).toEqual(originalclone);
+  //   });
+  // });
 });
 
 // describe('PlacementBuilder', () => {

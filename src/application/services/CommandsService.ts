@@ -11,7 +11,7 @@ import {
   GameTile,
   GameTurnGenerator,
 } from '@/application/types/index.ts';
-import { IdentityService, SchedulingService } from '@/application/types/ports.ts';
+import { SchedulingService } from '@/application/types/ports.ts';
 import { EventRepository } from '@/application/types/repositories.ts';
 import Game from '@/domain/Game.ts';
 import { TIME } from '@/shared/constants.ts';
@@ -35,7 +35,6 @@ export default class CommandsService {
 
   constructor(
     private readonly game: Game,
-    private readonly identityService: IdentityService,
     private readonly schedulingService: SchedulingService,
     private readonly eventRepository: EventRepository,
   ) {}
@@ -121,7 +120,7 @@ export default class CommandsService {
     const player = GamePlayer.Opponent;
     const { difficulty } = this.game;
     const attemptsLimit = CommandsService.DIFFICULTY_RESULT_LIMITS[difficulty];
-    const context = this.game.createGeneratorContext(this.identityService);
+    const context = this.game.createGeneratorContext();
     let bestResult: GameGeneratorResult | null = null;
     let bestScore = -1;
     let attemptsCount = 0;

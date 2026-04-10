@@ -2,7 +2,7 @@ import { Player } from '@/domain/enums.ts';
 import { Cell } from '@/domain/models/board/types.ts';
 import { Tile } from '@/domain/models/inventory/types.ts';
 import { ValidationError, ValidationStatus } from '@/domain/models/turns/enums.ts';
-import { TurnSnapshot, TurnsSnapshot, ValidationResult } from '@/domain/models/turns/types.ts';
+import { ValidationResult } from '@/domain/models/turns/types.ts';
 import { IdentityService } from '@/domain/types/ports.ts';
 
 class Turn {
@@ -22,10 +22,6 @@ class Turn {
     return this.validationResult.status === ValidationStatus.Valid ? this.validationResult.score : undefined;
   }
 
-  get snapshot(): TurnSnapshot {
-    return { id: this.id, player: this.player, tiles: [...this.tiles], validationResult: this.validationResult };
-  }
-
   get tilesView(): ReadonlyArray<Tile> {
     return this.tiles;
   }
@@ -41,22 +37,18 @@ class Turn {
     private validationResult: ValidationResult = { status: ValidationStatus.Unvalidated },
   ) {}
 
-  static clone(turn: Turn): Turn {
-    return new Turn(turn.id, turn.player, [...turn.tiles], turn.validationResult);
-  }
-
   static create({ identityService, player }: { identityService: IdentityService; player: Player }): Turn {
     const id = identityService.createUniqueId();
     return new Turn(id, player, []);
   }
 
-  static createFromSnapshot(snapshot: TurnSnapshot): Turn {
-    return new Turn(snapshot.id, snapshot.player, snapshot.tiles, snapshot.validationResult);
-  }
-
   addTile(tile: Tile): void {
     if (this.tiles.includes(tile)) throw new Error(`Tile ${tile} already connected`);
     this.tiles.push(tile);
+  }
+
+  clone(): Turn {
+    return new Turn(this.id, this.player, [...this.tiles], { ...this.validationResult });
   }
 
   removeTile({ tile }: { tile: Tile }): void {
@@ -115,12 +107,6 @@ export default class Turns {
     return this.history.at(-2)?.tilesView;
   }
 
-  get snapshot(): TurnsSnapshot {
-    return {
-      history: this.history.map(turn => turn.snapshot),
-    };
-  }
-
   private get currentTurn(): Turn {
     const last = this.history.at(-1);
     if (last === undefined) throw new ReferenceError('Current turn does not exist');
@@ -132,18 +118,15 @@ export default class Turns {
     private history: Array<Turn>,
   ) {}
 
-  static clone(turns: Turns): Turns {
-    const clonedHistory = turns.history.map(turn => Turn.clone(turn));
-    return new Turns(turns.identityService, clonedHistory);
-  }
-
   static create(identityService: IdentityService): Turns {
     return new Turns(identityService, []);
   }
 
-  static createFromSnapshot(identityService: IdentityService, snapshot: TurnsSnapshot): Turns {
-    const history = snapshot.history.map(turn => Turn.createFromSnapshot(turn));
-    return new Turns(identityService, history);
+  clone(): Turns {
+    return new Turns(
+      this.identityService,
+      this.history.map(turn => turn.clone()),
+    );
   }
 
   recordPlacedTile(tile: Tile): void {

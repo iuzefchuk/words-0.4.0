@@ -18,13 +18,13 @@ export {
 export type {
   GameBoardView,
   GameCell,
-  GameDictionarySnapshot,
   GameEvent,
   GameGeneratorResult,
   GameInventoryView,
   GameMatchView,
   GameSettings,
   GameTile,
+  GameTrie,
   GameTurnsView,
 } from '@/domain/types/index.ts';
 

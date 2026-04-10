@@ -3,12 +3,6 @@ import { Tile } from '@/domain/models/inventory/types.ts';
 
 export type AnchorCoordinates = { readonly axis: Axis; readonly cell: Cell };
 
-export type BoardSnapshot = {
-  readonly bonusByCell: BonusDistribution;
-  readonly tileByCell: Map<Cell, Tile>;
-  readonly type: BoardType;
-};
-
 export type BoardView = {
   readonly cells: ReadonlyArray<Cell>;
   readonly cellsPerAxis: number;

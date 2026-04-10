@@ -1,7 +1,7 @@
 import { Axis, BoardType, Bonus } from '@/domain/models/board/enums.ts';
 import BonusService from '@/domain/models/board/services/bonus/BonusService.ts';
 import LayoutService from '@/domain/models/board/services/layout/LayoutService.ts';
-import { AnchorCoordinates, BoardSnapshot, BonusDistribution, Cell, Link, Placement } from '@/domain/models/board/types.ts';
+import { AnchorCoordinates, BonusDistribution, Cell, Link, Placement } from '@/domain/models/board/types.ts';
 import { Tile } from '@/domain/models/inventory/types.ts';
 
 export default class Board {
@@ -23,30 +23,16 @@ export default class Board {
     return Board.CELLS_PER_AXIS;
   }
 
-  get snapshot(): BoardSnapshot {
-    return {
-      bonusByCell: new Map(this.bonusByCell),
-      tileByCell: new Map(this.tileByCell),
-      type: this.type,
-    };
-  }
-
   private constructor(
     private readonly bonusByCell: BonusDistribution,
     public readonly type: BoardType,
-    private readonly tileByCell: Map<Cell, Tile>,
-    private readonly cellByTile: Map<Tile, Cell>,
+    private tileByCell: Map<Cell, Tile>,
+    private cellByTile: Map<Tile, Cell>,
   ) {}
 
   static create(type: BoardType, randomizer?: () => number): Board {
     const bonusByCell = BonusService.createBonusDistribution(type, randomizer);
     return new Board(bonusByCell, type, new Map(), new Map());
-  }
-
-  static createFromSnapshot(snapshot: BoardSnapshot): Board {
-    const board = new Board(snapshot.bonusByCell, snapshot.type, new Map(), new Map());
-    snapshot.tileByCell.forEach((tile, cell) => board.placeTile(cell, tile));
-    return board;
   }
 
   buildPlacement(coords: AnchorCoordinates, tiles: ReadonlyArray<Tile>): Placement {
@@ -110,6 +96,10 @@ export default class Board {
 
   calculateAxisCells(coords: AnchorCoordinates): ReadonlyArray<Cell> {
     return LayoutService.calculateAxisCells(coords);
+  }
+
+  clone(): Board {
+    return new Board(this.bonusByCell, this.type, new Map(this.tileByCell), new Map(this.cellByTile));
   }
 
   findCellByTile(tile: Tile): Cell | undefined {

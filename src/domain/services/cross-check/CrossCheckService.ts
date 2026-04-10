@@ -44,7 +44,7 @@ export default class CrossCheckService {
     if (position === -1) throw new Error('Cell not found in axis cells');
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
     const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
-    if (!prefix && !suffix) return this.dictionary.allLetters;
+    if (!prefix && !suffix) return new Set(Object.values(Letter));
     const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
     if (!prefixNode) return new Set();
     const anchorLetters = new Set<Letter>();

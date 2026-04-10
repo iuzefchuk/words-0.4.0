@@ -17,17 +17,6 @@ export type ComputedWords = { words: ReadonlyArray<string> };
 
 export type InvalidResult = { error: ValidationError; status: ValidationStatus.Invalid };
 
-export type TurnSnapshot = {
-  readonly id: string;
-  readonly player: Player;
-  readonly tiles: Array<Tile>;
-  readonly validationResult: ValidationResult;
-};
-
-export type TurnsSnapshot = {
-  readonly history: Array<TurnSnapshot>;
-};
-
 export type TurnsView = {
   readonly currentPlayer: Player;
   readonly currentTurnCells: ReadonlyArray<Cell> | undefined;

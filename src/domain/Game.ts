@@ -222,12 +222,12 @@ export default class Game {
     this.applyEvent({ result: { status: ValidationStatus.Unvalidated }, type: GameEventType.TurnValidated });
   }
 
-  createGeneratorContext(identityService: IdentityService): GeneratorContext {
+  createGeneratorContext(): GeneratorContext {
     return {
-      board: Board.createFromSnapshot(this.board.snapshot),
+      board: this.board.clone(),
       dictionary: this.dictionary,
       inventory: this.inventory,
-      turns: Turns.createFromSnapshot(identityService, this.turns.snapshot),
+      turns: this.turns.clone(),
     };
   }
 

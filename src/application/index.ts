@@ -32,7 +32,7 @@ export default class Application {
     const { repositories, services } = await Infrastructure.createAppDependencies();
     const game = await this.createGame(services, repositories, settings);
     const queriesService = new QueriesService(game);
-    const commandsService = new CommandsService(game, services.identity, services.scheduling, repositories.events);
+    const commandsService = new CommandsService(game, services.scheduling, repositories.events);
     return new Application(commandsService, queriesService, game);
   }
 
@@ -49,11 +49,11 @@ export default class Application {
   }
 
   private static async fetchDictionary(compressor: CompressionService, repository: DictionaryRepository): Promise<GameDictionary> {
-    const snapshot = await repository.load();
-    if (snapshot) return GameDictionary.createFromSnapshot(snapshot);
+    const trie = await repository.load();
+    if (trie) return GameDictionary.createFromTrie(trie);
     const textData = await compressor.fetchAndDecompress('/dictionary.gz');
     const dictionary = GameDictionary.createFromText(textData);
-    repository.save(dictionary.snapshot);
+    repository.save(dictionary.trie);
     return dictionary;
   }
 }
