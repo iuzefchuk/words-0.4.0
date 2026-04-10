@@ -1,10 +1,10 @@
 @mixin light-scheme() {
-  --base-font-weight: var(--font-weight-small);
-  --base-font-size: var(--font-size);
-  --base-color: var(--color-gray-darkest);
-  --base-bg: var(--color-gray-fainter);
-  --hide-font-size: var(--font-size-small);
-  --hide-color: var(--color-gray-light);
+  --primary-font-weight: var(--font-weight-small);
+  --primary-font-size: var(--font-size);
+  --primary-color: var(--color-gray-darkest);
+  --primary-bg: var(--color-gray-fainter);
+  --secondary-font-size: var(--font-size-small);
+  --secondary-color: var(--color-gray-light);
   --cell-color-dw: var(--color-blue);
   --cell-color-tw: var(--color-red);
   --cell-color-dl: var(--color-green);
@@ -14,38 +14,39 @@
   --cell-bg-footer: var(--color-gray-faint);
   --cell-shadow: var(--box-shadow-level-0);
   --cell-shadow-footer: var(--box-shadow-inner);
-  --tile-color: var(--base-color);
+  --tile-color: var(--primary-color);
   --tile-color-inverted: var(--color-gray-fainter);
   --tile-bg: var(--color-pink);
   --tile-bg-inverted: var(--color-purple-dark);
   --tile-bg-saturated: var(--color-pink-saturated);
   --tile-outline-color: var(--color-purple);
-  --btn-bg: var(--color-gray-faintest);
-  --btn-bg-hover: var(--color-white);
-  --btn-bg-active: var(--color-gray-lightest);
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--color-gray-faintest);
+  --btn-bg-active: var(--color-gray-faint);
   --btn-border-color-hover: var(--color-gray-light);
   --btn-border-color: var(--color-gray-lighter);
   --btn-font-weight: var(--font-weight);
   --btn-font-size: var(--font-size-small);
-  --btn-color: var(--base-color);
+  --btn-color: var(--primary-color);
+  --btn-box-shadow: var(--box-shadow-level-0);
+  --btn-box-shadow-hover: var(--box-shadow-level-1);
   --dialog-color: var(--color-gray-fainter);
   --dialog-bg: var(--color-gray-darker);
   --dialog-btn-border: 1px solid var(--color-gray-faintest);
   --dialog-btn-bg-hover: var(--color-gray-dark);
   --dialog-btn-bg-active: var(--color-gray-darkest);
+  --box-shadow-level-0: 0 1px 2px var(--color-gray-faint);
+  --box-shadow-level-1: 0 1px 3px 0 var(--color-gray-lightest), 0 1px 2px -1px var(--color-gray-lightest);
+  --box-shadow-inner: inset 0 1px 2px 0 var(--color-gray-lightest);
 }
 
 @mixin dark-scheme() {
-  --base-font-weight: var(--font-weight-smaller);
-  --base-font-size: var(--font-size);
-  --base-color: var(--color-white);
-  --base-bg: var(--color-navy-dark);
-  --btn-border-color: var(--color-gray-lightest);
-  --btn-font-weight: var(--font-weight);
-  --btn-font-size: var(--font-size);
-  --btn-color: var(--base-color);
-  --hide-font-size: var(--font-size-small);
-  --hide-color: var(--color-gray-lighter);
+  --primary-font-weight: var(--font-weight-smaller);
+  --primary-font-size: var(--font-size);
+  --primary-color: var(--color-white);
+  --primary-bg: var(--color-navy-dark);
+  --secondary-font-size: var(--font-size-small);
+  --secondary-color: var(--color-gray-faint);
   --cell-color-dw: var(--color-cyan);
   --cell-color-tw: var(--color-red);
   --cell-color-dl: var(--color-green);
@@ -53,43 +54,52 @@
   --cell-bg: var(--color-navy-darkest);
   --cell-bg-center: var(--color-navy);
   --cell-bg-footer: var(--color-navy-darker);
-  --cell-shadow: var(--box-shadow-inner-dark);
-  --cell-shadow-footer: var(--box-shadow-inner-dark);
+  --cell-shadow: inset 0 1px 2px 0 var(--color-gray-darkest);
+  --cell-shadow-footer: var(--box-shadow-inner);
   --tile-color: var(--color-gray-darkest);
   --tile-color-inverted: var(--color-gray-darkest);
   --tile-bg: var(--color-green);
   --tile-bg-inverted: var(--color-gray-faint);
-  --tile-bg-saturated: var(--color-purple-vivid);
+  --tile-bg-saturated: var(--color-green-saturated);
   --tile-outline-color: var(--color-white);
-  --btn-bg: var(--color-white);
-  --btn-bg-hover: var(--color-navy-light);
-  --btn-bg-active: var(--color-navy-darkest);
-  --btn-border-color-hover: var(--color-gray-light);
+  --btn-bg: transparent;
+  --btn-bg-hover: var(--color-navy);
+  --btn-bg-active: var(--color-navy-darker);
+  --btn-border-color-hover: var(--color-gray-faint);
+  --btn-border-color: var(--color-gray-lightest);
+  --btn-font-weight: var(--font-weight-small);
+  --btn-font-size: var(--font-size);
+  --btn-color: var(--primary-color);
+  --btn-box-shadow: var(--box-shadow-level-0);
+  --btn-box-shadow-hover: var(--box-shadow-level-1);
   --dialog-color: var(--color-gray-darkest);
   --dialog-bg: var(--color-gray-fainter);
   --dialog-btn-border: 1px solid var(--color-gray-darkest);
   --dialog-btn-bg-hover: var(--color-white);
   --dialog-btn-bg-active: var(--color-gray-lightest);
+  --box-shadow-level-0: 0 1px 2px var(--color-navy-dark);
+  --box-shadow-level-1: 0 1px 3px 0 var(--color-navy-darkest), 0 1px 2px -1px var(--color-navy-darkest);
+  --box-shadow-inner: inset 0 1px 2px 0 var(--color-navy-darkest);
 }
 
 :root {
-  --base-border: 1px solid var(--btn-border-color);
-  --base-padding: var(--space-s);
-  --base-border-radius: var(--space-xs);
+  --primary-border: 1px solid var(--btn-border-color);
+  --primary-padding: var(--space-s);
+  --primary-border-radius: var(--space-xs);
   --cell-tile-width: var(--space-4xl);
   --cell-tile-gap: var(--space-2xs);
   --opacity-disabled: 0.7;
   @include light-scheme;
   @media (prefers-color-scheme: dark) {
-    //  @include dark-scheme;
+    @include dark-scheme;
   }
 }
 
 #app {
-  background: var(--base-bg);
-  color: var(--base-color);
-  font-size: var(--base-font-size);
-  font-weight: var(--base-font-weight);
+  background: var(--primary-bg);
+  color: var(--primary-color);
+  font-size: var(--primary-font-size);
+  font-weight: var(--primary-font-weight);
 }
 
 .app {
@@ -97,9 +107,9 @@
     max-width: calc(var(--cell-count-per-axis) * (var(--cell-tile-gap) + var(--cell-tile-width)) - var(--cell-tile-gap));
     width: 100%;
   }
-  &__hide-text {
-    font-size: var(--hide-font-size);
-    color: var(--hide-color);
+  &__make-secondary {
+    font-size: var(--secondary-font-size);
+    color: var(--secondary-color);
   }
   &__create-grid {
     @mixin grid($columns, $rows, $gap: var(--cell-tile-gap)) {

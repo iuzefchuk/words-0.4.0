@@ -4,7 +4,7 @@ const { messages } = new UseAnnotation();
 </script>
 
 <template>
-  <TransitionGroup v-if="messages.length > 0" name="fade-from-right" tag="ul" class="annotation app__hide-text" appear>
+  <TransitionGroup v-if="messages.length > 0" name="fade-from-right" tag="ul" class="annotation app__make-secondary" appear>
     <li v-for="{ key, html } in messages" :key="key" v-html="html" />
   </TransitionGroup>
 </template>

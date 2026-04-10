@@ -34,7 +34,7 @@ const CELL_STEP = 'calc((100% + var(--cell-tile-gap)) / var(--cell-count-per-axi
   position: absolute;
   z-index: var(--z-index-level-1);
   outline: 2px solid var(--tile-outline-color);
-  border-radius: var(--base-border-radius);
+  border-radius: var(--primary-border-radius);
   transition-property: top, left, width, height, outline;
   transition-duration: var(--transition-duration-half);
   transition-timing-function: var(--transition-timing-function);

@@ -78,15 +78,15 @@ const items = reactive([
     cursor: pointer;
     text-transform: uppercase;
     text-align: center;
-    border-radius: var(--base-border-radius);
+    border-radius: var(--primary-border-radius);
     width: 100%;
     height: 100%;
     user-select: none;
-    box-shadow: var(--box-shadow-level-1);
+    box-shadow: var(--btn-box-shadow);
     transition-property: box-shadow;
     transition-duration: var(--transition-duration-half);
     transition-timing-function: var(--transition-timing-function);
-    border: var(--base-border);
+    border: var(--primary-border);
     font-size: var(--btn-font-size);
     color: var(--btn-color);
     font-weight: var(--btn-font-weight);
@@ -95,9 +95,11 @@ const items = reactive([
     &:hover:not(:active):not(:disabled) {
       background: var(--btn-bg-hover);
       border-color: var(--btn-border-color-hover);
+      box-shadow: var(--btn-box-shadow-hover);
     }
     &:active:not(:disabled) {
       background: var(--btn-bg-active);
+      border-color: transparent;
     }
     &:disabled {
       border-color: transparent;

@@ -24,7 +24,7 @@ const { isRendered } = loader;
 <style lang="scss" scoped>
 .loader {
   position: fixed;
-  background: var(--base-bg);
+  background: var(--primary-bg);
   width: 100vw;
   height: 100vh;
   z-index: var(--z-index-level-3);
@@ -38,7 +38,7 @@ const { isRendered } = loader;
   &__tile {
     pointer-events: none;
     width: var(--cell-tile-width);
-    border-radius: var(--base-border-radius);
+    border-radius: var(--primary-border-radius);
   }
 }
 </style>

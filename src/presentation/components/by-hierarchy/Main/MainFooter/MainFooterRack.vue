@@ -32,7 +32,7 @@ const paddedTiles = computed<Array<GameTile | null>>(() => {
       />
     </li>
     <Transition name="fade">
-      <li v-if="tilesRemaining > 0" class="rack__count app__hide-text">
+      <li v-if="tilesRemaining > 0" class="rack__count app__make-secondary">
         <p>
           <span v-animate-number="{ number: tilesRemaining }" class="rack__count-item" />
           {{ t('game.unassigned_count') }}
@@ -47,7 +47,7 @@ const paddedTiles = computed<Array<GameTile | null>>(() => {
   &__cell {
     cursor: pointer;
     background: var(--cell-bg-footer);
-    border-radius: calc(var(--base-border-radius) * 2);
+    border-radius: calc(var(--primary-border-radius) * 2);
     box-shadow: var(--cell-shadow-footer);
     &--disabled {
       opacity: var(--opacity-disabled);

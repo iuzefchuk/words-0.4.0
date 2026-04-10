@@ -35,8 +35,8 @@ const rackStore = RackStore.INSTANCE();
   display: grid;
   grid-template-rows: 1fr auto 1fr;
   align-items: center;
-  padding-left: var(--base-padding);
-  padding-right: var(--base-padding);
+  padding-left: var(--primary-padding);
+  padding-right: var(--primary-padding);
   justify-items: center;
   &__center {
     position: relative;
