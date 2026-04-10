@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { computed, inject } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 import MainAnnotation from '@/presentation/components/by-hierarchy/Main/MainAnnotation.vue';
 import MainBoard from '@/presentation/components/by-hierarchy/Main/MainBoard/MainBoard.vue';
 import MainEndscreen from '@/presentation/components/by-hierarchy/Main/MainEndscreen.vue';
@@ -13,6 +13,10 @@ await MainStore.initiate();
 const { matchIsFinished } = storeToRefs(MainStore.INSTANCE());
 const inventoryStore = InventoryStore.INSTANCE();
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
+const isMounted = ref(false);
+onMounted(() => {
+  isMounted.value = true;
+});
 const style = computed(() => ({
   ...(transitionDurationMs && {
     '--transition-duration': `${transitionDurationMs}ms`,
@@ -24,15 +28,15 @@ const style = computed(() => ({
 
 <template>
   <main :style="style" :class="{ main: true, 'main--blurred': matchIsFinished }" @click="inventoryStore.deselectTile()">
-    <Transition name="fade-down-up" appear>
-      <MainHeader />
+    <Transition name="fade-down-up">
+      <MainHeader v-if="isMounted" />
     </Transition>
     <div class="main__center app__limit-max-width">
       <MainAnnotation class="main__center-annotation" />
       <MainBoard />
     </div>
-    <Transition name="fade-up-down" appear>
-      <MainFooter />
+    <Transition name="fade-up-down">
+      <MainFooter v-if="isMounted" />
     </Transition>
   </main>
   <Transition name="fade" appear>
