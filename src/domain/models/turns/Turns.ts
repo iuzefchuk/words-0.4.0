@@ -51,7 +51,7 @@ class Turn {
     return new Turn(this.id, this.player, [...this.tiles], { ...this.validationResult });
   }
 
-  removeTile({ tile }: { tile: Tile }): void {
+  removeTile(tile: Tile): void {
     const index = this.tiles.indexOf(tile);
     if (index === -1) throw new ReferenceError(`Tile ${tile} not found`);
     this.tiles.splice(index, 1);
@@ -122,6 +122,10 @@ export default class Turns {
     return new Turns(identityService, []);
   }
 
+  addPlacedTile(tile: Tile): void {
+    this.currentTurn.addTile(tile);
+  }
+
   clone(): Turns {
     return new Turns(
       this.identityService,
@@ -129,12 +133,12 @@ export default class Turns {
     );
   }
 
-  recordPlacedTile(tile: Tile): void {
-    this.currentTurn.addTile(tile);
-  }
-
   recordValidationResult(result: ValidationResult): void {
     this.currentTurn.setValidationResult(result);
+  }
+
+  removePlacedTile(tile: Tile): void {
+    this.currentTurn.removeTile(tile);
   }
 
   resetCurrentTurn(): void {
@@ -143,10 +147,7 @@ export default class Turns {
 
   startTurnFor(player: Player): void {
     if (player !== this.nextPlayer) throw new Error(`Expected next player to be ${this.nextPlayer}, but got ${player}`);
-    this.history.push(Turn.create({ identityService: this.identityService, player }));
-  }
-
-  undoRecordPlacedTile({ tile }: { tile: Tile }): void {
-    this.currentTurn.removeTile({ tile });
+    const newTurn = Turn.create({ identityService: this.identityService, player });
+    this.history.push(newTurn);
   }
 }

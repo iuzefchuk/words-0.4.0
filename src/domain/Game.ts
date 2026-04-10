@@ -175,10 +175,10 @@ export default class Game {
         throw new Error('MatchStarted can only be applied during game creation');
       case GameEventType.TilePlaced:
         this.board.placeTile(event.cell, event.tile);
-        this.turns.recordPlacedTile(event.tile);
+        this.turns.addPlacedTile(event.tile);
         break;
       case GameEventType.TileUndoPlaced:
-        this.turns.undoRecordPlacedTile({ tile: event.tile });
+        this.turns.removePlacedTile(event.tile);
         this.board.undoPlaceTile(event.tile);
         break;
       case GameEventType.TurnPassed:

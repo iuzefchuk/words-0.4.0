@@ -11,7 +11,7 @@ const mainStore = MainStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(mainStore);
 const loaderIsActive = ref(true);
 const mainIsRendered = ref(!loaderIsActive.value);
-const showEndscreen = computed(() => matchIsFinished.value);
+const showEndscreen = computed(() => !loaderIsActive.value && matchIsFinished.value);
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 onMounted(() => {
   loaderIsActive.value = false;

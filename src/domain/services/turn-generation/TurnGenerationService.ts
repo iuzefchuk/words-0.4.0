@@ -293,9 +293,9 @@ export default class TurnGenerator {
       if (traversal.direction === GenerationDirection.Right && placementIsUsable) {
         const placement = [...this.placement];
         const tiles = placement.map(link => link.tile);
-        for (const tile of tiles) this.context.turns.recordPlacedTile(tile);
+        for (const tile of tiles) this.context.turns.addPlacedTile(tile);
         const validationResult = TurnValidationService.execute(this.context as ValidatorContext);
-        for (const tile of tiles) this.context.turns.undoRecordPlacedTile({ tile });
+        for (const tile of tiles) this.context.turns.removePlacedTile(tile);
         if (validationResult.status === ValidationStatus.Valid) {
           return this.emitReturn({ cells: placement.map(link => link.cell), tiles, validationResult });
         }

@@ -99,7 +99,7 @@ export default class TurnValidationService {
     const cell = state.cells[0];
     if (cell === undefined) throw new ReferenceError('Cell must be defined');
     const coords = { axis: primaryAxis, cell };
-    const primaryPlacement = board.buildPlacement(coords, tiles);
+    const primaryPlacement = board.createPlacement(coords, tiles);
     const areLinksUsable = (placement: Placement): boolean => placement.length > 1;
     if (!areLinksUsable(primaryPlacement)) return this.Pipeline.fail(ValidationError.InvalidTilePlacement);
     const result: Array<Placement> = [primaryPlacement];
@@ -107,7 +107,7 @@ export default class TurnValidationService {
       const coords: AnchorCoordinates = { axis: board.getOppositeAxis(primaryAxis), cell };
       const tile = board.findTileByCell(cell);
       if (!tile) continue;
-      const secondaryPlacement = board.buildPlacement(coords, [tile]);
+      const secondaryPlacement = board.createPlacement(coords, [tile]);
       if (areLinksUsable(secondaryPlacement)) result.push(secondaryPlacement);
     }
     return this.Pipeline.pass(state, { placements: result });

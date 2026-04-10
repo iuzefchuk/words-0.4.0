@@ -69,7 +69,7 @@ export default class QueriesService {
     return this.game.eventLogView;
   }
 
-  getMatchResult(): GameMatchResult | undefined {
+  getMatchResult(): GameMatchResult {
     return this.game.matchView.getResultFor(GamePlayer.User);
   }
 

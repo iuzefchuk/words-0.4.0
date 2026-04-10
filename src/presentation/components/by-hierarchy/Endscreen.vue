@@ -5,10 +5,7 @@ import { getMatchResultText } from '@/presentation/mappings.ts';
 import MainStore from '@/presentation/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
 const { matchResult, opponentScore, userScore } = storeToRefs(mainStore);
-const text = computed(() => {
-  if (matchResult.value === undefined) throw new Error('AppEndscreen should be rendered after match results assign');
-  return getMatchResultText(matchResult.value);
-});
+const text = computed(() => getMatchResultText(matchResult.value));
 </script>
 
 <template>

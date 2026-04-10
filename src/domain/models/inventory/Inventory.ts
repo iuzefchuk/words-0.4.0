@@ -22,7 +22,7 @@ class TilePool {
 
   addTile(tile: Tile): void {
     if (this.tiles.includes(tile)) throw new Error(`Tile ${tile} is already present`);
-    this.validateCapacity({ newTileCount: this.tiles.length + 1 });
+    this.validateCapacity(this.tiles.length + 1);
     this.tiles.push(tile);
   }
 
@@ -39,7 +39,7 @@ class TilePool {
     return removedTile;
   }
 
-  private validateCapacity({ newTileCount }: { newTileCount: number }): void {
+  private validateCapacity(newTileCount: number): void {
     if (this.capacity !== undefined && newTileCount > this.capacity) throw new Error('Tiles limit exceeded');
   }
 }
@@ -95,7 +95,7 @@ export default class Inventory {
 
   private constructor(
     private drawPool: TilePool,
-    private playerPools: Map<Player, TilePool>,
+    private playerPools: ReadonlyMap<Player, TilePool>,
     private discardPool: TilePool,
   ) {}
 
@@ -124,9 +124,9 @@ export default class Inventory {
     const collection = new Map<Letter, Array<Tile>>();
     for (const tile of tiles) {
       const letter = this.getTileLetter(tile);
-      let arr = collection.get(letter);
-      if (!arr) collection.set(letter, (arr = []));
-      arr.push(tile);
+      let letterArray = collection.get(letter);
+      if (!letterArray) collection.set(letter, (letterArray = []));
+      letterArray.push(tile);
     }
     return collection;
   }
@@ -157,7 +157,7 @@ export default class Inventory {
 
   private getTilePoolFor(player: Player): TilePool {
     const pool = this.playerPools.get(player);
-    if (pool === undefined) throw new ReferenceError('Tile pool not found');
+    if (pool === undefined) throw new ReferenceError('Tile pool must be defined');
     return pool;
   }
 
@@ -167,8 +167,6 @@ export default class Inventory {
 
   private replenishPlayerPool(pool: TilePool): void {
     const drawCount = Math.min(Inventory.PLAYER_POOL_CAPACITY - pool.tileCount, this.unusedTilesCount);
-    for (let i = 0; i < drawCount; i++) {
-      pool.addTile(this.drawPool.popTile());
-    }
+    for (let i = 0; i < drawCount; i++) pool.addTile(this.drawPool.popTile());
   }
 }

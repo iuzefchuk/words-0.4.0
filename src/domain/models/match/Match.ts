@@ -3,17 +3,16 @@ import { MatchResult } from '@/domain/models/match/enums.ts';
 
 export default class Match {
   get isFinished(): boolean {
-    return [...this.results.values()].some(Boolean);
+    return [...this.results.values()].some(result => result !== MatchResult.Undecided);
   }
 
   get leaderByScore(): null | Player {
-    const scoresAreTied = this.userScore === this.opponentScore;
-    if (scoresAreTied) return null;
+    if (this.scoresAreTied) return null;
     return this.userScore > this.opponentScore ? Player.User : Player.Opponent;
   }
 
   get loserByScore(): null | Player {
-    if (this.leaderByScore === null) return null;
+    if (this.scoresAreTied) return null;
     return this.leaderByScore === Player.User ? Player.Opponent : Player.User;
   }
 
@@ -25,19 +24,25 @@ export default class Match {
     return this.getScoreFor(Player.User);
   }
 
+  private get scoresAreTied(): boolean {
+    return this.userScore === this.opponentScore;
+  }
+
   private constructor(
-    private results: Map<Player, MatchResult | undefined>,
+    private results: Map<Player, MatchResult>,
     private scores: Map<Player, number>,
   ) {}
 
   static create(players: ReadonlyArray<Player>): Match {
-    const results = new Map(players.map(player => [player, undefined]));
+    const results = new Map(players.map(player => [player, MatchResult.Undecided]));
     const scores = new Map(players.map(player => [player, 0]));
     return new Match(results, scores);
   }
 
-  getResultFor(player: Player): MatchResult | undefined {
-    return this.results.get(player);
+  getResultFor(player: Player): MatchResult {
+    const result = this.results.get(player);
+    if (result === undefined) throw new ReferenceError('Result for player must be defined');
+    return result;
   }
 
   getScoreFor(player: Player): number {

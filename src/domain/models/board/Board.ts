@@ -35,33 +35,6 @@ export default class Board {
     return new Board(bonusByCell, type, new Map(), new Map());
   }
 
-  buildPlacement(coords: AnchorCoordinates, tiles: ReadonlyArray<Tile>): Placement {
-    if (tiles.length === 0) throw new Error('Tiles must not be empty');
-    const axisCells = LayoutService.calculateAxisCells(coords);
-    const tilesToPlace = new Set(tiles);
-    let links: Array<Link> = [];
-    let segmentContainsTile = false;
-    let matchedTilesCount = 0;
-    for (const cell of axisCells) {
-      const tile = this.findTileByCell(cell);
-      if (!tile) {
-        if (links.length === 0) continue;
-        if (segmentContainsTile) break;
-        links = [];
-        segmentContainsTile = false;
-        matchedTilesCount = 0;
-        continue;
-      }
-      links.push({ cell, tile });
-      if (tilesToPlace.has(tile)) {
-        segmentContainsTile = true;
-        matchedTilesCount++;
-      }
-    }
-    const isValid = segmentContainsTile && matchedTilesCount === tiles.length;
-    return isValid ? links : [];
-  }
-
   calculateAdjacentCells(cell: Cell): ReadonlyArray<Cell> {
     return LayoutService.calculateAdjacentCells(cell);
   }
@@ -100,6 +73,33 @@ export default class Board {
 
   clone(): Board {
     return new Board(this.bonusByCell, this.type, new Map(this.tileByCell), new Map(this.cellByTile));
+  }
+
+  createPlacement(coords: AnchorCoordinates, tiles: ReadonlyArray<Tile>): Placement {
+    if (tiles.length === 0) throw new Error('Tiles must not be empty');
+    const axisCells = LayoutService.calculateAxisCells(coords);
+    const tilesToPlace = new Set(tiles);
+    let links: Array<Link> = [];
+    let segmentContainsTile = false;
+    let matchedTilesCount = 0;
+    for (const cell of axisCells) {
+      const tile = this.findTileByCell(cell);
+      if (!tile) {
+        if (links.length === 0) continue;
+        if (segmentContainsTile) break;
+        links = [];
+        segmentContainsTile = false;
+        matchedTilesCount = 0;
+        continue;
+      }
+      links.push({ cell, tile });
+      if (tilesToPlace.has(tile)) {
+        segmentContainsTile = true;
+        matchedTilesCount++;
+      }
+    }
+    const isValid = segmentContainsTile && matchedTilesCount === tiles.length;
+    return isValid ? links : [];
   }
 
   findCellByTile(tile: Tile): Cell | undefined {
