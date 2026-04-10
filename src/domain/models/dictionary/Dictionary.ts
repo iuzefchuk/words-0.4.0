@@ -9,20 +9,13 @@ export default class Dictionary {
 
   private constructor(public readonly trie: Trie) {}
 
-  static createFromText(text: string): Dictionary {
-    const trie = TrieService.createNodeTree(text.split('\n') as ReadonlyArray<string>);
-    this.freezeTree(trie);
+  static createFromText(text: ReadonlyArray<string>): Dictionary {
+    const trie = TrieService.createNodeTree(text);
     return new Dictionary(trie);
   }
 
   static createFromTrie(trie: Trie): Dictionary {
     return new Dictionary(trie);
-  }
-
-  private static freezeTree(node: FrozenNode): void {
-    for (const child of node.children.values()) this.freezeTree(child);
-    Object.freeze(node.children);
-    Object.freeze(node);
   }
 
   containsAllWords(words: ReadonlyArray<string>): boolean {

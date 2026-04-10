@@ -52,4 +52,10 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
   override mounted(element: AnimatedHtmlElement, binding: DirectiveBinding<BindingValue>): void {
     AnimateNumber.Animator.create(element, binding.value).execute();
   }
+
+  override unmounted(element: AnimatedHtmlElement): void {
+    if (element._animationFrameRequestId !== undefined) {
+      cancelAnimationFrame(element._animationFrameRequestId);
+    }
+  }
 }
