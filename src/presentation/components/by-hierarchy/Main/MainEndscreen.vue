@@ -1,19 +1,17 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import UseActions from '@/presentation/composables/UseActions.ts';
 import { getMatchResultText } from '@/presentation/mappings.ts';
 import MainStore from '@/presentation/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
+const actions = UseActions.create();
 const { matchResult, opponentScore, userScore } = storeToRefs(mainStore);
 const text = computed(() => getMatchResultText(matchResult.value, userScore.value - opponentScore.value));
-function reloadPage() {
-  // TODO delete when restartGame bug is fixed
-  window.location.reload();
-}
 </script>
 
 <template>
-  <button class="endscreen" @dblclick="reloadPage">
+  <button class="endscreen" @dblclick="actions.handleGameRestart()">
     <p class="endscreen__text">{{ text }}</p>
     <p class="endscreen__hint app__make-secondary">{{ t('game.action_new_match') }}</p>
   </button>

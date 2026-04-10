@@ -5,7 +5,7 @@ import DialogStore from '@/presentation/stores/DialogStore.ts';
 import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 import MainStore from '@/presentation/stores/MainStore.ts';
 
-export default class UseButtons {
+export default class UseActions {
   private get dialogStore() {
     return DialogStore.INSTANCE();
   }
@@ -20,16 +20,21 @@ export default class UseButtons {
 
   private constructor(private readonly resignDelayMs: number) {}
 
-  static create(): UseButtons {
+  static create(): UseActions {
     const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY, 0);
     const resignDelayMs = transitionDurationMs * 2;
-    return new UseButtons(resignDelayMs);
+    return new UseActions(resignDelayMs);
   }
 
   handleClear(): void {
     this.mainStore.clearTiles();
     this.inventoryStore.initialize();
     SoundPlayer.play(Sound.SystemClear);
+  }
+
+  handleGameRestart(): void {
+    this.mainStore.restartGame();
+    this.inventoryStore.initialize();
   }
 
   async handlePass(): Promise<void> {

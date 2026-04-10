@@ -1,41 +1,41 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
-import UseButtons from '@/presentation/composables/UseButtons.ts';
+import UseActions from '@/presentation/composables/UseActions.ts';
 import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 import MainStore from '@/presentation/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
 const inventoryStore = InventoryStore.INSTANCE();
-const buttons = UseButtons.create();
+const actions = UseActions.create();
 const { anyTileIsPlaced } = storeToRefs(inventoryStore);
 const { allActionsAreDisabled } = storeToRefs(mainStore);
 const items = reactive([
   {
-    action: () => buttons.handleResign(),
+    action: () => actions.handleResign(),
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
     name: window.t('game.action_resign'),
   },
   {
-    action: () => buttons.handlePass(),
+    action: () => actions.handlePass(),
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
     name: window.t('game.action_pass'),
   },
   {
-    action: () => buttons.handleShuffle(),
+    action: () => actions.handleShuffle(),
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => !anyTileIsPlaced.value,
     name: window.t('game.action_shuffle'),
   },
   {
-    action: () => buttons.handleClear(),
+    action: () => actions.handleClear(),
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => anyTileIsPlaced.value,
     name: window.t('game.action_clear'),
   },
   {
-    action: () => buttons.handlePlay(),
+    action: () => actions.handlePlay(),
     isDisabled: () => allActionsAreDisabled.value || !mainStore.currentTurnIsValid,
     isRendered: () => true,
     name: window.t('game.action_play'),
