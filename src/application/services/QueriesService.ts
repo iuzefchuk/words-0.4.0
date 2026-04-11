@@ -113,6 +113,10 @@ export default class QueriesService {
     return this.turnsView.currentTurnIsValid;
   }
 
+  isDictionaryReady(): boolean {
+    return this.game.dictionaryIsDefined;
+  }
+
   isMatchFinished(): boolean {
     return this.game.matchView.isFinished;
   }

@@ -7,19 +7,18 @@ describe('LayoutService', () => {
   const STEP_Y = LayoutService.getAxisStep(Axis.Y);
 
   it('calculates adjacent cells correctly', () => {
-    Board.CELLS_BY_INDEX.forEach((cell, index) => {
-      const edges = {
-        bottom: LayoutService.isCellOnBottomEdge(cell),
-        left: LayoutService.isCellOnLeftEdge(cell),
-        right: LayoutService.isCellOnRightEdge(cell),
-        top: LayoutService.isCellOnTopEdge(cell),
-      };
+    const CELLS_PER_AXIS = LayoutService.CELLS_PER_AXIS;
+    Board.CELLS_BY_INDEX.forEach(cell => {
+      const row = Math.floor(cell / CELLS_PER_AXIS);
+      const col = cell % CELLS_PER_AXIS;
+      const expected = new Set<number>();
+      if (row > 0) expected.add(cell - CELLS_PER_AXIS);
+      if (row < CELLS_PER_AXIS - 1) expected.add(cell + CELLS_PER_AXIS);
+      if (col > 0) expected.add(cell - 1);
+      if (col < CELLS_PER_AXIS - 1) expected.add(cell + 1);
       const adjacents = LayoutService.calculateAdjacentCells(cell);
-      if (edges.top) expect(adjacents).not.toContain(index - STEP_Y);
-      if (edges.bottom) expect(adjacents).not.toContain(index + STEP_Y);
-      if (edges.left) expect(adjacents).not.toContain(index - STEP_X);
-      if (edges.right) expect(adjacents).not.toContain(index + STEP_X);
-      expect(adjacents).toHaveLength(4 - Object.values(edges).filter(Boolean).length);
+      expect(new Set(adjacents)).toEqual(expected);
+      expect(adjacents).toHaveLength(expected.size);
     });
   });
 

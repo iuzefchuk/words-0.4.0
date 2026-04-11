@@ -30,6 +30,10 @@ export default class LayoutService {
     );
   }
 
+  static getAxisStep(axis: Axis): number {
+    return axis === Axis.X ? 1 : this.CELLS_PER_AXIS;
+  }
+
   static getCellPositionInColumn(cell: Cell): number {
     this.validateCellBounds(cell);
     return cell % this.CELLS_PER_AXIS;
@@ -51,25 +55,25 @@ export default class LayoutService {
 
   static isCellOnBottomEdge(cell: Cell): boolean {
     this.validateCellBounds(cell);
-    const position = this.getCellPositionInColumn(cell);
+    const position = this.getCellPositionInRow(cell);
     return this.isCellPositionAtAxisEnd(position);
   }
 
   static isCellOnLeftEdge(cell: Cell): boolean {
     this.validateCellBounds(cell);
-    const position = this.getCellPositionInRow(cell);
+    const position = this.getCellPositionInColumn(cell);
     return this.isCellPositionAtAxisStart(position);
   }
 
   static isCellOnRightEdge(cell: Cell): boolean {
     this.validateCellBounds(cell);
-    const position = this.getCellPositionInRow(cell);
+    const position = this.getCellPositionInColumn(cell);
     return this.isCellPositionAtAxisEnd(position);
   }
 
   static isCellOnTopEdge(cell: Cell): boolean {
     this.validateCellBounds(cell);
-    const position = this.getCellPositionInColumn(cell);
+    const position = this.getCellPositionInRow(cell);
     return this.isCellPositionAtAxisStart(position);
   }
 
@@ -81,10 +85,6 @@ export default class LayoutService {
   static isCellPositionAtAxisStart(position: number): boolean {
     this.validateCellPositionBounds(position);
     return position === 0;
-  }
-
-  private static getAxisStep(axis: Axis): number {
-    return axis === Axis.X ? 1 : this.CELLS_PER_AXIS;
   }
 
   private static validateCellBounds(cell: Cell): void {

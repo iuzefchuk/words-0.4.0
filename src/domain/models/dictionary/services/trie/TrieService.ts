@@ -26,6 +26,17 @@ export default class TrieService {
     return rootNode;
   }
 
+  static deserializeNodeTree(array: ReadonlyArray<unknown>): Node {
+    // fitted for dictionary.gz structure, not a general-purpose deserialization
+    const isFinal = array[0] === 1;
+    const letters = array[1] as string;
+    const children = new Map<Letter, Node>();
+    for (let i = 0; i < letters.length; i++) {
+      children.set(letters[i] as Letter, this.deserializeNodeTree(array[i + 2] as ReadonlyArray<unknown>));
+    }
+    return { children, isFinal };
+  }
+
   private static createNode(): Node {
     return { children: new Map(), isFinal: false };
   }

@@ -67,6 +67,10 @@ export default class Game {
     return this.board;
   }
 
+  get dictionaryIsDefined(): boolean {
+    return this.dictionary !== undefined;
+  }
+
   get eventLogView(): ReadonlyArray<GameEvent> {
     return this.eventLog.logView;
   }
@@ -89,40 +93,36 @@ export default class Game {
 
   private board!: Board;
 
+  private dictionary?: Dictionary;
+
   private inventory!: Inventory;
 
   private match!: Match;
 
   private turns!: Turns;
 
-  constructor(
-    private readonly dictionary: Dictionary,
+  private constructor(
     private readonly eventLog: EventLog,
     private readonly identityService: IdentityService,
     private readonly seedingService: SeedingService,
     public difficulty: GameDifficulty,
   ) {}
 
-  static create(identityService: IdentityService, seedingService: SeedingService, dictionary: Dictionary, settings: GameSettings): Game {
+  static create(identityService: IdentityService, seedingService: SeedingService, settings: GameSettings): Game {
     const seed = seedingService.createSeed();
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     const eventLog = EventLog.create([event]);
-    const game = new Game(dictionary, eventLog, identityService, seedingService, settings.difficulty);
+    const game = new Game(eventLog, identityService, seedingService, settings.difficulty);
     game.initialize(Game.createInitParams(seed, settings, seedingService, identityService));
     return game;
   }
 
-  static createFromEvents(
-    events: ReadonlyArray<GameEvent>,
-    dictionary: Dictionary,
-    identityService: IdentityService,
-    seedingService: SeedingService,
-  ): Game {
-    if (!events[0]) throw new Error('Events have to exist');
+  static createFromEvents(events: ReadonlyArray<GameEvent>, identityService: IdentityService, seedingService: SeedingService): Game {
+    if (events[0] === undefined) throw new Error('Events have to exist');
     const first = events[0];
     if (first.type !== GameEventType.MatchStarted) throw new Error('First event must be MatchStarted');
     const eventLog = EventLog.create([...events]);
-    const game = new Game(dictionary, eventLog, identityService, seedingService, first.settings.difficulty);
+    const game = new Game(eventLog, identityService, seedingService, first.settings.difficulty);
     game.initialize(Game.createInitParams(first.seed, first.settings, seedingService, identityService));
     for (let i = 1; i < events.length; i++) game.applyToState(events[i]!);
     return game;
@@ -223,6 +223,7 @@ export default class Game {
   }
 
   createGeneratorContext(): GeneratorContext {
+    if (this.dictionary === undefined) throw new Error('Dictionary has to be defined');
     return {
       board: this.board.clone(),
       dictionary: this.dictionary,
@@ -275,6 +276,10 @@ export default class Game {
     return { words };
   }
 
+  setDictionary(dictionary: Dictionary): void {
+    this.dictionary = dictionary;
+  }
+
   undoPlaceTile(input: { tile: GameTile }): void {
     this.ensureMutability();
     const cell = this.board.findCellByTile(input.tile);
@@ -284,6 +289,7 @@ export default class Game {
 
   validateTurn(): void {
     this.ensureMutability();
+    if (this.dictionary === undefined) throw new Error('Dictionary has to be defined');
     const result = TurnValidationService.execute({
       board: this.board,
       dictionary: this.dictionary,

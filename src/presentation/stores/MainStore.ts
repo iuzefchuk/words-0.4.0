@@ -84,7 +84,9 @@ class Actions {
 class Getters {
   readonly currentPlayerIsUser = computed(() => this.readState(() => this.queriesService.isCurrentPlayerUser()));
 
-  readonly allActionsAreDisabled = computed(() => !this.currentPlayerIsUser.value);
+  readonly dictionaryIsReady = computed(() => this.readState(() => this.queriesService.isDictionaryReady()));
+
+  readonly allActionsAreDisabled = computed(() => !this.currentPlayerIsUser.value || !this.dictionaryIsReady.value);
 
   readonly boardType = computed(() => this.readBoard(() => this.queriesService.getBoardType()));
 
@@ -202,10 +204,13 @@ export default class MainStore {
 
   private readonly getters: Getters;
 
+  private readonly state: State;
+
   private constructor(app: Application) {
-    const state = new State();
-    this.getters = new Getters(app.queriesService, state);
-    this.actions = new Actions(app.commandsService, state);
+    this.state = new State();
+    this.getters = new Getters(app.queriesService, this.state);
+    this.actions = new Actions(app.commandsService, this.state);
+    this.state.write(() => app.loadDictionary());
   }
 
   static async initiate(): Promise<void> {

@@ -1,9 +1,9 @@
 import { Letter } from '@/domain/enums.ts';
 import TrieService from '@/domain/models/dictionary/services/trie/TrieService.ts';
-import { FrozenNode, NextNodeGenerator, Trie } from '@/domain/models/dictionary/types.ts';
+import { NextNodeGenerator, Node, ReadonlyNode, Trie } from '@/domain/models/dictionary/types.ts';
 
 export default class Dictionary {
-  get rootNode(): FrozenNode {
+  get rootNode(): ReadonlyNode {
     return this.trie;
   }
 
@@ -18,13 +18,17 @@ export default class Dictionary {
     return new Dictionary(trie);
   }
 
+  static deserializeNodeTree(array: ReadonlyArray<unknown>): Node {
+    return TrieService.deserializeNodeTree(array);
+  }
+
   containsAllWords(words: ReadonlyArray<string>): boolean {
     if (words.length === 0) throw new Error('Words array is empty');
     return words.every(word => this.containsWord(word));
   }
 
-  createNextNodeGenerator({ startNode }: { startNode: FrozenNode }): NextNodeGenerator {
-    function* generator(node: FrozenNode): Generator<[Letter, FrozenNode]> {
+  createNextNodeGenerator({ startNode }: { startNode: ReadonlyNode }): NextNodeGenerator {
+    function* generator(node: ReadonlyNode): Generator<[Letter, ReadonlyNode]> {
       for (const [possibleNextLetter, nodeForPossibleNextLetter] of node.children) {
         yield [possibleNextLetter, nodeForPossibleNextLetter];
       }
@@ -32,11 +36,11 @@ export default class Dictionary {
     return generator(startNode);
   }
 
-  getNode(word: string, startNode: FrozenNode = this.rootNode): FrozenNode | null {
+  getNode(word: string, startNode: ReadonlyNode = this.rootNode): null | ReadonlyNode {
     return this.findNodeForWord(word, startNode);
   }
 
-  isNodeFinal(node: FrozenNode): boolean {
+  isNodeFinal(node: ReadonlyNode): boolean {
     return node.isFinal;
   }
 
@@ -45,7 +49,7 @@ export default class Dictionary {
     return node?.isFinal || false;
   }
 
-  private findNodeForWord(word: string, startNode: FrozenNode = this.rootNode): FrozenNode | null {
+  private findNodeForWord(word: string, startNode: ReadonlyNode = this.rootNode): null | ReadonlyNode {
     let currentNode = startNode;
     for (let i = 0; i < word.length; i++) {
       const letter = word[i] as Letter;
