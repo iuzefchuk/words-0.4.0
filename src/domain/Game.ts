@@ -1,6 +1,6 @@
-import Events from '@/domain/Events.ts';
 import Board from '@/domain/models/board/Board.ts';
 import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
+import Events from '@/domain/models/events/Events.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
 import Match from '@/domain/models/match/Match.ts';
 import { ValidationStatus } from '@/domain/models/turns/enums.ts';

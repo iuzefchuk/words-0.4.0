@@ -1,33 +1,33 @@
-import { EventType, Player } from '@/domain/enums.ts';
-import { GameEvent } from '@/domain/types/index.ts';
+import { Player } from '@/domain/enums.ts';
+import { EventType } from '@/domain/models/events/enums.ts';
+import { Event } from '@/domain/models/events/types.ts';
 
-// TODO to models ?
 export default class Events {
-  get logView(): ReadonlyArray<GameEvent> {
+  get logView(): ReadonlyArray<Event> {
     return [...this.log];
   }
 
   private constructor(
-    private readonly log: Array<GameEvent>,
-    private readonly pending: Array<GameEvent>,
+    private readonly log: Array<Event>,
+    private readonly pending: Array<Event>,
   ) {}
 
-  static create(initialEvents: Array<GameEvent> = []): Events {
+  static create(initialEvents: Array<Event> = []): Events {
     return new Events([...initialEvents], []);
   }
 
-  drainPending(): Array<GameEvent> {
+  drainPending(): Array<Event> {
     const drained = [...this.pending];
     this.pending.length = 0;
     return drained;
   }
 
-  record(event: GameEvent): void {
+  record(event: Event): void {
     this.log.push(event);
     this.pending.push(event);
   }
 
-  reset(initialEvent: GameEvent): void {
+  reset(initialEvent: Event): void {
     this.log.length = 0;
     this.log.push(initialEvent);
   }
