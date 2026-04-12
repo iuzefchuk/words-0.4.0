@@ -4,11 +4,11 @@ import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
 import SoundPlayer, { Sound } from '@/presentation/services/SoundPlayer.ts';
 import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
 import DialogStore from '@/presentation/stores/DialogStore.ts';
-import FooStore from '@/presentation/stores/FooStore.ts';
+import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 
 export default class UseEventHandlers {
   get selectedTile(): GameTile | null {
-    return this.fooStore.selectedTile;
+    return this.inventoryStore.selectedTile;
   }
 
   private get applicationStore() {
@@ -19,8 +19,8 @@ export default class UseEventHandlers {
     return DialogStore.INSTANCE();
   }
 
-  private get fooStore() {
-    return FooStore.INSTANCE();
+  private get inventoryStore() {
+    return InventoryStore.INSTANCE();
   }
 
   private constructor(private readonly resignDelayMs: number) {}
@@ -33,7 +33,7 @@ export default class UseEventHandlers {
 
   handleClear(): void {
     this.applicationStore.clearTiles();
-    this.fooStore.initialize();
+    this.inventoryStore.initialize();
     SoundPlayer.play(Sound.SystemClear);
   }
 
@@ -41,20 +41,20 @@ export default class UseEventHandlers {
     const selected = this.selectedTile;
     if (selected === null) return;
     if (this.applicationStore.findTileOnCell(cell) !== undefined) return;
-    if (this.fooStore.selectedTileIsPlaced) this.applicationStore.undoPlaceTile(selected);
+    if (this.inventoryStore.selectedTileIsPlaced) this.applicationStore.undoPlaceTile(selected);
     this.applicationStore.placeTile({ cell, tile: selected });
-    this.fooStore.deselectTile();
+    this.inventoryStore.deselectTile();
   }
 
   handleClickBoardTile(tile: GameTile): void {
-    if (!this.fooStore.isTileInRack(tile)) return;
-    if (this.fooStore.isTileSelected(tile)) {
-      this.fooStore.deselectTile();
+    if (!this.inventoryStore.isTileInRack(tile)) return;
+    if (this.inventoryStore.isTileSelected(tile)) {
+      this.inventoryStore.deselectTile();
       return;
     }
     const selected = this.selectedTile;
     if (selected === null) {
-      this.fooStore.selectTile(tile);
+      this.inventoryStore.selectTile(tile);
       return;
     }
     const targetCell = this.applicationStore.findCellWithTile(tile);
@@ -68,50 +68,50 @@ export default class UseEventHandlers {
     } else {
       this.applicationStore.undoPlaceTile(tile);
       this.applicationStore.placeTile({ cell: targetCell, tile: selected });
-      this.fooStore.switchTiles(selected, tile);
+      this.inventoryStore.switchTiles(selected, tile);
     }
-    this.fooStore.deselectTile();
+    this.inventoryStore.deselectTile();
   }
 
   handleClickRackCell(idx: number): void {
-    const tile = this.fooStore.tiles[idx];
+    const tile = this.inventoryStore.tiles[idx];
     if (tile === undefined) throw new ReferenceError('Tile must be defined');
     const selected = this.selectedTile;
     if (selected === null) {
       if (this.applicationStore.isTilePlaced(tile)) this.applicationStore.undoPlaceTile(tile);
       return;
     }
-    if (this.fooStore.selectedTileIsPlaced) this.applicationStore.undoPlaceTile(selected);
-    this.fooStore.switchTiles(selected, tile);
-    this.fooStore.deselectTile();
+    if (this.inventoryStore.selectedTileIsPlaced) this.applicationStore.undoPlaceTile(selected);
+    this.inventoryStore.switchTiles(selected, tile);
+    this.inventoryStore.deselectTile();
   }
 
   handleClickRackTile(tile: GameTile): void {
     const selected = this.selectedTile;
     if (selected === null) {
-      this.fooStore.selectTile(tile);
+      this.inventoryStore.selectTile(tile);
       return;
     }
-    if (!this.fooStore.isTileSelected(tile)) {
+    if (!this.inventoryStore.isTileSelected(tile)) {
       const selectedCell = this.applicationStore.findCellWithTile(selected);
       if (selectedCell !== undefined) {
         this.applicationStore.undoPlaceTile(selected);
         this.applicationStore.placeTile({ cell: selectedCell, tile });
       }
-      this.fooStore.switchTiles(selected, tile);
+      this.inventoryStore.switchTiles(selected, tile);
     }
-    this.fooStore.deselectTile();
+    this.inventoryStore.deselectTile();
   }
 
   handleDoubleClickBoardTile(tile: GameTile): void {
-    if (!this.fooStore.isTileInRack(tile)) return;
-    this.fooStore.deselectTile();
+    if (!this.inventoryStore.isTileInRack(tile)) return;
+    this.inventoryStore.deselectTile();
     this.applicationStore.undoPlaceTile(tile);
   }
 
   handleGameRestart(): void {
     this.applicationStore.restartGame();
-    this.fooStore.initialize();
+    this.inventoryStore.initialize();
   }
 
   async handlePass(): Promise<void> {
@@ -123,7 +123,7 @@ export default class UseEventHandlers {
 
   handlePlay(): void {
     this.applicationStore.save();
-    this.fooStore.initialize();
+    this.inventoryStore.initialize();
   }
 
   async handleResign(): Promise<void> {
@@ -133,7 +133,7 @@ export default class UseEventHandlers {
   }
 
   handleShuffle(): void {
-    this.fooStore.shuffle();
+    this.inventoryStore.shuffle();
     SoundPlayer.play(Sound.SystemShuffle);
   }
 

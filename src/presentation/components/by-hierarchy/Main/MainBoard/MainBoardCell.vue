@@ -5,13 +5,13 @@ import GameTile from '@/presentation/components/shared/AppTile/AppTile.vue';
 import UseEventHandlers from '@/presentation/composables/UseEventHandlers.ts';
 import { getBonusName } from '@/presentation/mappings.ts';
 import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import FooStore from '@/presentation/stores/FooStore.ts';
+import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 const events = UseEventHandlers.create();
 const props = defineProps<{
   cell: GameCell;
 }>();
 const applicationStore = ApplicationStore.INSTANCE();
-const fooStore = FooStore.INSTANCE();
+const inventoryStore = InventoryStore.INSTANCE();
 const isCellCenter = computed(() => applicationStore.isCellCenter(props.cell));
 const bonus = computed(() => applicationStore.getCellBonus(props.cell));
 const bonusName = computed(() => (bonus.value ? getBonusName(bonus.value) : ''));
@@ -50,7 +50,7 @@ const isTileSaturated = computed(() => tile.value != null && applicationStore.wa
       <GameTile
         v-if="tile"
         :letter="applicationStore.getTileLetter(tile)"
-        :is-inverted="fooStore.isTileSelected(tile)"
+        :is-inverted="inventoryStore.isTileSelected(tile)"
         :is-saturated="isTileSaturated"
         @click.stop="events.handleClickBoardTile(tile)"
         @dblclick.stop="events.handleDoubleClickBoardTile(tile)"

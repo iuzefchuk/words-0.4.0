@@ -3,11 +3,11 @@ import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
 import UseEventHandlers from '@/presentation/composables/UseEventHandlers.ts';
 import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import FooStore from '@/presentation/stores/FooStore.ts';
+import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 const applicationStore = ApplicationStore.INSTANCE();
-const fooStore = FooStore.INSTANCE();
+const inventoryStore = InventoryStore.INSTANCE();
 const events = UseEventHandlers.create();
-const { anyTileIsPlaced } = storeToRefs(fooStore);
+const { anyTileIsPlaced } = storeToRefs(inventoryStore);
 const { allActionsAreDisabled } = storeToRefs(applicationStore);
 const items = reactive([
   {

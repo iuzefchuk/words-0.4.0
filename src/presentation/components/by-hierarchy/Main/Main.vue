@@ -8,11 +8,11 @@ import MainFooter from '@/presentation/components/by-hierarchy/Main/MainFooter/M
 import MainHeader from '@/presentation/components/by-hierarchy/Main/MainHeader.vue';
 import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
 import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import FooStore from '@/presentation/stores/FooStore.ts';
+import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 await ApplicationStore.initiate();
 const applicationStore = ApplicationStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(applicationStore);
-const fooStore = FooStore.INSTANCE();
+const inventoryStore = InventoryStore.INSTANCE();
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const style = computed(() => ({
   ...(transitionDurationMs && {
@@ -24,7 +24,7 @@ const style = computed(() => ({
 </script>
 
 <template>
-  <main :style="style" :class="{ main: true, 'main--blurred': matchIsFinished }" @click="fooStore.deselectTile()">
+  <main :style="style" :class="{ main: true, 'main--blurred': matchIsFinished }" @click="inventoryStore.deselectTile()">
     <Transition name="fade-down-up" appear>
       <MainHeader />
     </Transition>

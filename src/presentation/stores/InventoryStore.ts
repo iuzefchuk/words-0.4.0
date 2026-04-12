@@ -4,9 +4,9 @@ import { GameTile } from '@/application/types/index.ts';
 import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
-export default class FooStore {
+export default class InventoryStore {
   static readonly INSTANCE = defineStore('inventory', () => {
-    const store = new FooStore();
+    const store = new InventoryStore();
     const applicationStore = ApplicationStore.INSTANCE();
     store.initialize(applicationStore.userTiles);
     return {
