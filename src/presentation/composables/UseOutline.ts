@@ -28,10 +28,24 @@ export default class UseOutline {
 
   isTooltipRendered(groups: ReadonlyArray<OutlineGroup>, idx: number): boolean {
     if (this.mainStore.currentTurnScore === undefined) return false;
-    const minRow = Math.min(...groups.map(g => g.row));
-    const topRowGroups = groups.map((g, i) => ({ g, i })).filter(({ g }) => g.row === minRow);
-    const rightmost = topRowGroups.reduce((a, b) => (a.g.col + a.g.colSpan > b.g.col + b.g.colSpan ? a : b));
-    return idx === rightmost.i;
+    let minRow = Infinity;
+    let rightmostIdx = -1;
+    let rightmostEdge = -Infinity;
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i]!;
+      if (group.row < minRow) {
+        minRow = group.row;
+        rightmostIdx = i;
+        rightmostEdge = group.col + group.colSpan;
+      } else if (group.row === minRow) {
+        const edge = group.col + group.colSpan;
+        if (edge > rightmostEdge) {
+          rightmostIdx = i;
+          rightmostEdge = edge;
+        }
+      }
+    }
+    return idx === rightmostIdx;
   }
 
   private buildGroup(start: GameCell, cells: ReadonlySet<GameCell>, visited: Set<GameCell>): OutlineGroup {

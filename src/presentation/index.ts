@@ -9,13 +9,9 @@ class Presentation {
   private app = createApp(Index);
 
   async start(): Promise<void> {
-    try {
-      await this.installAsyncPlugins();
-      this.installPlugins();
-      this.mount();
-    } catch (error) {
-      console.error(error);
-    }
+    await this.installAsyncPlugins();
+    this.installPlugins();
+    this.mount();
   }
 
   private async installAsyncPlugins(): Promise<void> {

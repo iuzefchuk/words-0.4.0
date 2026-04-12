@@ -10,7 +10,7 @@ const style = computed(() => ({
     '--transition-duration': `${transitionDurationMs}ms`,
     '--transition-duration-half': `${transitionDurationMs / 2}ms`,
   }),
-  '--cell-count-per-axis': 15, // TODO delete
+  '--cell-count-per-axis': 15, // TODO replace this for boardCellsPerAxis
 }));
 </script>
 

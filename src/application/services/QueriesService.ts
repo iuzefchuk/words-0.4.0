@@ -69,8 +69,8 @@ export default class QueriesService {
     return this.game.difficulty;
   }
 
-  getEventLog(): ReadonlyArray<GameEvent> {
-    return this.game.eventLogView;
+  getEventsLog(): ReadonlyArray<GameEvent> {
+    return this.game.eventsLogView;
   }
 
   getMatchResult(): GameMatchResult {

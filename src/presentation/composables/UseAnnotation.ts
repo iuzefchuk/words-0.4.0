@@ -13,7 +13,7 @@ export default class UseAnnotation {
   });
 
   private get allDisplayedEvents(): ReadonlyArray<GameEvent> {
-    return this.mainStore.eventLog.filter(event => this.isEventDisplayed(event));
+    return this.mainStore.eventsLog.filter(event => this.isEventDisplayed(event));
   }
 
   private get displayedEvents(): ReadonlyArray<GameEvent> {

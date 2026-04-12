@@ -1,3 +1,4 @@
+import Events from '@/domain/Events.ts';
 import Board from '@/domain/models/board/Board.ts';
 import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
@@ -22,47 +23,13 @@ import {
 } from '@/domain/types/index.ts';
 import { IdentityService, SeedingService } from '@/domain/types/ports.ts';
 
-class EventLog {
-  get logView(): ReadonlyArray<GameEvent> {
-    return [...this.log];
-  }
-
-  private constructor(
-    private readonly log: Array<GameEvent>,
-    private readonly pending: Array<GameEvent>,
-  ) {}
-
-  static create(initialEvents: Array<GameEvent> = []): EventLog {
-    return new EventLog([...initialEvents], []);
-  }
-
-  drainPending(): Array<GameEvent> {
-    const drained = [...this.pending];
-    this.pending.length = 0;
-    return drained;
-  }
-
-  record(event: GameEvent): void {
-    this.log.push(event);
-    this.pending.push(event);
-  }
-
-  reset(initialEvent: GameEvent): void {
-    this.log.length = 0;
-    this.log.push(initialEvent);
-  }
-
-  wasLastTurnEventPassFor(player: GamePlayer): boolean {
-    for (let i = this.log.length - 1; i >= 0; i--) {
-      const e = this.log[i]!;
-      if (e.type === GameEventType.TurnPassed && e.player === player) return true;
-      if (e.type === GameEventType.TurnSaved && e.player === player) return false;
-    }
-    return false;
-  }
-}
-
 export default class Game {
+  private static readonly TURN_GENERATION_ATTEMPTS: Record<GameDifficulty, number> = {
+    [GameDifficulty.High]: Infinity,
+    [GameDifficulty.Low]: 1,
+    [GameDifficulty.Medium]: 20,
+  };
+
   get boardView(): Readonly<GameBoardView> {
     return this.board;
   }
@@ -71,8 +38,8 @@ export default class Game {
     return this.dictionary !== undefined;
   }
 
-  get eventLogView(): ReadonlyArray<GameEvent> {
-    return this.eventLog.logView;
+  get eventsLogView(): ReadonlyArray<GameEvent> {
+    return this.events.logView;
   }
 
   get inventoryView(): Readonly<GameInventoryView> {
@@ -85,6 +52,10 @@ export default class Game {
 
   get settingsChangeIsAllowed(): boolean {
     return !this.turns.historyHasPriorTurns;
+  }
+
+  get turnGenerationAttempts(): number {
+    return Game.TURN_GENERATION_ATTEMPTS[this.difficulty];
   }
 
   get turnsView(): Readonly<GameTurnsView> {
@@ -102,7 +73,7 @@ export default class Game {
   private turns!: Turns;
 
   private constructor(
-    private readonly eventLog: EventLog,
+    private readonly events: Events,
     private readonly identityService: IdentityService,
     private readonly seedingService: SeedingService,
     public difficulty: GameDifficulty,
@@ -111,20 +82,20 @@ export default class Game {
   static create(identityService: IdentityService, seedingService: SeedingService, settings: GameSettings): Game {
     const seed = seedingService.createSeed();
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
-    const eventLog = EventLog.create([event]);
-    const game = new Game(eventLog, identityService, seedingService, settings.difficulty);
+    const events = Events.create([event]);
+    const game = new Game(events, identityService, seedingService, settings.difficulty);
     game.initialize(Game.createInitParams(seed, settings, seedingService, identityService));
     return game;
   }
 
-  static createFromEvents(events: ReadonlyArray<GameEvent>, identityService: IdentityService, seedingService: SeedingService): Game {
-    if (events[0] === undefined) throw new Error('Events have to exist');
-    const first = events[0];
+  static createFromEvents(initialEvents: ReadonlyArray<GameEvent>, identityService: IdentityService, seedingService: SeedingService): Game {
+    if (initialEvents[0] === undefined) throw new Error('Events have to exist');
+    const first = initialEvents[0];
     if (first.type !== GameEventType.MatchStarted) throw new Error('First event must be MatchStarted');
-    const eventLog = EventLog.create([...events]);
-    const game = new Game(eventLog, identityService, seedingService, first.settings.difficulty);
+    const events = Events.create([...initialEvents]);
+    const game = new Game(events, identityService, seedingService, first.settings.difficulty);
     game.initialize(Game.createInitParams(first.seed, first.settings, seedingService, identityService));
-    for (let i = 1; i < events.length; i++) game.applyToState(events[i]!);
+    for (let i = 1; i < initialEvents.length; i++) game.applyToState(initialEvents[i]!);
     return game;
   }
 
@@ -233,7 +204,7 @@ export default class Game {
   }
 
   drainPendingEvents(): Array<GameEvent> {
-    return this.eventLog.drainPending();
+    return this.events.drainPending();
   }
 
   finishMatchByScore(): void {
@@ -262,7 +233,7 @@ export default class Game {
     const seed = this.seedingService.createSeed();
     const settings: GameSettings = { boardType: this.board.type, difficulty: this.difficulty };
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
-    this.eventLog.reset(event);
+    this.events.reset(event);
     this.initialize(Game.createInitParams(seed, settings, this.seedingService, this.identityService));
   }
 
@@ -304,12 +275,12 @@ export default class Game {
   }
 
   willPassBeResignFor(player: GamePlayer): boolean {
-    return this.eventLog.wasLastTurnEventPassFor(player);
+    return this.events.wasLastTurnEventPassFor(player);
   }
 
   private applyEvent(event: GameEvent): void {
     this.applyToState(event);
-    this.eventLog.record(event);
+    this.events.record(event);
   }
 
   private ensureMutability(): void {

@@ -16,8 +16,9 @@ export default class InventoryStore {
       isTileInRack: store.isTileInRack.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       isTileVisible: store.isTileVisible.bind(store),
-      selectedTile: store.selectedTileRef,
+      selectedTile: computed(() => store.selectedTile),
       selectedTileIsPlaced: computed(() => store.selectedTileIsPlaced),
+      selectTile: store.selectTile.bind(store),
       shuffle: () => store.shuffle(),
       switchTiles: (firstTile: GameTile, secondTile: GameTile) => store.switchTiles(firstTile, secondTile),
       tiles: store.tilesRef,
@@ -34,10 +35,6 @@ export default class InventoryStore {
 
   private get selectedTile(): GameTile | null {
     return this.selectedTileRef.value;
-  }
-
-  private set selectedTile(newValue: GameTile | null) {
-    this.selectedTileRef.value = newValue;
   }
 
   private get selectedTileIsPlaced(): boolean {
@@ -58,7 +55,7 @@ export default class InventoryStore {
   ) {}
 
   private deselectTile(): void {
-    this.selectedTile = null;
+    this.selectedTileRef.value = null;
   }
 
   private getTileIdx(tile: GameTile): number {
@@ -68,7 +65,7 @@ export default class InventoryStore {
   private initialize(userTiles: ReadonlyArray<GameTile>): void {
     this.tiles.splice(0, this.tiles.length, ...userTiles);
     triggerRef(this.tilesRef);
-    this.selectedTile = null;
+    this.selectedTileRef.value = null;
   }
 
   private isTileInRack(tile: GameTile): boolean {
@@ -81,6 +78,11 @@ export default class InventoryStore {
 
   private isTileVisible(tile: GameTile): boolean {
     return this.isTileInRack(tile) && !this.mainStore.isTilePlaced(tile);
+  }
+
+  private selectTile(tile: GameTile): void {
+    if (!this.isTileInRack(tile)) return;
+    this.selectedTileRef.value = tile;
   }
 
   private shuffle(): void {

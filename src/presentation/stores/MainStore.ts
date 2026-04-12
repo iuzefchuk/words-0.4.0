@@ -96,7 +96,7 @@ class Getters {
 
   readonly difficulty = computed(() => this.readState(() => this.queriesService.getDifficulty()));
 
-  readonly eventLog = computed(() => this.readState(() => this.queriesService.getEventLog()));
+  readonly eventsLog = computed(() => this.readState(() => this.queriesService.getEventsLog()));
 
   readonly hasPriorTurns = computed(() => this.readState(() => this.queriesService.hasPriorTurns()));
 

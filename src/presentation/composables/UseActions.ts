@@ -5,6 +5,8 @@ import DialogStore from '@/presentation/stores/DialogStore.ts';
 import InventoryStore from '@/presentation/stores/InventoryStore.ts';
 import MainStore from '@/presentation/stores/MainStore.ts';
 
+// TODO merge into UseInventoryEvents
+
 export default class UseActions {
   private get dialogStore() {
     return DialogStore.INSTANCE();

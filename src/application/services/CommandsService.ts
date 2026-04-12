@@ -17,12 +17,6 @@ import Game from '@/domain/Game.ts';
 import { TIME } from '@/shared/constants.ts';
 
 export default class CommandsService {
-  private static readonly DIFFICULTY_RESULT_LIMITS: Record<GameDifficulty, number> = {
-    [GameDifficulty.High]: Infinity,
-    [GameDifficulty.Low]: 1,
-    [GameDifficulty.Medium]: 20,
-  };
-
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
 
   private get currentPlayer(): GamePlayer {
@@ -118,8 +112,7 @@ export default class CommandsService {
 
   private async createOpponentTurn(): Promise<GameEvent> {
     const player = GamePlayer.Opponent;
-    const { difficulty } = this.game;
-    const attemptsLimit = CommandsService.DIFFICULTY_RESULT_LIMITS[difficulty];
+    const attemptsLimit = this.game.turnGenerationAttempts;
     const context = this.game.createGeneratorContext();
     let bestResult: GameGeneratorResult | null = null;
     let bestScore = -1;
@@ -188,6 +181,6 @@ export default class CommandsService {
   }
 
   private syncPersistence(): void {
-    this.eventRepository.save(this.game.eventLogView);
+    this.eventRepository.save(this.game.eventsLogView);
   }
 }
