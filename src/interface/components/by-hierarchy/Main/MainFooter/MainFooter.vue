@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import MainFooterButtons from '@/presentation/components/by-hierarchy/Main/MainFooter/MainFooterButtons.vue';
-import MainFooterRack from '@/presentation/components/by-hierarchy/Main/MainFooter/MainFooterRack.vue';
+import MainFooterButtons from '@/interface/components/by-hierarchy/Main/MainFooter/MainFooterButtons.vue';
+import MainFooterRack from '@/interface/components/by-hierarchy/Main/MainFooter/MainFooterRack.vue';
 </script>
 
 <template>

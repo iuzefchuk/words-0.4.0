@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { computed, inject } from 'vue';
-import Dialog from '@/presentation/components/by-hierarchy/Dialog.vue';
-import Loader from '@/presentation/components/by-hierarchy/Loader.vue';
-import Main from '@/presentation/components/by-hierarchy/Main/Main.vue';
-import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
+import Dialog from '@/interface/components/by-hierarchy/Dialog.vue';
+import Loader from '@/interface/components/by-hierarchy/Loader.vue';
+import Main from '@/interface/components/by-hierarchy/Main/Main.vue';
+import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const style = computed(() => ({
   ...(transitionDurationMs && {
@@ -25,10 +25,10 @@ const style = computed(() => ({
 </template>
 
 <style lang="scss">
-@use '@/presentation/assets/css/adjustments.scss';
-@use '@/presentation/assets/css/animations.scss';
-@use '@/presentation/assets/css/app.scss';
-@use '@/presentation/assets/css/colors.scss';
-@use '@/presentation/assets/css/transitions.scss';
-@use '@/presentation/assets/css/variables.scss';
+@use '@/interface/assets/css/adjustments.scss';
+@use '@/interface/assets/css/animations.scss';
+@use '@/interface/assets/css/app.scss';
+@use '@/interface/assets/css/colors.scss';
+@use '@/interface/assets/css/transitions.scss';
+@use '@/interface/assets/css/variables.scss';
 </style>

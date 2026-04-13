@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import MainBoardTooltip from '@/presentation/components/by-hierarchy/Main/MainBoard/MainBoardTooltip.vue';
-import UseTileLocator from '@/presentation/composables/UseTileLocator.ts';
-import InventoryStore from '@/presentation/stores/InventoryStore.ts';
+import MainBoardTooltip from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoardTooltip.vue';
+import UseTileLocator from '@/interface/composables/UseTileLocator.ts';
+import InventoryStore from '@/interface/stores/InventoryStore.ts';
 const inventoryStore = InventoryStore.INSTANCE();
 const tileLocator = new UseTileLocator();
 const { tiles } = storeToRefs(inventoryStore);

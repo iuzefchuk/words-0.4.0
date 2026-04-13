@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { GameEvent, GameEventType, GamePlayer } from '@/application/types/index.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 
 export default class UseNotifications {
   private static readonly MAX_DISPLAYED_MESSAGES = 3;

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import UseNotifications from '@/presentation/composables/UseNotifications.ts';
+import UseNotifications from '@/interface/composables/UseNotifications.ts';
 const { messages } = new UseNotifications();
 </script>
 

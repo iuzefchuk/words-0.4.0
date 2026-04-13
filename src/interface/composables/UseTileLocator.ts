@@ -1,5 +1,5 @@
 import { GameCell, GameTile } from '@/application/types/index.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 
 type Location = { col: number; colSpan: number; row: number; rowSpan: number };
 

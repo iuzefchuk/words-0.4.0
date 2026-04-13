@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import UseEventHandlers from '@/presentation/composables/UseEventHandlers.ts';
-import { getMatchResultText } from '@/presentation/mappings.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import { getMatchResultText } from '@/interface/mappings.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 const applicationStore = ApplicationStore.INSTANCE();
 const events = UseEventHandlers.create();
 const { matchResult, opponentScore, userScore } = storeToRefs(applicationStore);

@@ -4,11 +4,11 @@ import Application from '@/application/index.ts';
 import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
 import { GameBoardType, GameCell, GameDifficulty, GameSettings, GameTile } from '@/application/types/index.ts';
-import { DEFAULT_SETTINGS } from '@/presentation/constants.ts';
-import { StorageKey } from '@/presentation/enums.ts';
-import { getEventSound } from '@/presentation/mappings.ts';
-import LocalStorage from '@/presentation/services/LocalStorage.ts';
-import SoundPlayer from '@/presentation/services/SoundPlayer.ts';
+import { DEFAULT_SETTINGS } from '@/interface/constants.ts';
+import { StorageKey } from '@/interface/enums.ts';
+import { getEventSound } from '@/interface/mappings.ts';
+import LocalStorage from '@/interface/services/LocalStorage.ts';
+import SoundPlayer from '@/interface/services/SoundPlayer.ts';
 
 class Actions {
   constructor(

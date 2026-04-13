@@ -1,10 +1,10 @@
 import { inject } from 'vue';
 import { GameCell, GameTile } from '@/domain/types/index.ts';
-import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
-import SoundPlayer, { Sound } from '@/presentation/services/SoundPlayer.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import DialogStore from '@/presentation/stores/DialogStore.ts';
-import InventoryStore from '@/presentation/stores/InventoryStore.ts';
+import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
+import SoundPlayer, { Sound } from '@/interface/services/SoundPlayer.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import DialogStore from '@/interface/stores/DialogStore.ts';
+import InventoryStore from '@/interface/stores/InventoryStore.ts';
 
 export default class UseEventHandlers {
   get selectedTile(): GameTile | null {

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { GameBoardType, GameDifficulty } from '@/application/types/index.ts';
-import AppSelect from '@/presentation/components/shared/AppSelect/AppSelect.vue';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import AppSelect from '@/interface/components/shared/AppSelect/AppSelect.vue';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 type OptionValue = GameBoardType | GameDifficulty;
 const applicationStore = ApplicationStore.INSTANCE();
 const optionsAreDisabled = computed(() => !applicationStore.settingsChangeIsAllowed);

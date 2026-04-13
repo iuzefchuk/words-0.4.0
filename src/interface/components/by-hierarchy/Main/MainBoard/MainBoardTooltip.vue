@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 const props = defineProps<{ isFlipped?: boolean }>();
 const applicationStore = ApplicationStore.INSTANCE();
 const { currentTurnScore } = storeToRefs(applicationStore);

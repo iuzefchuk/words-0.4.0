@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
-import UseEventHandlers from '@/presentation/composables/UseEventHandlers.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import InventoryStore from '@/presentation/stores/InventoryStore.ts';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import InventoryStore from '@/interface/stores/InventoryStore.ts';
 const applicationStore = ApplicationStore.INSTANCE();
 const inventoryStore = InventoryStore.INSTANCE();
 const events = UseEventHandlers.create();

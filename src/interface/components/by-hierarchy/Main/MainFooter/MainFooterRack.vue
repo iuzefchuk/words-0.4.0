@@ -2,10 +2,10 @@
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { GameTile } from '@/application/types/index.ts';
-import AppTile from '@/presentation/components/shared/AppTile/AppTile.vue';
-import UseEventHandlers from '@/presentation/composables/UseEventHandlers.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import InventoryStore from '@/presentation/stores/InventoryStore.ts';
+import AppTile from '@/interface/components/shared/AppTile/AppTile.vue';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import InventoryStore from '@/interface/stores/InventoryStore.ts';
 const events = UseEventHandlers.create();
 const applicationStore = ApplicationStore.INSTANCE();
 const inventoryStore = InventoryStore.INSTANCE();

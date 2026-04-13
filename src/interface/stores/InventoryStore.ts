@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref, shallowRef, triggerRef } from 'vue';
 import { GameTile } from '@/application/types/index.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export default class InventoryStore {

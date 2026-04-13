@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import MainBoardCell from '@/presentation/components/by-hierarchy/Main/MainBoard/MainBoardCell.vue';
-import MainBoardOutline from '@/presentation/components/by-hierarchy/Main/MainBoard/MainBoardOutline.vue';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
+import MainBoardCell from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoardCell.vue';
+import MainBoardOutline from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoardOutline.vue';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 const applicationStore = ApplicationStore.INSTANCE();
 </script>
 

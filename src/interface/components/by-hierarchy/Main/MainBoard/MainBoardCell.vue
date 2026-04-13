@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { GameBonus, GameCell } from '@/application/types/index.ts';
-import GameTile from '@/presentation/components/shared/AppTile/AppTile.vue';
-import UseEventHandlers from '@/presentation/composables/UseEventHandlers.ts';
-import { getBonusName } from '@/presentation/mappings.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import InventoryStore from '@/presentation/stores/InventoryStore.ts';
+import GameTile from '@/interface/components/shared/AppTile/AppTile.vue';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import { getBonusName } from '@/interface/mappings.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import InventoryStore from '@/interface/stores/InventoryStore.ts';
 const events = UseEventHandlers.create();
 const props = defineProps<{
   cell: GameCell;

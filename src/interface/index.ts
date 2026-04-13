@@ -1,9 +1,9 @@
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
-import Index from '@/presentation/components/by-hierarchy/index.vue';
-import DirectivesPlugin from '@/presentation/plugins/DirectivesPlugin/DirectivesPlugin.ts';
-import LocalesPlugin from '@/presentation/plugins/LocalesPlugin/LocalesPlugin.ts';
-import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
+import Index from '@/interface/components/by-hierarchy/index.vue';
+import DirectivesPlugin from '@/interface/plugins/DirectivesPlugin/DirectivesPlugin.ts';
+import LocalesPlugin from '@/interface/plugins/LocalesPlugin/LocalesPlugin.ts';
+import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 
 class Presentation {
   private app = createApp(Index);

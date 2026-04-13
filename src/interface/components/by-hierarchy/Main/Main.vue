@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { computed, inject } from 'vue';
-import MainAnnotation from '@/presentation/components/by-hierarchy/Main/MainAnnotation.vue';
-import MainBoard from '@/presentation/components/by-hierarchy/Main/MainBoard/MainBoard.vue';
-import MainEndscreen from '@/presentation/components/by-hierarchy/Main/MainEndscreen.vue';
-import MainFooter from '@/presentation/components/by-hierarchy/Main/MainFooter/MainFooter.vue';
-import MainHeader from '@/presentation/components/by-hierarchy/Main/MainHeader.vue';
-import ProvidesPlugin from '@/presentation/plugins/ProvidesPlugin.ts';
-import ApplicationStore from '@/presentation/stores/ApplicationStore.ts';
-import InventoryStore from '@/presentation/stores/InventoryStore.ts';
+import MainAnnotation from '@/interface/components/by-hierarchy/Main/MainAnnotation.vue';
+import MainBoard from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoard.vue';
+import MainEndscreen from '@/interface/components/by-hierarchy/Main/MainEndscreen.vue';
+import MainFooter from '@/interface/components/by-hierarchy/Main/MainFooter/MainFooter.vue';
+import MainHeader from '@/interface/components/by-hierarchy/Main/MainHeader.vue';
+import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
+import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import InventoryStore from '@/interface/stores/InventoryStore.ts';
 await ApplicationStore.initiate();
 const applicationStore = ApplicationStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(applicationStore);
