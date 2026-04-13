@@ -1,7 +1,22 @@
 import { WorkerService } from '@/application/types/ports.ts';
 
-type WorkerRequest = { input: unknown; type: 'execute' | 'stream' }; // TODO change types from strings to enums
-type WorkerResponse = { error: string; type: 'error' } | { type: 'done' } | { type: 'result'; value: unknown }; // TODO change types from strings to enums
+export const enum WorkerRequestType {
+  Execute = 'Execute',
+  Stream = 'Stream',
+}
+
+export const enum WorkerResponseType {
+  Done = 'Done',
+  Error = 'Error',
+  Result = 'Result',
+}
+
+type WorkerRequest = { input: unknown; type: WorkerRequestType };
+
+type WorkerResponse =
+  | { error: string; type: WorkerResponseType.Error }
+  | { type: WorkerResponseType.Done }
+  | { type: WorkerResponseType.Result; value: unknown };
 
 export default class WebWorkerService implements WorkerService {
   constructor(private readonly workers: Record<string, new () => Worker>) {}
@@ -11,15 +26,15 @@ export default class WebWorkerService implements WorkerService {
     return new Promise<O>((resolve, reject) => {
       worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
         worker.terminate();
-        if (e.data.type === 'result') resolve(e.data.value as O);
-        else if (e.data.type === 'error') reject(new Error(e.data.error));
+        if (e.data.type === WorkerResponseType.Result) resolve(e.data.value as O);
+        else if (e.data.type === WorkerResponseType.Error) reject(new Error(e.data.error));
         else reject(new Error('Unexpected response'));
       };
       worker.onerror = e => {
         worker.terminate();
         reject(e);
       };
-      worker.postMessage({ input: data, type: 'execute' } satisfies WorkerRequest);
+      worker.postMessage({ input: data, type: WorkerRequestType.Execute } satisfies WorkerRequest);
     });
   }
 
@@ -37,7 +52,7 @@ export default class WebWorkerService implements WorkerService {
       error = e instanceof Error ? e : new Error(String(e));
       resolve?.();
     };
-    worker.postMessage({ input: data, type: 'stream' } satisfies WorkerRequest);
+    worker.postMessage({ input: data, type: WorkerRequestType.Stream } satisfies WorkerRequest);
     try {
       while (true) {
         while (queueReadIndex >= queue.length) {
@@ -52,8 +67,8 @@ export default class WebWorkerService implements WorkerService {
           queue.splice(0, queueReadIndex);
           queueReadIndex = 0;
         }
-        if (msg.type === 'error') throw new Error(msg.error);
-        if (msg.type === 'done') return;
+        if (msg.type === WorkerResponseType.Error) throw new Error(msg.error);
+        if (msg.type === WorkerResponseType.Done) return;
         yield msg.value as O;
       }
     } finally {
