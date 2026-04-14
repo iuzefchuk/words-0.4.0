@@ -5,10 +5,10 @@
   --primary-bg: var(--color-mist-100);
   --secondary-font-size: var(--font-size-small);
   --secondary-color: var(--color-mist-500);
-  --cell-color-dw: var(--color-blue-400);
-  --cell-color-tw: var(--color-yellow-400);
-  --cell-color-dl: var(--color-emerald-400);
-  --cell-color-tl: var(--color-rose-400);
+  --cell-color-dl: var(--color-emerald-300);
+  --cell-color-tl: var(--color-sky-300);
+  --cell-color-dw: var(--color-amber-300);
+  --cell-color-tw: var(--color-rose-300);
   --cell-bg: var(--color-white);
   --cell-bg-center: var(--color-mist-200);
   --cell-bg-footer: var(--color-mist-200);
@@ -50,10 +50,10 @@
   --primary-bg: var(--color-slate-800);
   --secondary-font-size: var(--font-size-small);
   --secondary-color: var(--color-slate-300);
-  --cell-color-dw: var(--color-sky-700);
-  --cell-color-tw: var(--color-yellow-700);
   --cell-color-dl: var(--color-teal-700);
-  --cell-color-tl: var(--color-pink-700);
+  --cell-color-tl: var(--color-sky-700);
+  --cell-color-dw: var(--color-yellow-700);
+  --cell-color-tw: var(--color-pink-700);
   --cell-bg: var(--color-slate-900);
   --cell-bg-center: var(--color-slate-700);
   --cell-bg-footer: var(--color-slate-700);
@@ -66,8 +66,8 @@
   --tile-bg: var(--color-emerald-300);
   --tile-bg-inverted: var(--color-white);
   --tile-bg-saturated: var(--color-emerald-100);
-  --tile-outline-color: var(--color-rose-500);
-  --tooltip-bg: var(--color-violet-600);
+  --tile-outline-color: var(--color-violet-600);
+  --tooltip-bg: var(--color-rose-500);
   --tooltip-color: var(--color-white);
   --btn-bg: var(--color-slate-600);
   --btn-bg-hover: var(--color-slate-500);
@@ -98,7 +98,7 @@
   --opacity-disabled: 0.9;
   @include light-scheme;
   @media (prefers-color-scheme: dark) {
-    @include dark-scheme;
+       @include dark-scheme;
   }
 }
 
