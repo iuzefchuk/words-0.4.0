@@ -1,7 +1,13 @@
 import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
 import { AppConfig, GameDictionary, GameSerializedNode, GameSettings } from '@/application/types/index.ts';
-import { CompressionService, IdentityService, SchedulingService, SeedingService, WorkerService } from '@/application/types/ports.ts';
+import {
+  CompressionService,
+  IdentityService,
+  SchedulingService,
+  SeedingService,
+  WorkerService,
+} from '@/application/types/ports.ts';
 import { DictionaryRepository, EventRepository } from '@/application/types/repositories.ts';
 import Game from '@/domain/Game.ts';
 import Infrastructure from '@/infrastructure/index.ts';
@@ -33,7 +39,13 @@ export default class Application {
     const { repositories, services, tasks } = await Infrastructure.createAppDependencies();
     const game = await this.createGame(services, repositories, settings);
     const queriesService = new QueriesService(game);
-    const commandsService = new CommandsService(game, services.scheduling, services.worker, tasks.turnGeneration, repositories.events);
+    const commandsService = new CommandsService(
+      game,
+      services.scheduling,
+      services.worker,
+      tasks.turnGeneration,
+      repositories.events,
+    );
     return new Application(
       game,
       services.compression,

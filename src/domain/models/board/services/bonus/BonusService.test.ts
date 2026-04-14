@@ -30,7 +30,9 @@ describe('BonusService', () => {
     const bonusTypes = Object.values(Bonus).map(b => [b] as const);
 
     it.each(bonusTypes)('bonus %s', bonusType => {
-      expect(countBonusOccurrences(classicDistribution).get(bonusType)).toBe(countBonusOccurrences(randomDistribution).get(bonusType));
+      expect(countBonusOccurrences(classicDistribution).get(bonusType)).toBe(
+        countBonusOccurrences(randomDistribution).get(bonusType),
+      );
     });
   });
 

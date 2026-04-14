@@ -2,6 +2,7 @@ import Board from '@/domain/models/board/Board.ts';
 import { BoardType } from '@/domain/models/board/enums.ts';
 import BonusService from '@/domain/models/board/services/bonus/BonusService.ts';
 import { Cell } from '@/domain/models/board/types.ts';
+import { Tile } from '@/domain/models/inventory/types.ts';
 import CryptoSeedingService from '@/infrastructure/services/CryptoSeedingService.ts';
 
 describe('Board', () => {
@@ -19,8 +20,60 @@ describe('Board', () => {
     expect(Board.CENTER_CELL).toBe(centerValue);
   });
 
-  it('clones itself correctly', () => {
-    // TODO clone - test if all fields are cloned correctly and if the clone is independent from the source (modifying clone doesn't modify source and vice versa)
+  describe('cloning', () => {
+    const tileA = 'A-0' as Tile;
+    const tileB = 'B-1' as Tile;
+    const cellA = 0 as Cell;
+    const cellB = 1 as Cell;
+
+    let board: Board;
+    let clone: Board;
+
+    beforeEach(() => {
+      board = Board.create(BoardType.Classic);
+      board.placeTile(cellA, tileA);
+      board.placeTile(cellB, tileB);
+      clone = Board.clone(board);
+    });
+
+    it('preserves board type', () => {
+      expect(clone.type).toBe(board.type);
+    });
+
+    describe('preserves bonus distribution', () => {
+      it.each(Board.CELLS_BY_INDEX)('cell %i', cell => {
+        expect(clone.getBonus(cell)).toBe(board.getBonus(cell));
+      });
+    });
+
+    it('preserves placed tiles', () => {
+      expect(clone.findTileByCell(cellA)).toBe(tileA);
+      expect(clone.findTileByCell(cellB)).toBe(tileB);
+      expect(clone.findCellByTile(tileA)).toBe(cellA);
+      expect(clone.findCellByTile(tileB)).toBe(cellB);
+    });
+
+    it('is not affected by modifications to the source', () => {
+      const tileD = 'D-2' as Tile;
+      const cellD = 3 as Cell;
+      board.placeTile(cellD, tileD);
+      expect(board.findTileByCell(cellD)).toBe(tileD);
+      expect(clone.findTileByCell(cellD)).toBeUndefined();
+    });
+
+    it('does not affect the source when modified', () => {
+      const tileC = 'C-3' as Tile;
+      const cellC = 2 as Cell;
+      clone.placeTile(cellC, tileC);
+      expect(clone.findTileByCell(cellC)).toBe(tileC);
+      expect(board.findTileByCell(cellC)).toBeUndefined();
+    });
+
+    it('does not affect the source when tile is undone', () => {
+      clone.undoPlaceTile(tileA);
+      expect(clone.findTileByCell(cellA)).toBeUndefined();
+      expect(board.findTileByCell(cellA)).toBe(tileA);
+    });
   });
 
   it('creates itself correctly', () => {

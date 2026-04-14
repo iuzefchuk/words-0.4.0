@@ -10,7 +10,8 @@ export default class AsyncSchedulingService implements SchedulingService {
   }
 
   yield(): Promise<void> {
-    if (typeof schedulingService !== 'undefined' && typeof schedulingService.yield === 'function') return schedulingService.yield();
+    if (typeof schedulingService !== 'undefined' && typeof schedulingService.yield === 'function')
+      return schedulingService.yield();
     return new Promise(resolve => setTimeout(resolve, 0));
   }
 }

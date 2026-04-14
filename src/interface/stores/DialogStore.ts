@@ -107,7 +107,14 @@ export default class DialogStore {
     }
   }
 
-  private async trigger({ cancelIsHidden, cancelText, confirmIsHidden, confirmText, html, title }: DialogTriggerParams): Promise<DialogResult> {
+  private async trigger({
+    cancelIsHidden,
+    cancelText,
+    confirmIsHidden,
+    confirmText,
+    html,
+    title,
+  }: DialogTriggerParams): Promise<DialogResult> {
     this.html = html;
     if (title) this.title = title;
     if (cancelText) this.cancelText = cancelText;

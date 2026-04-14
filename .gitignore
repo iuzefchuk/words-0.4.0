@@ -4,13 +4,12 @@ dist
 dist-ssr
 .claude
 .coverage
-coverage
-report
 .results
 .unlighthouse
 visual.spec.ts-snapshots
 *.local
 *.lock
+package-lock.json
 __MACOSX
 
 # Log files

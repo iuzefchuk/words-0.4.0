@@ -1,5 +1,5 @@
-import { defineConfig } from '@playwright/test';
 import path from 'node:path';
+import { defineConfig } from '@playwright/test';
 
 const URL = `http://localhost:${process.env.VITE_PORT ?? 5173}`;
 

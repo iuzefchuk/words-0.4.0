@@ -246,7 +246,9 @@ class TaskDispatcher {
 
   private resolveCandidate(task: ResolveTask): ContinueTaskCommand | StopTaskCommand {
     const { candidate, traversal } = task;
-    return candidate.resolution ? this.createTraversalFromCandidate(traversal, candidate) : this.calculateAndExploreResolution(traversal, candidate);
+    return candidate.resolution
+      ? this.createTraversalFromCandidate(traversal, candidate)
+      : this.calculateAndExploreResolution(traversal, candidate);
   }
 
   private reverseResolution(task: ReverseTask): ContinueTaskCommand {

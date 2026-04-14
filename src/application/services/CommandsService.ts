@@ -118,7 +118,10 @@ export default class CommandsService {
     let bestResult: GameGeneratorResult | null = null;
     let bestScore = -1;
     let attemptsCount = 0;
-    for await (const result of this.workerService.stream<GameGeneratorResult>(this.turnGenerationTaskId, { data: context, player })) {
+    for await (const result of this.workerService.stream<GameGeneratorResult>(this.turnGenerationTaskId, {
+      data: context,
+      player,
+    })) {
       if (attemptsLimit === 1) {
         bestResult = result;
         break;

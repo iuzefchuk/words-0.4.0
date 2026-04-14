@@ -105,7 +105,8 @@ export default class Inventory {
     const drawPool = TilePool.create({ tiles: extractTiles(source.drawPool) });
     const playerPools = new Map(
       [...source.playerPools].map(
-        ([player, pool]) => [player, TilePool.create({ capacity: Inventory.PLAYER_POOL_CAPACITY, tiles: extractTiles(pool) })] as const,
+        ([player, pool]) =>
+          [player, TilePool.create({ capacity: Inventory.PLAYER_POOL_CAPACITY, tiles: extractTiles(pool) })] as const,
       ),
     );
     const discardPool = TilePool.create({ tiles: extractTiles(source.discardPool) });

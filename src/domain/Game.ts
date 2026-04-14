@@ -89,7 +89,11 @@ export default class Game {
     return game;
   }
 
-  static createFromEvents(initialEvents: ReadonlyArray<GameEvent>, identityService: IdentityService, seedingService: SeedingService): Game {
+  static createFromEvents(
+    initialEvents: ReadonlyArray<GameEvent>,
+    identityService: IdentityService,
+    seedingService: SeedingService,
+  ): Game {
     if (initialEvents[0] === undefined) throw new Error('Events have to exist');
     const first = initialEvents[0];
     if (first.type !== GameEventType.MatchStarted) throw new Error('First event must be MatchStarted');
@@ -100,7 +104,12 @@ export default class Game {
     return game;
   }
 
-  private static createInitParams(seed: number, settings: GameSettings, seedingService: SeedingService, identityService: IdentityService) {
+  private static createInitParams(
+    seed: number,
+    settings: GameSettings,
+    seedingService: SeedingService,
+    identityService: IdentityService,
+  ) {
     const players = Object.values(GamePlayer);
     const randomizer = seedingService.createRandomizer(seed);
     return {
@@ -129,7 +138,12 @@ export default class Game {
     switch (event.type) {
       case GameEventType.BoardTypeChanged:
         this.initialize(
-          Game.createInitParams(event.seed, { boardType: event.boardType, difficulty: this.difficulty }, this.seedingService, this.identityService),
+          Game.createInitParams(
+            event.seed,
+            { boardType: event.boardType, difficulty: this.difficulty },
+            this.seedingService,
+            this.identityService,
+          ),
         );
         break;
       case GameEventType.DifficultyChanged:

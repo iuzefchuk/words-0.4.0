@@ -33,7 +33,9 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
       if (nowTime < this.startTime) return this.handleNextFrame();
       const progress = Math.min((nowTime - this.startTime) / this.duration, 1); // 0 - 1
       const animationIsUnfinished = progress < 1;
-      const nextValue = animationIsUnfinished ? Math.floor(this.startValue + (this.endValue - this.startValue) * progress) : this.endValue;
+      const nextValue = animationIsUnfinished
+        ? Math.floor(this.startValue + (this.endValue - this.startValue) * progress)
+        : this.endValue;
       this.element.textContent = window.n(nextValue);
       if (animationIsUnfinished) this.handleNextFrame();
     }

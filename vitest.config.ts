@@ -17,7 +17,7 @@ export default defineConfig({
       include: ['src'],
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      reportsDirectory: 'tests/.coverage',
+      reportsDirectory: path.resolve(__dirname, '.coverage'),
     },
     environment: 'happy-dom',
     exclude: ['node_modules', 'dist'],
@@ -25,7 +25,7 @@ export default defineConfig({
     include: ['**/*.test.ts'],
     passWithNoTests: true,
     restoreMocks: true,
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: [path.resolve(__dirname, './tests/setup.ts')],
     watch: false,
   },
 });

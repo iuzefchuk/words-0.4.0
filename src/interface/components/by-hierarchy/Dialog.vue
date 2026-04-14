@@ -26,7 +26,11 @@ watch(html, newValue => {
 <template>
   <section v-if="isRendered" class="dialog" @mousedown="toggleExitAnimation">
     <Transition name="fade-down-up" appear>
-      <dialog open :class="{ dialog__window: true, 'dialog__window--shaking': exitAnimation, 'app__limit-max-width': true }" @mousedown.stop>
+      <dialog
+        open
+        :class="{ dialog__window: true, 'dialog__window--shaking': exitAnimation, 'app__limit-max-width': true }"
+        @mousedown.stop
+      >
         <div class="dialog__content">
           <p v-if="title" class="dialog__content-title">{{ title }}</p>
           <p v-html="html" />

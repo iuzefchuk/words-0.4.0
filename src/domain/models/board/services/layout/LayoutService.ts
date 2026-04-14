@@ -15,7 +15,11 @@ export default class LayoutService {
       for (let lineIndex = 0; lineIndex < LayoutService.CELLS_PER_AXIS; lineIndex++) {
         const cells: Array<Cell> = [];
         for (let i = 0; i < LayoutService.CELLS_PER_AXIS; i++) {
-          cells.push((axis === Axis.X ? lineIndex * LayoutService.CELLS_PER_AXIS + i : lineIndex + i * LayoutService.CELLS_PER_AXIS) as Cell);
+          cells.push(
+            (axis === Axis.X
+              ? lineIndex * LayoutService.CELLS_PER_AXIS + i
+              : lineIndex + i * LayoutService.CELLS_PER_AXIS) as Cell,
+          );
         }
         lines.push(cells);
       }

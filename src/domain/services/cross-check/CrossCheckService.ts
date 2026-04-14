@@ -40,7 +40,8 @@ export default class CrossCheckService {
 
   private computeFor(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const axisCells = this.board.calculateAxisCells(coords);
-    const position = coords.axis === Axis.X ? this.board.getCellPositionInColumn(coords.cell) : this.board.getCellPositionInRow(coords.cell);
+    const position =
+      coords.axis === Axis.X ? this.board.getCellPositionInColumn(coords.cell) : this.board.getCellPositionInRow(coords.cell);
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
     const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
     if (!prefix && !suffix) return new Set(Object.values(Letter));

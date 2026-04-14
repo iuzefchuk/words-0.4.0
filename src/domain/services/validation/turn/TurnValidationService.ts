@@ -24,7 +24,10 @@ class Pipeline<State extends PipelineInput> {
     return { error, status: ValidationStatus.Invalid };
   }
 
-  static pass<State extends PipelineInput, NewValue extends ComputedValue>(state: State, newValue: NewValue): PendingResult<NewValue & State> {
+  static pass<State extends PipelineInput, NewValue extends ComputedValue>(
+    state: State,
+    newValue: NewValue,
+  ): PendingResult<NewValue & State> {
     Object.assign(state, newValue);
     return { state: state as NewValue & State, status: ValidationStatus.Pending };
   }
@@ -87,7 +90,9 @@ export default class TurnValidationService {
     return Pipeline.pass(state, { cells: result });
   }
 
-  private static validatePlacements(state: PipelineState<SequencesOutput>): PipelineThroughput<PipelineState<ComputedTilesOutput>> {
+  private static validatePlacements(
+    state: PipelineState<SequencesOutput>,
+  ): PipelineThroughput<PipelineState<ComputedTilesOutput>> {
     const { board, turns } = state.context;
     const result = PlacementsValidationService.execute(
       turns.currentTurnTiles,

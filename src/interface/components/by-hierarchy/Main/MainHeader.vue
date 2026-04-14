@@ -43,7 +43,9 @@ const players = [
   <header class="header">
     <Transition name="fade" mode="out-in">
       <div v-if="optionsAreDisabled" class="header__group">
-        <p v-for="player in players" :key="player.name">{{ player.name }}: <span v-animate-number="{ number: player.score() }" /></p>
+        <p v-for="player in players" :key="player.name">
+          {{ player.name }}: <span v-animate-number="{ number: player.score() }" />
+        </p>
       </div>
       <div v-else class="header__group">
         <p v-for="{ items, label, modelValue, onChange } in options" :key="label">

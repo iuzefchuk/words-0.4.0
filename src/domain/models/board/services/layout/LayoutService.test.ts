@@ -5,7 +5,9 @@ import { Cell } from '@/domain/models/board/types.ts';
 
 const cellsPerAxis = Board.CELLS_PER_AXIS;
 // 2D grid used as an alternative to flat-index arithmetic for deriving expected values
-const grid = Array.from({ length: cellsPerAxis }, (_, row) => Array.from({ length: cellsPerAxis }, (_, col) => (row * cellsPerAxis + col) as Cell));
+const grid = Array.from({ length: cellsPerAxis }, (_, row) =>
+  Array.from({ length: cellsPerAxis }, (_, col) => (row * cellsPerAxis + col) as Cell),
+);
 const cells = Board.CELLS_BY_INDEX.map(cell => [cell] as const);
 const positions = Array.from({ length: cellsPerAxis }, (_, i) => [i] as const);
 const findCellPosition = (cell: Cell): [number, number] => [Math.floor(cell / cellsPerAxis), cell % cellsPerAxis];
@@ -21,7 +23,8 @@ describe('LayoutService', () => {
     const [row, col] = findCellPosition(cell);
     const adjacentCoords = directionOffsets.map(([rowDelta, colDelta]) => [row + rowDelta, col + colDelta] as const);
     const inBoundsCoords = adjacentCoords.filter(
-      ([neighborRow, neighborCol]) => neighborRow >= 0 && neighborRow < cellsPerAxis && neighborCol >= 0 && neighborCol < cellsPerAxis,
+      ([neighborRow, neighborCol]) =>
+        neighborRow >= 0 && neighborRow < cellsPerAxis && neighborCol >= 0 && neighborCol < cellsPerAxis,
     );
     const expectedAdjacentCells = inBoundsCoords.map(([neighborRow, neighborCol]) => grid[neighborRow]![neighborCol]!);
     expect(LayoutService.calculateAdjacentCells(cell)).toEqual(expectedAdjacentCells);
