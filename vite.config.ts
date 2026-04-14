@@ -23,7 +23,7 @@ export default defineConfig({
       $: path.resolve(__dirname, './tests'),
     },
   },
-  root: path.resolve(__dirname, 'src/interface'),
+  root: path.resolve(__dirname, './src/interface'),
   server: {
     port: Number(process.env.VITE_PORT) || 5173,
   },

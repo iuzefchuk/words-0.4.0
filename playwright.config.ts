@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
+import path from 'node:path';
 
-const PORT = process.env.VITE_PORT ?? 5173;
-const URL = `http://localhost:${PORT}`;
+const URL = `http://localhost:${process.env.VITE_PORT ?? 5173}`;
 
 export default defineConfig({
   expect: {
@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   forbidOnly: Boolean(process.env.CI),
-  outputDir: './tests/e2e/.results',
+  outputDir: path.resolve(__dirname, '.playwright'),
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
     { name: 'firefox', use: { browserName: 'firefox' } },
@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   reporter: process.env.CI ? [['dot'], ['html', { open: 'never' }]] : 'list',
   retries: process.env.CI ? 2 : 0,
-  testDir: './tests/e2e',
+  testDir: path.resolve(__dirname, './tests/e2e'),
   timeout: 30_000,
   use: {
     baseURL: URL,
@@ -31,5 +31,5 @@ export default defineConfig({
     timeout: 120_000,
     url: URL,
   },
-  workers: process.env.CI ? 1 : undefined,
+  ...(process.env.CI && { workers: 1 }),
 });
