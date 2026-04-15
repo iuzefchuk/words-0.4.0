@@ -11,32 +11,39 @@ class TilePool {
     return this.tiles;
   }
 
+  private readonly tileSet: Set<Tile>;
+
   private constructor(
     private readonly capacity: number | undefined,
     private readonly tiles: Array<Tile>,
-  ) {}
+  ) {
+    this.tileSet = new Set(tiles);
+  }
 
   static create({ capacity, tiles }: { capacity?: number; tiles?: Array<Tile> } = {}): TilePool {
     return new TilePool(capacity, tiles ?? []);
   }
 
   addTile(tile: Tile): void {
-    if (this.tiles.includes(tile)) throw new Error(`Tile ${tile} is already present`);
+    if (this.tileSet.has(tile)) throw new Error(`Tile ${tile} is already present`);
     this.validateCapacity(this.tiles.length + 1);
     this.tiles.push(tile);
+    this.tileSet.add(tile);
   }
 
   popTile(): Tile {
     const tile = this.tiles.pop();
     if (tile === undefined) throw new Error('No tiles left');
+    this.tileSet.delete(tile);
     return tile;
   }
 
   removeTile(tile: Tile): Tile {
+    if (!this.tileSet.has(tile)) throw new ReferenceError(`Tile ${tile} absent`);
     const index = this.tiles.indexOf(tile);
-    const [removedTile] = this.tiles.splice(index, 1);
-    if (removedTile === undefined) throw new ReferenceError(`Tile ${tile} absent`);
-    return removedTile;
+    this.tiles.splice(index, 1);
+    this.tileSet.delete(tile);
+    return tile;
   }
 
   private validateCapacity(newTileCount: number): void {

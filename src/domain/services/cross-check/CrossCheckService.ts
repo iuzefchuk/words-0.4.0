@@ -48,17 +48,14 @@ export default class CrossCheckService {
     const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
     if (!prefixNode) return new Set();
     const anchorLetters = new Set<Letter>();
-    const children = this.dictionary.getNodeChildren(prefixNode);
-    for (const key in children) {
-      const possibleNextLetter = key as Letter;
-      const nodeWithPossibleNextLetter = children[key]!;
+    this.dictionary.forEachNodeChild(prefixNode, (possibleNextLetter, nodeWithPossibleNextLetter) => {
       if (!suffix) {
         anchorLetters.add(possibleNextLetter);
-        continue;
+        return;
       }
       const suffixNode = this.dictionary.getNode(suffix, nodeWithPossibleNextLetter);
       if (suffixNode && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
-    }
+    });
     return anchorLetters;
   }
 }

@@ -12,9 +12,9 @@ export default class WordsValidationService {
     for (let i = 0; i < placements.length; i++) {
       const placement = placements[i];
       if (placement === undefined) throw new ReferenceError('Placement must be defined');
-      const letters: Array<string> = [];
-      for (const { tile } of placement) letters.push(getTileLetter(tile));
-      words[i] = letters.join('');
+      let word = '';
+      for (const { tile } of placement) word += getTileLetter(tile);
+      words[i] = word;
     }
     return containsAllWords(words) ? words : ValidationError.WordNotInDictionary;
   }

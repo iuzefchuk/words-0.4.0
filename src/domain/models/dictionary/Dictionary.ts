@@ -43,6 +43,16 @@ export default class Dictionary {
     return current as Node;
   }
 
+  forEachNodeChild(node: Node, callback: (letter: Letter, childNode: Node) => void): void {
+    const data = this.data;
+    for (let i = 0; i < Dictionary.LETTERS.length; i++) {
+      const childOffset = data[(node as number) + 1 + i]!;
+      if (childOffset !== 0) {
+        callback(Dictionary.LETTERS[i]!, childOffset as Node);
+      }
+    }
+  }
+
   getNodeChildren(node: Node): NodeChildren {
     const data = this.data;
     const result: Record<string, Node> = Object.create(null) as Record<string, Node>;

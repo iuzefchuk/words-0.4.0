@@ -149,17 +149,14 @@ class TaskDispatcher {
 
   private calculateAndExploreResolution(traversal: Traversal, candidate: Candidate): ContinueTaskCommand | StopTaskCommand {
     const { cell, position } = candidate;
-    const children = this.dictionary.getNodeChildren(traversal.node);
     const anchorLetters = this.crossChecker.execute({ axis: this.computeds.oppositeAxis, cell });
     const newTasks: Array<Task> = [];
-    for (const key in children) {
-      const possibleNextLetter = key as Letter;
-      const nodeWithPossibleNextLetter = children[key]!;
+    this.dictionary.forEachNodeChild(traversal.node, (possibleNextLetter, nodeWithPossibleNextLetter) => {
       const letterTiles = this.tiles.get(possibleNextLetter) as Array<Tile>;
-      if (!anchorLetters.has(possibleNextLetter)) continue;
-      if (!letterTiles) continue;
+      if (!anchorLetters.has(possibleNextLetter)) return;
+      if (!letterTiles) return;
       const tile = letterTiles.at(-1);
-      if (!tile) continue;
+      if (!tile) return;
       const resolution: Resolution = { tile };
       const resolutionComputeds: ResolutionComputeds = { letterTiles };
       const applyTask: ApplyTask = {
@@ -180,7 +177,7 @@ class TaskDispatcher {
         type: GenerationTask.ReverseResolution,
       };
       newTasks.push(applyTask, evaluateTask, reverseTask);
-    }
+    });
     if (newTasks.length === 0) return this.emitStop();
     shuffleWithFisherYates({ array: newTasks, groupSize: 3 });
     return this.emitContinue(newTasks);
