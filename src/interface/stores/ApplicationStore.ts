@@ -16,6 +16,7 @@ class Actions {
 
   constructor(
     private readonly commandsService: CommandsService,
+    private readonly queriesService: QueriesService,
     private readonly schedulingService: SchedulingService,
     private readonly state: State,
   ) {}
@@ -40,7 +41,7 @@ class Actions {
   };
 
   placeTile = (args: { cell: GameCell; tile: GameTile }): void => {
-    this.writeBoardAndPlaySound(() => this.commandsService.placeTile(args));
+    this.writeBoardAndPlaySound(() => this.commandsService.placeTile(args), [args.cell]);
     this.scheduleDeferredValidation();
   };
 
@@ -58,7 +59,9 @@ class Actions {
   };
 
   undoPlaceTile = (tile: GameTile): void => {
-    this.writeBoardAndPlaySound(() => this.commandsService.undoPlaceTile(tile));
+    const previousCell = this.queriesService.findCellWithTile(tile);
+    const affectedCells = previousCell === undefined ? undefined : [previousCell];
+    this.writeBoardAndPlaySound(() => this.commandsService.undoPlaceTile(tile), affectedCells);
     this.scheduleDeferredValidation();
   };
 
@@ -73,7 +76,7 @@ class Actions {
     const id = ++this.pendingValidationId;
     this.schedulingService.yield().then(() => {
       if (id !== this.pendingValidationId) return;
-      this.writeBoardAndPlaySound(() => this.commandsService.validateAndSync());
+      this.writeBoardAndPlaySound(() => this.commandsService.validateAndSync(), []);
     });
   };
 
@@ -88,8 +91,11 @@ class Actions {
     return response;
   }
 
-  private writeBoardAndPlaySound<CallbackResponse>(callback: () => CallbackResponse): CallbackResponse {
-    const response = this.state.writeBoard(callback);
+  private writeBoardAndPlaySound<CallbackResponse>(
+    callback: () => CallbackResponse,
+    affectedCells?: ReadonlyArray<GameCell>,
+  ): CallbackResponse {
+    const response = this.state.writeBoard(callback, affectedCells);
     this.playPendingSounds();
     return response;
   }
@@ -203,19 +209,20 @@ class State {
     return result;
   }
 
-  writeBoard<T>(fn: () => T): T {
+  writeBoard<T>(fn: () => T, affectedCells?: ReadonlyArray<GameCell>): T {
     const result = fn();
     this.boardVersion.value++;
-    this.syncTileByCellCache();
+    this.syncTileByCellCache(affectedCells);
     return result;
   }
 
-  private syncTileByCellCache(): void {
-    for (const cell of this.boardCells) {
+  private syncTileByCellCache(affectedCells?: ReadonlyArray<GameCell>): void {
+    const cells = affectedCells ?? this.boardCells;
+    for (const cell of cells) {
       const tile = this.findTileOnCell(cell);
       if (tile !== undefined) {
-        this.tileByCellCache.set(cell, tile);
-      } else {
+        if (this.tileByCellCache.get(cell) !== tile) this.tileByCellCache.set(cell, tile);
+      } else if (this.tileByCellCache.has(cell)) {
         this.tileByCellCache.delete(cell);
       }
     }
@@ -243,7 +250,7 @@ export default class ApplicationStore {
   private constructor(app: Application) {
     this.state = new State(cell => app.queriesService.findTileOnCell(cell), app.config.boardCells);
     this.getters = new Getters(app.queriesService, this.state);
-    this.actions = new Actions(app.commandsService, app.schedulingService, this.state);
+    this.actions = new Actions(app.commandsService, app.queriesService, app.schedulingService, this.state);
     this.state.write(() => app.loadDictionary());
   }
 

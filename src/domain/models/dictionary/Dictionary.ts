@@ -1,5 +1,5 @@
 import { Letter } from '@/domain/enums.ts';
-import { Node, NodeChildren } from '@/domain/models/dictionary/types.ts';
+import { Node } from '@/domain/models/dictionary/types.ts';
 
 export default class Dictionary {
   private static readonly LETTERS: ReadonlyArray<Letter> = Object.values(Letter);
@@ -32,6 +32,14 @@ export default class Dictionary {
     });
   }
 
+  forEachNodeChild(node: Node, callback: (letter: Letter, childNode: Node) => void): void {
+    const data = this.data;
+    for (let i = 0; i < Dictionary.LETTERS.length; i++) {
+      const childOffset = data[(node as number) + 1 + i]!;
+      if (childOffset !== 0) callback(Dictionary.LETTERS[i]!, childOffset as Node);
+    }
+  }
+
   getNode(word: string, startNode: Node = this.rootNode): Node | null {
     const data = this.data;
     let current = startNode as number;
@@ -41,28 +49,6 @@ export default class Dictionary {
       current = childOffset;
     }
     return current as Node;
-  }
-
-  forEachNodeChild(node: Node, callback: (letter: Letter, childNode: Node) => void): void {
-    const data = this.data;
-    for (let i = 0; i < Dictionary.LETTERS.length; i++) {
-      const childOffset = data[(node as number) + 1 + i]!;
-      if (childOffset !== 0) {
-        callback(Dictionary.LETTERS[i]!, childOffset as Node);
-      }
-    }
-  }
-
-  getNodeChildren(node: Node): NodeChildren {
-    const data = this.data;
-    const result: Record<string, Node> = Object.create(null) as Record<string, Node>;
-    for (let i = 0; i < Dictionary.LETTERS.length; i++) {
-      const childOffset = data[(node as number) + 1 + i]!;
-      if (childOffset !== 0) {
-        result[Dictionary.LETTERS[i]!] = childOffset as Node;
-      }
-    }
-    return result;
   }
 
   isNodeFinal(node: Node): boolean {

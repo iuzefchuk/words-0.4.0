@@ -21,6 +21,7 @@ const isTileSaturated = computed(() => tile.value != null && applicationStore.wa
 
 <template>
   <li
+    v-memo="[tile, bonus, isTileSaturated, tile ? inventoryStore.isTileSelected(tile) : false]"
     :class="{
       cell: true,
       'cell--center': isCellCenter,
