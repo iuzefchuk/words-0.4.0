@@ -20,15 +20,15 @@ type CoordsCases = {
 
 class CasesFactory {
   static createCellCases(): ReadonlyArray<CellCases> {
-    const grid = this.buildAltGrid();
-    return grid.flatMap((rowCells, row) =>
-      rowCells.map((cell, column) => ({
-        adjacentCells: this.computeAltAdjacentCells(grid, row, column),
+    const altGrid = this.buildAltGrid();
+    return altGrid.flatMap((altRowCells, row) =>
+      altRowCells.map((cell, column) => ({
+        adjacentCells: this.computeAltAdjacentCells(altGrid, row, column),
         cell,
         column,
-        isBottomEdge: row === grid.length - 1,
+        isBottomEdge: row === altGrid.length - 1,
         isLeftEdge: column === 0,
-        isRightEdge: column === rowCells.length - 1,
+        isRightEdge: column === altRowCells.length - 1,
         isTopEdge: row === 0,
         row,
       })),
@@ -36,11 +36,11 @@ class CasesFactory {
   }
 
   static createCoordsCases(): ReadonlyArray<CoordsCases> {
-    const grid = this.buildAltGrid();
-    return grid.flatMap(rowCells =>
-      rowCells.flatMap((cell, column) => [
-        { axisCells: rowCells, coords: { axis: Axis.X, cell } },
-        { axisCells: grid.map(gridRow => gridRow[column]!), coords: { axis: Axis.Y, cell } },
+    const altGrid = this.buildAltGrid();
+    return altGrid.flatMap(altRowCells =>
+      altRowCells.flatMap((cell, column) => [
+        { axisCells: altRowCells, coords: { axis: Axis.X, cell } },
+        { axisCells: altGrid.map(altGridRow => altGridRow[column]!), coords: { axis: Axis.Y, cell } },
       ]),
     );
   }
@@ -58,7 +58,7 @@ class CasesFactory {
   }
 
   private static computeAltAdjacentCells(
-    grid: ReadonlyArray<ReadonlyArray<Cell>>,
+    altGrid: ReadonlyArray<ReadonlyArray<Cell>>,
     row: number,
     column: number,
   ): ReadonlyArray<Cell> {
@@ -68,7 +68,7 @@ class CasesFactory {
       [-1, 0],
       [1, 0],
     ]
-      .map(([rowOffset, columnOffset]) => grid[row + rowOffset!]?.[column + columnOffset!])
+      .map(([rowOffset, columnOffset]) => altGrid[row + rowOffset!]?.[column + columnOffset!])
       .filter((neighbor): neighbor is Cell => neighbor !== undefined);
   }
 }

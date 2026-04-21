@@ -22,7 +22,7 @@ export default defineConfig({
     },
     environment: 'happy-dom',
     exclude: ['node_modules', 'dist'],
-    globals: true,
+    globals: false,
     include: ['**/*.test.ts'],
     passWithNoTests: true,
     restoreMocks: true,
