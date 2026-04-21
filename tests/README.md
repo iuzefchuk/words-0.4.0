@@ -21,10 +21,10 @@ For example, if the service under test exposes `getTotal(order)`, `applyCoupon(o
 
 Define one type per entity at the top of the test file. Name them with the plural suffix `Cases` (e.g. `OrderCases`, `CouponCases`, `AmountCases`). You can skip the exact field values until step 3.
 
-### 3. Build the `CasesFactory`
+### 3. Build the `<Filename>Cases`
 
-Create a `CasesFactory` class with one public method per entity (`create<Entity>Cases()`). Use as many private helper methods as you need.
-Each Cases record contains the entity itself plus one expected value per method where the entity appears as an argument. Name each expected-value field after the noun the method returns, not after the method itself — e.g. in `OrderCases`, an `order` field for the entity, a `total` field for `getTotal(order)`, an `items` field for `listItems(order)`.
+Create a `<Filename>Cases` class with one public method per entity (`for<Entity>()`). Use as many private helper methods as you need.
+Each cases method contains the entity itself plus one expected value per method where the entity appears as an argument. Name each expected-value field after the noun the method returns, not after the method itself — e.g. in `OrderCases`, an `order` field for the entity, a `total` field for `getTotal(order)`, an `items` field for `listItems(order)`.
 
 #### Reuse fixtures for complex entities
 
@@ -64,7 +64,7 @@ Make extensive use of vitest functionality (mocking, snapshots) when it makes th
 ### 4. Write the tests
 
 Use `describe.each` for every entity to run tests on every case. The `describe.each` label carries the case identity (e.g. `'for order $order.id'`), so individual test names only need to name the action under test (e.g. `'calculates total'`). Together they must pinpoint which case and which method failed.
-Keep test descriptions minimal; all the logic lives in `CasesFactory`.
+Keep test descriptions minimal; all the logic lives in `<Filename>Cases`.
 Again, use vitest functionality (`beforeAll`, `afterAll`, `beforeEach`, `afterEach`, snapshots) only when it makes the tests better.
 
 #### Mocking
@@ -77,7 +77,7 @@ For scenarios that don't fit the entity model (multi-step behavior, one-off inte
 
 ## Stateful classes
 
-Stateful classes hold state across method calls. The flow above still applies — identify entities, define Cases types, build the `CasesFactory`, write `describe.each` tests — with the modifications below. The coverage, skip-trivial, duplication, and mocking rules all carry over unchanged.
+Stateful classes hold state across method calls. The flow above still applies — identify entities, define Cases types, build the `<Filename>Cases`, write `describe.each` tests — with the modifications below. The coverage, skip-trivial, duplication, and mocking rules all carry over unchanged.
 
 ### 1. Identify entities — also include construction
 
@@ -131,7 +131,7 @@ type CartCases = {
 Call the fixture builder inside `beforeEach` — never share instances across cases:
 
 ```ts
-describe.each(CasesFactory.createCartCases())(
+describe.each(<Filename>Cases.createCartCases())(
   '$name',
   ({ action, buildCart, itemCount, total }) => {
     let cart: Cart;
@@ -165,7 +165,7 @@ type OrderErrorCases = {
   readonly message?: string | RegExp;
 };
 
-class CasesFactory {
+class <Filename>Cases {
   static createOrderErrorCases(): ReadonlyArray<OrderErrorCases> {
     return [
       { error: ValidationError, input: malformedOrder, message: /missing total/ },
@@ -174,7 +174,7 @@ class CasesFactory {
   }
 }
 
-describe.each(CasesFactory.createOrderErrorCases())(
+describe.each(<Filename>Cases.createOrderErrorCases())(
   'for malformed order $input.id',
   ({ error, input, message }) => {
     test('throws', () => {

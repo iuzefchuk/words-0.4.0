@@ -19,8 +19,8 @@ type CoordsCases = {
   readonly coords: AnchorCoordinates;
 };
 
-class CasesFactory {
-  static createCellCases(): ReadonlyArray<CellCases> {
+class LayoutServiceCases {
+  static forCells(): ReadonlyArray<CellCases> {
     const altGrid = this.buildAltGrid();
     return altGrid.flatMap((altRowCells, row) =>
       altRowCells.map((cell, column) => ({
@@ -36,7 +36,7 @@ class CasesFactory {
     );
   }
 
-  static createCoordsCases(): ReadonlyArray<CoordsCases> {
+  static forCoords(): ReadonlyArray<CoordsCases> {
     const altGrid = this.buildAltGrid();
     return altGrid.flatMap(altRowCells =>
       altRowCells.flatMap((cell, column) => [
@@ -75,7 +75,7 @@ class CasesFactory {
 }
 
 describe('LayoutService', () => {
-  describe.each(CasesFactory.createCellCases())(
+  describe.each(LayoutServiceCases.forCells())(
     'for cell $cell',
     ({ adjacentCells, cell, column, isBottomEdge, isLeftEdge, isRightEdge, isTopEdge, row }) => {
       test('calculates adjacent cells', () => {
@@ -108,12 +108,9 @@ describe('LayoutService', () => {
     },
   );
 
-  describe.each(CasesFactory.createCoordsCases())(
-    'for coords (axis $coords.axis, cell $coords.cell)',
-    ({ axisCells, coords }) => {
-      test('calculates axis cells', () => {
-        expect(LayoutService.getAxisCells(coords)).toEqual(axisCells);
-      });
-    },
-  );
+  describe.each(LayoutServiceCases.forCoords())('for coords (axis $coords.axis, cell $coords.cell)', ({ axisCells, coords }) => {
+    test('calculates axis cells', () => {
+      expect(LayoutService.getAxisCells(coords)).toEqual(axisCells);
+    });
+  });
 });

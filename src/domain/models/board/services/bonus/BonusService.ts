@@ -4,38 +4,29 @@ import { BonusDistribution, Cell } from '@/domain/models/board/types.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export default class BonusService {
-  static createDistribution(type: BoardType, randomizer?: () => number): BonusDistribution {
-    return type === BoardType.Classic ? this.createClassicDistribution() : this.createRandomDistribution(randomizer);
-  }
+  private static readonly INDEXES_BY_BONUS: ReadonlyMap<Bonus, Array<number>> = new Map([
+    [
+      Bonus.DoubleLetter,
+      [7, 16, 28, 36, 38, 66, 68, 92, 94, 100, 102, 105, 119, 122, 124, 130, 132, 156, 158, 186, 188, 196, 208, 217],
+    ],
+    [Bonus.DoubleWord, [32, 42, 52, 64, 70, 108, 116, 154, 160, 172, 182, 192]],
+    [Bonus.TripleLetter, [0, 14, 20, 24, 48, 56, 76, 80, 84, 88, 136, 140, 144, 148, 168, 176, 200, 204, 210, 224]],
+    [Bonus.TripleWord, [4, 10, 60, 74, 150, 164, 214, 220]],
+  ]);
 
-  private static createClassicDistribution(): BonusDistribution {
-    return new Map([
-      ...[7, 16, 28, 36, 38, 66, 68, 92, 94, 100, 102, 105, 119, 122, 124, 130, 132, 156, 158, 186, 188, 196, 208, 217].map(
-        int => [int as Cell, Bonus.DoubleLetter] as const,
-      ),
-      ...[0, 14, 20, 24, 48, 56, 76, 80, 84, 88, 136, 140, 144, 148, 168, 176, 200, 204, 210, 224].map(
-        int => [int as Cell, Bonus.TripleLetter] as const,
-      ),
-      ...[32, 42, 52, 64, 70, 108, 116, 154, 160, 172, 182, 192].map(int => [int as Cell, Bonus.DoubleWord] as const),
-      ...[4, 10, 60, 74, 150, 164, 214, 220].map(int => [int as Cell, Bonus.TripleWord] as const),
-    ]);
+  private static readonly CLASSIC_DISTRIBUTION: BonusDistribution = (() => {
+    const result = new Map<Cell, Bonus>();
+    for (const [bonus, cells] of this.INDEXES_BY_BONUS) for (const cell of cells) result.set(cell as Cell, bonus);
+    return result;
+  })();
+
+  static createDistribution(type: BoardType, randomizer?: () => number): BonusDistribution {
+    return type === BoardType.Classic ? this.CLASSIC_DISTRIBUTION : this.createRandomDistribution(randomizer);
   }
 
   private static createRandomDistribution(randomizer?: () => number): BonusDistribution {
-    const classicMap = this.createClassicDistribution();
-    const countByBonus = new Map<Bonus, number>();
-    for (const bonus of classicMap.values()) countByBonus.set(bonus, (countByBonus.get(bonus) ?? 0) + 1);
-    const counts = Object.values(Bonus).map(bonus => ({ bonus, count: countByBonus.get(bonus) ?? 0 }));
     const availableCells = LayoutService.CELLS_BY_INDEX.filter(cell => cell !== LayoutService.CENTER_CELL);
     shuffleWithFisherYates({ array: availableCells, ...(randomizer && { randomizer }) });
-    const result = new Map<Cell, Bonus>();
-    let offset = 0;
-    for (const { bonus, count } of counts)
-      for (let i = 0; i < count; i++) {
-        const cell = availableCells[offset++];
-        if (cell === undefined) throw new ReferenceError('Cell must be defined');
-        result.set(cell, bonus);
-      }
-    return result;
+    return new Map(Array.from(this.CLASSIC_DISTRIBUTION.values(), (bonus, i) => [availableCells[i]!, bonus]));
   }
 }

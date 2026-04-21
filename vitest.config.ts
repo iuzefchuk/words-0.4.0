@@ -26,7 +26,6 @@ export default defineConfig({
     include: ['**/*.test.ts'],
     passWithNoTests: true,
     restoreMocks: true,
-    setupFiles: [path.resolve(__dirname, './tests/setup.ts')],
     watch: false,
   },
 });
