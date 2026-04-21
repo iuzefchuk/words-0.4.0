@@ -8,7 +8,9 @@
   </section>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+// TODO reactive progress bar - messagechannel ?
+</script>
 
 <style lang="scss" scoped>
 .loader {

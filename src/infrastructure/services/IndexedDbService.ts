@@ -22,7 +22,7 @@ export default class IndexedDbService<T> {
     try {
       const db = await this.openDatabase();
       const cache = await this.getCache(db);
-      if (!cache) return null;
+      if (cache === undefined) return null;
       if (cache.version !== version) {
         await this.deleteCache(db);
         return null;
@@ -62,7 +62,7 @@ export default class IndexedDbService<T> {
   }
 
   private openDatabase(): Promise<IDBDatabase> {
-    if (!this.dbPromise) {
+    if (this.dbPromise === null) {
       this.dbPromise = new Promise((resolve, reject) => {
         const request = indexedDB.open(this.dbName, 2);
         request.onupgradeneeded = () => {

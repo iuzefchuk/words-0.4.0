@@ -62,7 +62,9 @@ export default class LayoutService {
     const cellPosition = axis === Axis.X ? this.getCellPositionInRow(cell) : this.getCellPositionInColumn(cell);
     const axisCells = this.AXIS_CELLS.get(axis);
     if (axisCells === undefined) throw new ReferenceError('Axis cells have to be defined');
-    return axisCells[cellPosition]!;
+    const line = axisCells[cellPosition];
+    if (line === undefined) throw new ReferenceError('Axis line must be defined');
+    return line;
   }
 
   static getCellPositionInColumn(cell: Cell): number {

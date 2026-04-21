@@ -17,7 +17,7 @@ const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const isMounted = ref(false);
 onMounted(() => nextTick(() => (isMounted.value = true)));
 const style = computed(() => ({
-  ...(transitionDurationMs && {
+  ...(transitionDurationMs !== undefined && {
     '--transition-duration': `${transitionDurationMs}ms`,
     '--transition-duration-half': `${transitionDurationMs / 2}ms`,
   }),

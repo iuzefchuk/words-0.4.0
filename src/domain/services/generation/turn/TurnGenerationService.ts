@@ -1,10 +1,10 @@
-import { Letter, Player } from '@/domain/enums.ts';
+import { Player } from '@/domain/enums.ts';
 import Board from '@/domain/models/board/Board.ts';
 import { Axis } from '@/domain/models/board/enums.ts';
 import { AnchorCoordinates, Link } from '@/domain/models/board/types.ts';
 import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
-import { Tile, TileCollection } from '@/domain/models/inventory/types.ts';
+import { Tile } from '@/domain/models/inventory/types.ts';
 import { ValidationStatus } from '@/domain/models/turns/enums.ts';
 import Turns from '@/domain/models/turns/Turns.ts';
 import CrossCheckService from '@/domain/services/cross-check/CrossCheckService.ts';
@@ -98,7 +98,7 @@ class TaskDispatcher {
     return this.state.placement;
   }
 
-  private get tiles(): TileCollection {
+  private get tiles(): MutableTileCollection {
     return this.state.tiles;
   }
 
@@ -152,11 +152,11 @@ class TaskDispatcher {
     const anchorLetters = this.crossChecker.execute({ axis: this.computeds.oppositeAxis, cell });
     const newTasks: Array<Task> = [];
     this.dictionary.forEachNodeChild(traversal.node, (possibleNextLetter, nodeWithPossibleNextLetter) => {
-      const letterTiles = this.tiles.get(possibleNextLetter) as Array<Tile>;
+      const letterTiles = this.tiles.get(possibleNextLetter);
       if (!anchorLetters.has(possibleNextLetter)) return;
-      if (!letterTiles) return;
+      if (letterTiles === undefined) return;
       const tile = letterTiles.at(-1);
-      if (!tile) return;
+      if (tile === undefined) return;
       const resolution: Resolution = { tile };
       const resolutionComputeds: ResolutionComputeds = { letterTiles };
       const applyTask: ApplyTask = {
@@ -189,7 +189,7 @@ class TaskDispatcher {
     const cell = this.computeds.axisCells[position];
     if (cell === undefined) throw new ReferenceError('Cell must be defined');
     const tile = this.board.findTileByCell(cell);
-    const resolution: Resolution | undefined = tile ? { tile } : undefined;
+    const resolution: Resolution | undefined = tile !== undefined ? { tile } : undefined;
     const candidate: Candidate = { cell, position, resolution };
     return this.emitContinue([{ ...task, candidate, type: GenerationTask.ResolveCandidate }]);
   }
@@ -245,7 +245,7 @@ class TaskDispatcher {
 
   private resolveCandidate(task: ResolveTask): ContinueTaskCommand | StopTaskCommand {
     const { candidate, traversal } = task;
-    return candidate.resolution
+    return candidate.resolution !== undefined
       ? this.createTraversalFromCandidate(traversal, candidate)
       : this.calculateAndExploreResolution(traversal, candidate);
   }
@@ -287,7 +287,8 @@ export default class TurnGenerationService {
     const anchorCells = board.calculateAnchorCells();
     if (anchorCells.size === 0) return;
     const allAnchors = Array.from(anchorCells);
-    const anchors = partition ? allAnchors.slice(partition.offset, partition.offset + partition.length) : allAnchors;
+    const anchors =
+      partition !== undefined ? allAnchors.slice(partition.offset, partition.offset + partition.length) : allAnchors;
     if (anchors.length === 0) return;
     const crossChecker = new CrossCheckService(board, dictionary, inventory);
     for (const cell of anchors) {

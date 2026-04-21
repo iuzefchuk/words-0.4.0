@@ -14,7 +14,8 @@ export default class UseTileLocator {
     let rightmostIdx = -1;
     let rightmostEdge = -Infinity;
     for (let i = 0; i < locations.length; i++) {
-      const group = locations[i]!;
+      const group = locations[i];
+      if (group === undefined) throw new ReferenceError('Group must be defined');
       if (group.row < minRow) {
         minRow = group.row;
         rightmostIdx = i;
@@ -44,7 +45,7 @@ export default class UseTileLocator {
 
   isLocationOnRightmostColumn(locations: ReadonlyArray<Location>, idx: number): boolean {
     const group = locations[idx];
-    if (!group) return false;
+    if (group === undefined) return false;
     return group.col + group.colSpan >= this.applicationStore.boardCellsPerAxis;
   }
 
@@ -56,7 +57,8 @@ export default class UseTileLocator {
     let minCol = Infinity;
     let maxCol = -Infinity;
     while (stack.length > 0) {
-      const cell = stack.pop()!;
+      const cell = stack.pop();
+      if (cell === undefined) throw new ReferenceError('Cell must be defined');
       const row = this.applicationStore.getCellRowIndex(cell);
       const col = this.applicationStore.getCellColumnIndex(cell);
       if (row < minRow) minRow = row;

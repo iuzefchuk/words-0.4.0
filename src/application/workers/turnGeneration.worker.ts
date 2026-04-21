@@ -50,7 +50,7 @@ class TurnGenerationHandler {
 
   private stream(input: StreamInput): void {
     const bestResult = this.findBestResult(input);
-    if (bestResult) {
+    if (bestResult !== null) {
       self.postMessage({ type: WorkerResponseType.Result, value: bestResult });
     }
     self.postMessage({ type: WorkerResponseType.Done });

@@ -7,7 +7,7 @@ type ClickOutsideHtmlElement = { _clickOutside: (event: Event) => void } & HTMLE
 
 export default class ClickOutside extends Directive<ClickOutsideHtmlElement, BindingValue> {
   override beforeMount(element: ClickOutsideHtmlElement, binding: DirectiveBinding<BindingValue>): void {
-    const { callback } = binding.value || {};
+    const { callback } = binding.value;
     element._clickOutside = (event: Event): void => {
       const target = event.target as Node;
       if (element !== target && !element.contains(target)) callback();

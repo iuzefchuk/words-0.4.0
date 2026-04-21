@@ -37,6 +37,8 @@ export default class DialogStore {
     };
   });
 
+  // TODO delete defaults, replace with null or undefined
+
   private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
 
   private static readonly DEFAULT_CANCEL_TEXT = '';
@@ -97,7 +99,7 @@ export default class DialogStore {
   }
 
   private resolve({ status }: { status: DialogStatus }): void {
-    if (this.pendingResolve) {
+    if (this.pendingResolve !== null) {
       this.pendingResolve({
         isCanceled: status === DialogStatus.Canceled,
         isConfirmed: status === DialogStatus.Confirmed,
@@ -116,9 +118,9 @@ export default class DialogStore {
     title,
   }: DialogTriggerParams): Promise<DialogResult> {
     this.html = html;
-    if (title) this.title = title;
-    if (cancelText) this.cancelText = cancelText;
-    if (confirmText) this.confirmText = confirmText;
+    if (title !== undefined && title !== '') this.title = title;
+    if (cancelText !== undefined && cancelText !== '') this.cancelText = cancelText;
+    if (confirmText !== undefined && confirmText !== '') this.confirmText = confirmText;
     if (cancelIsHidden !== undefined) this.cancelIsHidden = cancelIsHidden;
     if (confirmIsHidden !== undefined) this.confirmIsHidden = confirmIsHidden;
     const result = await new Promise<DialogResult>(resolve => {

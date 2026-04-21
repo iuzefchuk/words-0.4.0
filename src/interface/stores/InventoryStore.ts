@@ -96,7 +96,7 @@ export default class InventoryStore {
     if (firstIdx < 0 || secondIdx < 0) throw new Error('Can`t find tile indexes');
     const first = this.tiles[firstIdx];
     const second = this.tiles[secondIdx];
-    if (!first || !second) throw new Error('Invalid tile index');
+    if (first === undefined || second === undefined) throw new Error('Invalid tile index');
     this.tiles[firstIdx] = second;
     this.tiles[secondIdx] = first;
     triggerRef(this.tilesRef);

@@ -23,7 +23,7 @@ export default class PlacementsValidationService {
     for (const cell of cells) {
       const coords: AnchorCoordinates = { axis: getOppositeAxis(primaryAxis), cell };
       const tile = findTileByCell(cell);
-      if (!tile) continue;
+      if (tile === undefined) continue;
       const secondaryPlacement = createPlacement(coords, [tile]);
       if (areLinksUsable(secondaryPlacement)) result.push(secondaryPlacement);
     }

@@ -68,7 +68,7 @@ class Actions {
   private playPendingSounds(): void {
     for (const event of this.commandsService.drainNewEvents()) {
       const sound = getEventSound(event);
-      if (sound) SoundPlayer.play(sound);
+      if (sound !== null) SoundPlayer.play(sound);
     }
   }
 

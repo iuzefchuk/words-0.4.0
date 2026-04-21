@@ -19,7 +19,7 @@ function toggleExitAnimation() {
   }, transitionDurationMs);
 }
 watch(html, newValue => {
-  if (newValue) isRendered.value = true;
+  if (newValue !== '') isRendered.value = true;
 });
 </script>
 

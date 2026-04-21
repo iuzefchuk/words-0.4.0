@@ -19,7 +19,7 @@ export default class CrossCheckService {
     const axisCache = this.cache.get(axis);
     if (axisCache === undefined) throw new ReferenceError('Axis cache has to exist');
     const cachedResult = axisCache.get(cell);
-    if (cachedResult) return cachedResult;
+    if (cachedResult !== undefined) return cachedResult;
     const newResult = this.computeFor(coords);
     axisCache.set(cell, newResult);
     return newResult;
@@ -31,7 +31,7 @@ export default class CrossCheckService {
       const cell = axisCells[i];
       if (cell === undefined) throw new ReferenceError('Cell must be defined');
       const tile = this.board.findTileByCell(cell);
-      if (!tile) break;
+      if (tile === undefined) break;
       const letter = this.inventory.getTileLetter(tile);
       result = direction === -1 ? letter + result : result + letter;
     }
@@ -44,17 +44,17 @@ export default class CrossCheckService {
       coords.axis === Axis.X ? this.board.getCellPositionInColumn(coords.cell) : this.board.getCellPositionInRow(coords.cell);
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
     const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
-    if (!prefix && !suffix) return new Set(Object.values(Letter));
-    const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
-    if (!prefixNode) return new Set();
+    if (prefix === '' && suffix === '') return new Set(Object.values(Letter));
+    const prefixNode = prefix !== '' ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
+    if (prefixNode === null) return new Set();
     const anchorLetters = new Set<Letter>();
     this.dictionary.forEachNodeChild(prefixNode, (possibleNextLetter, nodeWithPossibleNextLetter) => {
-      if (!suffix) {
+      if (suffix === '') {
         anchorLetters.add(possibleNextLetter);
         return;
       }
       const suffixNode = this.dictionary.getNode(suffix, nodeWithPossibleNextLetter);
-      if (suffixNode && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
+      if (suffixNode !== null && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
     });
     return anchorLetters;
   }

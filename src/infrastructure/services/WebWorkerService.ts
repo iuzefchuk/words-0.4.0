@@ -33,7 +33,12 @@ export default class WebWorkerService implements WorkerService {
     const deviceMemoryGb = (globalThis.navigator as { deviceMemory?: number })?.deviceMemory;
     const poolSize = Math.min(
       8,
-      Math.max(1, deviceMemoryGb ? Math.floor(deviceMemoryGb) : Math.floor((globalThis.navigator?.hardwareConcurrency ?? 2) / 2)),
+      Math.max(
+        1,
+        deviceMemoryGb !== undefined
+          ? Math.floor(deviceMemoryGb)
+          : Math.floor((globalThis.navigator?.hardwareConcurrency ?? 2) / 2),
+      ),
     );
     const workers = Array.from({ length: poolSize }, () => this.createWorker(taskId));
     await Promise.all(workers.map(worker => this.initWorker(worker, data)));
@@ -58,13 +63,14 @@ export default class WebWorkerService implements WorkerService {
     try {
       while (true) {
         while (queueReadIndex >= queue.length) {
-          if (error) throw error;
+          if (error !== null) throw error;
           await new Promise<void>(r => {
             resolve = r;
           });
           resolve = null;
         }
-        const msg = queue[queueReadIndex++]!;
+        const msg = queue[queueReadIndex++];
+        if (msg === undefined) throw new ReferenceError('Message must be defined');
         if (queueReadIndex > 64) {
           queue.splice(0, queueReadIndex);
           queueReadIndex = 0;
@@ -87,7 +93,8 @@ export default class WebWorkerService implements WorkerService {
     let doneCount = 0;
     const totalWorkers = workers.length;
     for (let i = 0; i < workers.length; i++) {
-      const worker = workers[i]!;
+      const worker = workers[i];
+      if (worker === undefined) throw new ReferenceError('Worker must be defined');
       worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
         if (e.data.type === WorkerResponseType.Done) doneCount++;
         else queue.push(e.data);
@@ -102,14 +109,15 @@ export default class WebWorkerService implements WorkerService {
     try {
       while (true) {
         while (queueReadIndex >= queue.length) {
-          if (error) throw error;
+          if (error !== null) throw error;
           if (doneCount >= totalWorkers) return;
           await new Promise<void>(r => {
             resolve = r;
           });
           resolve = null;
         }
-        const msg = queue[queueReadIndex++]!;
+        const msg = queue[queueReadIndex++];
+        if (msg === undefined) throw new ReferenceError('Message must be defined');
         if (queueReadIndex > 64) {
           queue.splice(0, queueReadIndex);
           queueReadIndex = 0;
@@ -129,7 +137,7 @@ export default class WebWorkerService implements WorkerService {
   private createWorker(taskId: string): Worker {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     const WorkerConstructor = this.workers[taskId];
-    if (!WorkerConstructor) throw new Error(`No worker registered for task: ${taskId}`);
+    if (WorkerConstructor === undefined) throw new Error(`No worker registered for task: ${taskId}`);
     return new WorkerConstructor();
   }
 

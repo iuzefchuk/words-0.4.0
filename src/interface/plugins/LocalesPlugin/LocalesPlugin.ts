@@ -51,7 +51,7 @@ export default class LocalesPlugin {
   }
 
   private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
-    return new Intl.NumberFormat(LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma, {
+    return new Intl.NumberFormat(LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] ?? NumberSeparatorType.Comma, {
       maximumFractionDigits: 2,
     }).format(Number(number));
   };
@@ -59,15 +59,17 @@ export default class LocalesPlugin {
   private getLocalizedText: LocaleTextGetter = (string: string, props?: object) => {
     const [file, key] = string.split('.');
     if (file === undefined || key === undefined) throw new ReferenceError('File and key must be defined');
-    if (!this.content.value) throw new Error('Locales didn`t fetch content');
-    let localizedText = this.content.value[file as LocaleFile][key];
-    if (!localizedText) throw new ReferenceError(`Locales file ${file} or key ${key} are incorrect`);
-    if (props) {
-      for (const [key, value] of Object.entries(props)) {
-        localizedText = localizedText.replaceAll(`{${key}}`, String(value));
+    const localizedText = this.content.value[file as LocaleFile]?.[key];
+    if (localizedText === undefined || localizedText === '') {
+      throw new ReferenceError(`Locales file ${file} or key ${key} are incorrect`);
+    }
+    let result = localizedText;
+    if (props !== undefined) {
+      for (const [propKey, value] of Object.entries(props)) {
+        result = result.replaceAll(`{${propKey}}`, String(value));
       }
     }
-    return localizedText;
+    return result;
   };
 
   private setGlobals(app: App): void {

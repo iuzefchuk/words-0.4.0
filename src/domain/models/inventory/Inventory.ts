@@ -139,7 +139,7 @@ export default class Inventory {
     for (const tile of tiles) {
       const letter = this.getTileLetter(tile);
       let letterArray = collection.get(letter);
-      if (!letterArray) collection.set(letter, (letterArray = []));
+      if (letterArray === undefined) collection.set(letter, (letterArray = []));
       letterArray.push(tile);
     }
     return collection;

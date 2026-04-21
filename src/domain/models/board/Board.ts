@@ -66,7 +66,7 @@ export default class Board {
     let matchedTilesCount = 0;
     for (const cell of axisCells) {
       const tile = this.findTileByCell(cell);
-      if (!tile) {
+      if (tile === undefined) {
         if (links.length === 0) continue;
         if (segmentContainsTile) break;
         links = [];

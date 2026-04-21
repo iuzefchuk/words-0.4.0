@@ -16,6 +16,7 @@ export default defineConfigWithVueTs([
   {
     rules: {
       '@typescript-eslint/array-type': ['error', { default: 'generic' }],
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as' }],
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@typescript-eslint/naming-convention': [
         'error',
@@ -46,6 +47,18 @@ export default defineConfigWithVueTs([
         {
           format: ['StrictPascalCase'],
           selector: 'enumMember',
+        },
+      ],
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/strict-boolean-expressions': [
+        'error',
+        {
+          allowNullableBoolean: false,
+          allowNullableNumber: false,
+          allowNullableObject: false,
+          allowNullableString: false,
+          allowNumber: false,
+          allowString: false,
         },
       ],
       'lines-between-class-members': ['error', 'always'],

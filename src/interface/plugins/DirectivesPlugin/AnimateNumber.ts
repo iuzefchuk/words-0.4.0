@@ -25,7 +25,7 @@ export default class AnimateNumber extends Directive<AnimatedHtmlElement, Bindin
     }
 
     execute(): void {
-      if (this.element._animationFrameRequestId) cancelAnimationFrame(this.element._animationFrameRequestId);
+      if (this.element._animationFrameRequestId !== undefined) cancelAnimationFrame(this.element._animationFrameRequestId);
       this.handleNextFrame();
     }
 

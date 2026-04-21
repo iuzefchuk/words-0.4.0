@@ -26,7 +26,13 @@ export default class BonusService {
 
   private static createRandomDistribution(randomizer?: () => number): BonusDistribution {
     const availableCells = LayoutService.CELLS_BY_INDEX.filter(cell => cell !== LayoutService.CENTER_CELL);
-    shuffleWithFisherYates({ array: availableCells, ...(randomizer && { randomizer }) });
-    return new Map(Array.from(this.CLASSIC_DISTRIBUTION.values(), (bonus, i) => [availableCells[i]!, bonus]));
+    shuffleWithFisherYates({ array: availableCells, ...(randomizer !== undefined && { randomizer }) });
+    return new Map(
+      Array.from(this.CLASSIC_DISTRIBUTION.values(), (bonus, i) => {
+        const cell = availableCells[i];
+        if (cell === undefined) throw new ReferenceError('Cell must be defined');
+        return [cell, bonus];
+      }),
+    );
   }
 }

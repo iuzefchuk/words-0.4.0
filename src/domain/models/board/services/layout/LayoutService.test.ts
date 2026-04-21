@@ -41,7 +41,14 @@ class LayoutServiceCases {
     return altGrid.flatMap(altRowCells =>
       altRowCells.flatMap((cell, column) => [
         { axisCells: altRowCells, coords: { axis: Axis.X, cell } },
-        { axisCells: altGrid.map(altGridRow => altGridRow[column]!), coords: { axis: Axis.Y, cell } },
+        {
+          axisCells: altGrid.map(altGridRow => {
+            const columnCell = altGridRow[column];
+            if (columnCell === undefined) throw new ReferenceError('Cell must be defined');
+            return columnCell;
+          }),
+          coords: { axis: Axis.Y, cell },
+        },
       ]),
     );
   }
@@ -69,7 +76,12 @@ class LayoutServiceCases {
       [-1, 0],
       [1, 0],
     ]
-      .map(([rowOffset, columnOffset]) => altGrid[row + rowOffset!]?.[column + columnOffset!])
+      .map(([rowOffset, columnOffset]) => {
+        if (rowOffset === undefined || columnOffset === undefined) {
+          throw new ReferenceError('Offsets must be defined');
+        }
+        return altGrid[row + rowOffset]?.[column + columnOffset];
+      })
       .filter((neighbor): neighbor is Cell => neighbor !== undefined);
   }
 }

@@ -8,11 +8,11 @@ export function getBonusName(bonus: GameBonus): string {
       [GameBonus.DoubleWord]: 'game.bonus_dw',
       [GameBonus.TripleLetter]: 'game.bonus_tl',
       [GameBonus.TripleWord]: 'game.bonus_tw',
-    }[bonus] ?? '',
+    }[bonus] ?? null,
   );
 }
 
-export function getEventSound(event: GameEvent): Sound | undefined {
+export function getEventSound(event: GameEvent): null | Sound {
   switch (event.type) {
     case GameEventType.MatchFinished:
       if (event.winner === null) return Sound.GameLongNeutral;
@@ -26,7 +26,7 @@ export function getEventSound(event: GameEvent): Sound | undefined {
     case GameEventType.TurnSaved:
       return event.player === GamePlayer.User ? Sound.GameShortGood : Sound.GameShortAltGood;
     default:
-      return undefined;
+      return null;
   }
 }
 
@@ -85,7 +85,7 @@ export function getLetterSvgHtml(letter: GameLetter): string {
         '<path d="M7.98486 15V11.9438L10.7026 7.24951H9.18262L7.34033 10.5742H7.24902L5.40137 7.24951H3.88135L6.59912 11.9438V15H7.98486Z"/><path d="M15.7031 9H16.3906V7.83203H17.1914V7.20312H16.3906V3.36328H15.3711C14.582 4.53906 13.7188 5.91406 12.957 7.19141V7.83203H15.7031V9ZM13.6758 7.16016C14.2891 6.125 15.0273 4.96094 15.6602 4.01562H15.707V7.20703H13.6758V7.16016Z"/>',
       [GameLetter.Z]:
         '<path d="M3.24121 15H9.1333V13.8345H4.9707V13.7378L9.03125 8.17334V7.24951H3.354V8.41504H7.31787V8.51172L3.24121 14.0762V15Z"/><path d="M12.4766 9H13.1797V3.36328H12.4805L10.9805 4.44141V5.18359L12.4141 4.14453H12.4766V9ZM16.7578 9.13281C18.0234 9.13281 18.75 8.0625 18.75 6.19141C18.75 4.32422 18.0117 3.23047 16.7578 3.23047C15.4961 3.23047 14.7578 4.32031 14.7578 6.17969C14.7578 8.05469 15.4883 9.13281 16.7578 9.13281ZM16.7578 8.51953C15.9258 8.51953 15.4648 7.6875 15.4648 6.17969C15.4648 4.69141 15.9336 3.84766 16.7578 3.84766C17.582 3.84766 18.043 4.68359 18.043 6.17969C18.043 7.69141 17.5898 8.51953 16.7578 8.51953Z"/>',
-    }[letter] ?? ''
+    }[letter] ?? null
   );
 }
 
@@ -96,7 +96,7 @@ export function getMatchResultText(result: GameMatchResult, scoreDiff: number): 
       [GameMatchResult.Lose]: scoreDiff < 0 ? 'game.end_lose_by' : 'game.end_lose',
       [GameMatchResult.Tie]: 'game.end_tie',
       [GameMatchResult.Win]: scoreDiff > 0 ? 'game.end_win_by' : 'game.end_win',
-    }[result] ?? '',
+    }[result] ?? null,
     { points: Math.abs(scoreDiff) },
   );
 }

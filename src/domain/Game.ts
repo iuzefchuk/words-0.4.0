@@ -105,7 +105,11 @@ export default class Game {
     const events = Events.create([...initialEvents]);
     const game = new Game(events, identityService, seedingService, first.settings.difficulty);
     game.initialize(Game.createInitParams(first.seed, first.settings, seedingService, identityService));
-    for (let i = 1; i < initialEvents.length; i++) game.applyToState(initialEvents[i]!);
+    for (let i = 1; i < initialEvents.length; i++) {
+      const event = initialEvents[i];
+      if (event === undefined) throw new ReferenceError('Event must be defined');
+      game.applyToState(event);
+    }
     return game;
   }
 
@@ -130,7 +134,8 @@ export default class Game {
     for (let i = 0; i < result.tiles.length; i++) {
       const cell = result.cells[i];
       if (cell === undefined) throw new ReferenceError('Cell must be defined');
-      const tile = result.tiles[i]!;
+      const tile = result.tiles[i];
+      if (tile === undefined) throw new ReferenceError('Tile must be defined');
       this.applyEvent({ cell, tile, type: GameEventType.TilePlaced });
     }
     this.applyEvent({ result: result.validationResult, type: GameEventType.TurnValidated });

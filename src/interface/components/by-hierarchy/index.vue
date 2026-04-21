@@ -6,7 +6,7 @@ import Main from '@/interface/components/by-hierarchy/Main/Main.vue';
 import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const style = computed(() => ({
-  ...(transitionDurationMs && {
+  ...(transitionDurationMs !== undefined && {
     '--transition-duration': `${transitionDurationMs}ms`,
     '--transition-duration-half': `${transitionDurationMs / 2}ms`,
   }),
