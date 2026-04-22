@@ -105,6 +105,86 @@ export default defineConfigWithVueTs([
     },
   },
   {
+    files: ['src/domain/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/application/**', '@/infrastructure/**', '@/interface/**'],
+              message: 'domain must not import from application, infrastructure, or interface',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/application/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/infrastructure/**', '@/interface/**'],
+              message: 'application must not import from infrastructure or interface',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/infrastructure/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/interface/**'],
+              message: 'infrastructure must not import from interface',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/interface/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/domain/**', '@/infrastructure/**'],
+              message: 'interface must not import from domain or infrastructure; depend on application ports instead',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/shared/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/domain/**', '@/application/**', '@/infrastructure/**', '@/interface/**'],
+              message: 'shared must not import from any feature layer',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['scripts/**/*.js'],
     rules: {
       '@typescript-eslint/explicit-function-return-type': 'off',

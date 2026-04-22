@@ -3,12 +3,11 @@ import { computed, markRaw, reactive, ref } from 'vue';
 import Application from '@/application/index.ts';
 import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
-import { GameCell, GameMatchDifficulty, GameMatchSettings, GameMatchType, GameTile } from '@/application/types/index.ts';
+import { GameCell, GameMatchDifficulty, GameMatchType, GameTile } from '@/application/types/index.ts';
 import { SchedulingService } from '@/application/types/ports.ts';
-import Infrastructure from '@/infrastructure/index.ts';
-import { DEFAULT_SETTINGS } from '@/interface/constants.ts';
 import { getEventSound } from '@/interface/mappings.ts';
 import SoundPlayer from '@/interface/services/SoundPlayer.ts';
+import bootstrapApplication from '@/main.ts';
 
 class Actions {
   private pendingValidationId = 0;
@@ -276,12 +275,6 @@ export default class ApplicationStore {
   }
 
   static async initiate(): Promise<void> {
-    const dependencies = Infrastructure.createAppDependencies();
-    const persistedSettings = dependencies.repositories.settings.load();
-    const settings: GameMatchSettings = {
-      difficulty: persistedSettings?.difficulty ?? DEFAULT_SETTINGS.difficulty,
-      type: persistedSettings?.type ?? DEFAULT_SETTINGS.type,
-    };
-    ApplicationStore.app = markRaw(await Application.create(dependencies, settings));
+    ApplicationStore.app = markRaw(await bootstrapApplication());
   }
 }
