@@ -1,9 +1,3 @@
-export enum Difficulty {
-  High = 'High',
-  Low = 'Low',
-  Medium = 'Medium',
-}
-
 export enum Letter {
   A = 'A',
   B = 'B',

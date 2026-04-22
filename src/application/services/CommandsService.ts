@@ -1,11 +1,11 @@
 import {
   AppTurnResponse,
-  GameBoardType,
   GameCell,
   GameDifficulty,
   GameEvent,
   GameEventType,
   GameGeneratorResult,
+  GameMatchType,
   GamePlayer,
   GameTile,
 } from '@/application/types/index.ts';
@@ -17,11 +17,11 @@ import { TIME } from '@/shared/constants.ts';
 export default class CommandsService {
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
 
+  private lastDrainedEventCount = 0;
+
   private get currentPlayer(): GamePlayer {
     return this.game.turnsView.currentPlayer;
   }
-
-  private lastDrainedEventCount = 0;
 
   constructor(
     private readonly game: Game,
@@ -32,14 +32,14 @@ export default class CommandsService {
     private readonly settingsRepository: SettingsRepository,
   ) {}
 
-  changeBoardType(boardType: GameBoardType): void {
-    this.game.changeBoardType(boardType);
-    this.settingsRepository.save({ boardType });
-  }
-
   changeDifficulty(difficulty: GameDifficulty): void {
     this.game.changeDifficulty(difficulty);
     this.settingsRepository.save({ difficulty });
+  }
+
+  changeMatchType(matchType: GameMatchType): void {
+    this.game.changeMatchType(matchType);
+    this.settingsRepository.save({ matchType });
   }
 
   clearTiles(): void {
@@ -184,9 +184,9 @@ export default class CommandsService {
         return { ok: true, value: { words: [] } };
       case GameEventType.TurnSaved:
         return { ok: true, value: { words: event.words } };
-      case GameEventType.BoardTypeChanged:
       case GameEventType.DifficultyChanged:
       case GameEventType.MatchStarted:
+      case GameEventType.MatchTypeChanged:
       case GameEventType.TilePlaced:
       case GameEventType.TileUndoPlaced:
       case GameEventType.TurnValidated:

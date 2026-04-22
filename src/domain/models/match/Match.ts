@@ -1,7 +1,6 @@
-import { Difficulty, Player } from '@/domain/enums.ts';
-import { BoardType } from '@/domain/models/board/enums.ts';
-import { MatchResult } from '@/domain/models/match/enums.ts';
-import { GameSettings } from '@/domain/types/index.ts';
+import { Player } from '@/domain/enums.ts';
+import { Difficulty, MatchResult, MatchType } from '@/domain/models/match/enums.ts';
+import { MatchSettings } from '@/domain/models/match/types.ts';
 
 export default class Match {
   get isFinished(): boolean {
@@ -20,14 +19,14 @@ export default class Match {
   private constructor(
     private readonly results: Map<Player, MatchResult>,
     private readonly scores: Map<Player, number>,
-    public boardType: BoardType,
+    public matchType: MatchType,
     public difficulty: Difficulty,
   ) {}
 
-  static create(players: ReadonlyArray<Player>, settings: GameSettings): Match {
+  static create(players: ReadonlyArray<Player>, settings: MatchSettings): Match {
     const results = new Map(players.map(player => [player, MatchResult.Undecided]));
     const scores = new Map(players.map(player => [player, 0]));
-    return new Match(results, scores, settings.boardType, settings.difficulty);
+    return new Match(results, scores, settings.matchType, settings.difficulty);
   }
 
   getResultFor(player: Player): MatchResult {
@@ -61,12 +60,12 @@ export default class Match {
     this.recordResult(secondPlayer, MatchResult.Tie);
   }
 
-  setBoardType(boardType: BoardType): void {
-    this.boardType = boardType;
-  }
-
   setDifficulty(difficulty: Difficulty): void {
     this.difficulty = difficulty;
+  }
+
+  setMatchType(matchType: MatchType): void {
+    this.matchType = matchType;
   }
 
   private ensureMutability(): void {

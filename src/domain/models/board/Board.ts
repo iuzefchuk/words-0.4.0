@@ -1,8 +1,9 @@
-import { Axis, BoardType, Bonus } from '@/domain/models/board/enums.ts';
+import { Axis, Bonus } from '@/domain/models/board/enums.ts';
 import BonusService from '@/domain/models/board/services/bonus/BonusService.ts';
 import LayoutService from '@/domain/models/board/services/layout/LayoutService.ts';
 import { AnchorCoordinates, BonusDistribution, Cell, Link, Placement } from '@/domain/models/board/types.ts';
 import { Tile } from '@/domain/models/inventory/types.ts';
+import { MatchType } from '@/domain/models/match/enums.ts';
 
 export default class Board {
   get cells(): ReadonlyArray<Cell> {
@@ -23,7 +24,7 @@ export default class Board {
     return new Board(source.bonusByCell, new Map(source.tileByCell), new Map(source.cellByTile));
   }
 
-  static create(type: BoardType, randomizer?: () => number): Board {
+  static create(type: MatchType, randomizer?: () => number): Board {
     const bonusByCell = BonusService.createDistribution(type, randomizer);
     return new Board(bonusByCell, new Map(), new Map());
   }

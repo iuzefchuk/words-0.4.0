@@ -14,9 +14,9 @@ export function getBonusName(bonus: GameBonus): string {
 
 export function getEventSound(event: GameEvent): null | Sound {
   switch (event.type) {
-    case GameEventType.BoardTypeChanged:
     case GameEventType.DifficultyChanged:
     case GameEventType.MatchStarted:
+    case GameEventType.MatchTypeChanged:
     case GameEventType.TurnValidated:
       return null;
     case GameEventType.MatchFinished:

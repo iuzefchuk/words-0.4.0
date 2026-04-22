@@ -4,13 +4,13 @@ import { GameCell } from '@/domain/types/index.ts';
 import { IdentityService, SeedingService } from '@/domain/types/ports.ts';
 
 export {
-  GameBoardType,
   GameBonus,
   GameDictionary,
   GameDifficulty,
   GameEventType,
   GameLetter,
   GameMatchResult,
+  GameMatchType,
   GamePlayer,
   GameTurnGenerator,
 } from '@/domain/types/index.ts';
@@ -36,21 +36,23 @@ export type AppConfig = {
   tilesPerPlayer: number;
 };
 
-export type AppConfigValues = {
-  dictionaryUrl: string;
-};
-
 export type AppDependencies = {
-  config: AppConfigValues;
+  config: DependenciesConfig;
   repositories: { events: EventRepository; settings: SettingsRepository };
-  services: {
-    file: FileService;
-    identity: IdentityService;
-    scheduling: SchedulingService;
-    seeding: SeedingService;
-    worker: WorkerService;
-  };
+  services: AppServices;
   tasks: { turnGeneration: string };
 };
 
+export type AppServices = {
+  file: FileService;
+  identity: IdentityService;
+  scheduling: SchedulingService;
+  seeding: SeedingService;
+  worker: WorkerService;
+};
+
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;
+
+export type DependenciesConfig = {
+  dictionaryUrl: string;
+};

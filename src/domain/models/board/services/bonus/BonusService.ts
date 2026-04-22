@@ -1,6 +1,7 @@
-import { BoardType, Bonus } from '@/domain/models/board/enums.ts';
+import { Bonus } from '@/domain/models/board/enums.ts';
 import LayoutService from '@/domain/models/board/services/layout/LayoutService.ts';
 import { BonusDistribution, Cell } from '@/domain/models/board/types.ts';
+import { MatchType } from '@/domain/models/match/enums.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 export default class BonusService {
@@ -20,8 +21,8 @@ export default class BonusService {
     return result;
   })();
 
-  static createDistribution(type: BoardType, randomizer?: () => number): BonusDistribution {
-    return type === BoardType.Classic ? this.CLASSIC_DISTRIBUTION : this.createRandomDistribution(randomizer);
+  static createDistribution(type: MatchType, randomizer?: () => number): BonusDistribution {
+    return type === MatchType.Classic ? this.CLASSIC_DISTRIBUTION : this.createRandomDistribution(randomizer);
   }
 
   private static createRandomDistribution(randomizer?: () => number): BonusDistribution {

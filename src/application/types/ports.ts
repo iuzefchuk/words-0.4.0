@@ -1,15 +1,5 @@
 export type { IdentityService, SeedingService } from '@/domain/types/ports.ts';
 
-export type FileService = {
-  loadSharedArrayBuffer(url: string): Promise<SharedArrayBuffer>;
-};
-
-export type SchedulingService = {
-  getCurrentTime(): number;
-  wait(ms: number): Promise<void>;
-  yield(): Promise<void>;
-};
-
 export const enum WorkerRequestType {
   Init = 'Init',
   Stream = 'Stream',
@@ -21,6 +11,16 @@ export const enum WorkerResponseType {
   Ready = 'Ready',
   Result = 'Result',
 }
+
+export type FileService = {
+  loadSharedArrayBuffer(url: string): Promise<SharedArrayBuffer>;
+};
+
+export type SchedulingService = {
+  getCurrentTime(): number;
+  wait(ms: number): Promise<void>;
+  yield(): Promise<void>;
+};
 
 export type WorkerRequest = { input: unknown; type: WorkerRequestType };
 

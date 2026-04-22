@@ -1,5 +1,4 @@
 import {
-  GameBoardType,
   GameBoardView,
   GameBonus,
   GameCell,
@@ -8,6 +7,7 @@ import {
   GameInventoryView,
   GameLetter,
   GameMatchResult,
+  GameMatchType,
   GamePlayer,
   GameTile,
   GameTurnsView,
@@ -45,10 +45,6 @@ export default class QueriesService {
     return this.boardView.getAdjacentCells(cell);
   }
 
-  getBoardType(): GameBoardType {
-    return this.game.matchView.boardType;
-  }
-
   getCellBonus(cell: GameCell): GameBonus | null {
     return this.boardView.getBonus(cell);
   }
@@ -75,6 +71,10 @@ export default class QueriesService {
 
   getMatchResult(): GameMatchResult {
     return this.game.matchView.getResultFor(GamePlayer.User);
+  }
+
+  getMatchType(): GameMatchType {
+    return this.game.matchView.matchType;
   }
 
   getOpponentScore(): number {

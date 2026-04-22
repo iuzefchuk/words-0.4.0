@@ -1,8 +1,8 @@
 export enum EventType {
-  BoardTypeChanged = 'BoardTypeChanged',
   DifficultyChanged = 'DifficultyChanged',
   MatchFinished = 'MatchFinished',
   MatchStarted = 'MatchStarted',
+  MatchTypeChanged = 'MatchTypeChanged',
   TilePlaced = 'TilePlaced',
   TileUndoPlaced = 'TileUndoPlaced',
   TurnPassed = 'TurnPassed',

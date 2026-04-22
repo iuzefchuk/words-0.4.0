@@ -3,7 +3,7 @@ import { computed, markRaw, reactive, ref } from 'vue';
 import Application from '@/application/index.ts';
 import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
-import { GameBoardType, GameCell, GameDifficulty, GameSettings, GameTile } from '@/application/types/index.ts';
+import { GameCell, GameDifficulty, GameMatchType, GameSettings, GameTile } from '@/application/types/index.ts';
 import { SchedulingService } from '@/application/types/ports.ts';
 import Infrastructure from '@/infrastructure/index.ts';
 import { DEFAULT_SETTINGS } from '@/interface/constants.ts';
@@ -20,15 +20,15 @@ class Actions {
     private readonly state: State,
   ) {}
 
-  changeBoardType = (boardType: GameBoardType): void => {
-    this.state.writeBoard(() => {
-      this.commandsService.changeBoardType(boardType);
-    });
-  };
-
   changeDifficulty = (difficulty: GameDifficulty): void => {
     this.state.write(() => {
       this.commandsService.changeDifficulty(difficulty);
+    });
+  };
+
+  changeMatchType = (matchType: GameMatchType): void => {
+    this.state.writeBoard(() => {
+      this.commandsService.changeMatchType(matchType);
     });
   };
 
@@ -125,8 +125,6 @@ class Getters {
 
   readonly allActionsAreDisabled = computed(() => !this.currentPlayerIsUser.value || !this.dictionaryIsReady.value);
 
-  readonly boardType = computed(() => this.readBoard(() => this.queriesService.getBoardType()));
-
   readonly currentTurnIsValid = computed(() => this.readBoard(() => this.queriesService.isCurrentTurnValid()));
 
   readonly currentTurnScore = computed(() => this.readBoard(() => this.queriesService.getCurrentTurnScore()));
@@ -140,6 +138,8 @@ class Getters {
   readonly matchIsFinished = computed(() => this.readState(() => this.queriesService.isMatchFinished()));
 
   readonly matchResult = computed(() => this.readState(() => this.queriesService.getMatchResult()));
+
+  readonly matchType = computed(() => this.readBoard(() => this.queriesService.getMatchType()));
 
   readonly opponentScore = computed(() => this.readState(() => this.queriesService.getOpponentScore()));
 
@@ -277,10 +277,10 @@ export default class ApplicationStore {
 
   static async initiate(): Promise<void> {
     const dependencies = Infrastructure.createAppDependencies();
-    const persisted = dependencies.repositories.settings.load();
+    const persistedSettings = dependencies.repositories.settings.load();
     const settings: GameSettings = {
-      boardType: persisted?.boardType ?? DEFAULT_SETTINGS.boardType,
-      difficulty: persisted?.difficulty ?? DEFAULT_SETTINGS.difficulty,
+      difficulty: persistedSettings?.difficulty ?? DEFAULT_SETTINGS.difficulty,
+      matchType: persistedSettings?.matchType ?? DEFAULT_SETTINGS.matchType,
     };
     ApplicationStore.app = markRaw(await Application.create(dependencies, settings));
   }

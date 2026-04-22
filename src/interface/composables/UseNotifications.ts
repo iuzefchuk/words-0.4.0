@@ -39,10 +39,10 @@ export default class UseNotifications {
 
   private createEventHtml(event: GameEvent): string {
     switch (event.type) {
-      case GameEventType.BoardTypeChanged:
       case GameEventType.DifficultyChanged:
       case GameEventType.MatchFinished:
       case GameEventType.MatchStarted:
+      case GameEventType.MatchTypeChanged:
       case GameEventType.TilePlaced:
       case GameEventType.TileUndoPlaced:
       case GameEventType.TurnValidated:

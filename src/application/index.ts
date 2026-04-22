@@ -1,7 +1,7 @@
 import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
-import { AppConfig, AppConfigValues, AppDependencies, GameDictionary, GameSettings } from '@/application/types/index.ts';
-import { FileService, SchedulingService, WorkerService } from '@/application/types/ports.ts';
+import { AppConfig, AppDependencies, AppServices, GameDictionary, GameSettings } from '@/application/types/index.ts';
+import { SchedulingService } from '@/application/types/ports.ts';
 import { EventRepository } from '@/application/types/repositories.ts';
 import Game from '@/domain/Game.ts';
 
@@ -14,13 +14,13 @@ export default class Application {
     };
   }
 
+  get schedulingService(): SchedulingService {
+    return this.dependencies.services.scheduling;
+  }
+
   private constructor(
     private readonly game: Game,
-    private readonly configValues: AppConfigValues,
-    readonly schedulingService: SchedulingService,
-    private readonly fileService: FileService,
-    private readonly workerService: WorkerService,
-    private readonly turnGenerationTaskId: string,
+    private readonly dependencies: AppDependencies,
     readonly commandsService: CommandsService,
     readonly queriesService: QueriesService,
   ) {
@@ -29,7 +29,7 @@ export default class Application {
   }
 
   static async create(dependencies: AppDependencies, settings: GameSettings): Promise<Application> {
-    const { config, repositories, services, tasks } = dependencies;
+    const { repositories, services, tasks } = dependencies;
     const game = await this.createGame(services, repositories.events, settings);
     const queriesService = new QueriesService(game);
     const commandsService = new CommandsService(
@@ -40,20 +40,11 @@ export default class Application {
       repositories.events,
       repositories.settings,
     );
-    return new Application(
-      game,
-      config,
-      services.scheduling,
-      services.file,
-      services.worker,
-      tasks.turnGeneration,
-      commandsService,
-      queriesService,
-    );
+    return new Application(game, dependencies, commandsService, queriesService);
   }
 
   private static async createGame(
-    services: AppDependencies['services'],
+    services: AppServices,
     eventRepository: EventRepository,
     settings: GameSettings,
   ): Promise<Game> {
@@ -64,8 +55,9 @@ export default class Application {
   }
 
   async loadDictionary(): Promise<void> {
-    const buffer = await this.fileService.loadSharedArrayBuffer(this.configValues.dictionaryUrl);
+    const { config, services, tasks } = this.dependencies;
+    const buffer = await services.file.loadSharedArrayBuffer(config.dictionaryUrl);
     this.game.setDictionary(GameDictionary.createFromBuffer(buffer));
-    await this.workerService.init(this.turnGenerationTaskId, buffer);
+    await services.worker.init(tasks.turnGeneration, buffer);
   }
 }

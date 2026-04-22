@@ -13,13 +13,13 @@ import TurnGenerationService from '@/domain/services/generation/turn/TurnGenerat
 import { GeneratorContext, GeneratorResult } from '@/domain/services/generation/turn/types.ts';
 import TurnValidationService from '@/domain/services/validation/turn/TurnValidationService.ts';
 import {
-  GameBoardType,
   GameBoardView,
   GameCell,
   GameDifficulty,
   GameEvent,
   GameEventType,
   GameInventoryView,
+  GameMatchType,
   GameMatchView,
   GamePlayer,
   GameSettings,
@@ -124,7 +124,7 @@ export default class Game {
     const players = Object.values(GamePlayer);
     const randomizer = seedingService.createRandomizer(seed);
     return {
-      board: Board.create(settings.boardType, randomizer),
+      board: Board.create(settings.matchType, randomizer),
       inventory: Inventory.create(players, randomizer),
       match: Match.create(players, settings),
       turns: Turns.create(identityService),
@@ -148,16 +148,6 @@ export default class Game {
 
   applyToState(event: GameEvent): void {
     switch (event.type) {
-      case GameEventType.BoardTypeChanged:
-        this.initialize(
-          Game.createInitParams(
-            event.seed,
-            { boardType: event.boardType, difficulty: this.match.difficulty },
-            this.seedingService,
-            this.identityService,
-          ),
-        );
-        break;
       case GameEventType.DifficultyChanged:
         this.match.setDifficulty(event.difficulty);
         break;
@@ -169,6 +159,16 @@ export default class Game {
       case GameEventType.TilePlaced:
         this.board.placeTile(event.cell, event.tile);
         this.turns.addPlacedTile(event.tile);
+        break;
+      case GameEventType.MatchTypeChanged:
+        this.initialize(
+          Game.createInitParams(
+            event.seed,
+            { difficulty: this.match.difficulty, matchType: event.matchType },
+            this.seedingService,
+            this.identityService,
+          ),
+        );
         break;
       case GameEventType.TileUndoPlaced:
         this.turns.removePlacedTile(event.tile);
@@ -186,17 +186,17 @@ export default class Game {
     }
   }
 
-  changeBoardType(boardType: GameBoardType): void {
-    this.ensureMutability();
-    this.ensureSettingsMutability();
-    const newSeed = this.seedingService.createSeed();
-    this.applyEvent({ boardType, seed: newSeed, type: GameEventType.BoardTypeChanged });
-  }
-
   changeDifficulty(difficulty: GameDifficulty): void {
     this.ensureMutability();
     this.ensureSettingsMutability();
     this.applyEvent({ difficulty, type: GameEventType.DifficultyChanged });
+  }
+
+  changeMatchType(matchType: GameMatchType): void {
+    this.ensureMutability();
+    this.ensureSettingsMutability();
+    const newSeed = this.seedingService.createSeed();
+    this.applyEvent({ matchType, seed: newSeed, type: GameEventType.MatchTypeChanged });
   }
 
   clearTiles(): void {
@@ -249,7 +249,7 @@ export default class Game {
 
   restart(): void {
     const seed = this.seedingService.createSeed();
-    const settings: GameSettings = { boardType: this.match.boardType, difficulty: this.match.difficulty };
+    const settings: GameSettings = { difficulty: this.match.difficulty, matchType: this.match.matchType };
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     this.events.reset(event);
     this.initialize(Game.createInitParams(seed, settings, this.seedingService, this.identityService));

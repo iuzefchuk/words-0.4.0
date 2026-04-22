@@ -3,11 +3,6 @@ export enum Axis {
   Y = 'Y',
 }
 
-export enum BoardType {
-  Classic = 'Classic',
-  Random = 'Random',
-}
-
 export enum Bonus {
   DoubleLetter = 'DoubleLetter',
   DoubleWord = 'DoubleWord',
