@@ -3,11 +3,11 @@ import { DirectiveBinding, ObjectDirective } from 'vue';
 export default abstract class Directive<DirectiveHtmlElement extends HTMLElement, BindingValue> {
   get directive(): ObjectDirective<DirectiveHtmlElement, BindingValue> {
     return {
-      ...(this.beforeMount && { beforeMount: this.beforeMount.bind(this) }),
-      ...(this.beforeUpdate && { beforeUpdate: this.beforeUpdate.bind(this) }),
-      ...(this.mounted && { mounted: this.mounted.bind(this) }),
-      ...(this.unmounted && { unmounted: this.unmounted.bind(this) }),
-      ...(this.updated && { updated: this.updated.bind(this) }),
+      ...(this.beforeMount !== undefined && { beforeMount: this.beforeMount.bind(this) }),
+      ...(this.beforeUpdate !== undefined && { beforeUpdate: this.beforeUpdate.bind(this) }),
+      ...(this.mounted !== undefined && { mounted: this.mounted.bind(this) }),
+      ...(this.unmounted !== undefined && { unmounted: this.unmounted.bind(this) }),
+      ...(this.updated !== undefined && { updated: this.updated.bind(this) }),
     };
   }
 

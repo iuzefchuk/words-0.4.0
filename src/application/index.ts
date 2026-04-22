@@ -58,7 +58,7 @@ export default class Application {
     settings: GameSettings,
   ): Promise<Game> {
     const events = await eventRepository.load();
-    return events && events.length > 0
+    return events !== null && events.length > 0
       ? Game.createFromEvents(events, services.identity, services.seeding)
       : Game.create(services.identity, services.seeding, settings);
   }

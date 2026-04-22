@@ -32,12 +32,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      $: path.resolve(__dirname, './tests'),
     },
   },
   root: path.resolve(__dirname, './src/interface'),
   server: {
-    port: Number(process.env.VITE_PORT) || 5173,
+    port:
+      Number(process.env.VITE_PORT) !== 0 && !Number.isNaN(Number(process.env.VITE_PORT)) ? Number(process.env.VITE_PORT) : 5173,
   },
   test: {
     environment: 'happy-dom',

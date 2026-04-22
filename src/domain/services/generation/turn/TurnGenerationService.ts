@@ -1,10 +1,10 @@
-import { Letter, Player } from '@/domain/enums.ts';
+import { Player } from '@/domain/enums.ts';
 import Board from '@/domain/models/board/Board.ts';
 import { Axis } from '@/domain/models/board/enums.ts';
 import { AnchorCoordinates, Link } from '@/domain/models/board/types.ts';
 import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
-import { Tile, TileCollection } from '@/domain/models/inventory/types.ts';
+import { Tile } from '@/domain/models/inventory/types.ts';
 import { ValidationStatus } from '@/domain/models/turns/enums.ts';
 import Turns from '@/domain/models/turns/Turns.ts';
 import CrossCheckService from '@/domain/services/cross-check/CrossCheckService.ts';
@@ -34,7 +34,6 @@ import {
   ValidateTask,
 } from '@/domain/services/generation/turn/types.ts';
 import TurnValidationService from '@/domain/services/validation/turn/TurnValidationService.ts';
-import { ValidatorContext } from '@/domain/services/validation/turn/types.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 class TaskCommandResolver {
@@ -68,14 +67,14 @@ class TaskCommandResolver {
 
   private popFromStack(): Task {
     const lastTask = this.stack.pop();
-    if (lastTask === undefined) throw new ReferenceError('Task has to exist');
+    if (lastTask === undefined) throw new ReferenceError('cannot pop task: stack is empty');
     return lastTask;
   }
 
   private pushToStack(tasks: Array<Task>): void {
-    for (let i = tasks.length - 1; i >= 0; i--) {
-      const task = tasks[i];
-      if (task === undefined) throw new ReferenceError('Task must be defined');
+    for (let idx = tasks.length - 1; idx >= 0; idx--) {
+      const task = tasks[idx];
+      if (task === undefined) throw new ReferenceError(`expected task at index ${String(idx)}, got undefined`);
       this.stack.push(task);
     }
   }
@@ -98,14 +97,14 @@ class TaskDispatcher {
     return this.state.placement;
   }
 
-  private get tiles(): TileCollection {
+  private get tiles(): MutableTileCollection {
     return this.state.tiles;
   }
 
   private constructor(
     private readonly context: GeneratorContext,
     private readonly crossChecker: CrossCheckService,
-    private state: DispatcherState,
+    private readonly state: DispatcherState,
     public computeds: DispatcherComputeds,
   ) {}
 
@@ -142,7 +141,7 @@ class TaskDispatcher {
     const { tile } = task.resolution;
     const { letterTiles } = task.resolutionComputeds;
     letterTiles.pop();
-    this.placement.push({ cell, tile } as Link);
+    this.placement.push({ cell, tile });
     this.board.placeTile(cell, tile);
     return this.emitContinue();
   }
@@ -152,11 +151,11 @@ class TaskDispatcher {
     const anchorLetters = this.crossChecker.execute({ axis: this.computeds.oppositeAxis, cell });
     const newTasks: Array<Task> = [];
     this.dictionary.forEachNodeChild(traversal.node, (possibleNextLetter, nodeWithPossibleNextLetter) => {
-      const letterTiles = this.tiles.get(possibleNextLetter) as Array<Tile>;
+      const letterTiles = this.tiles.get(possibleNextLetter);
       if (!anchorLetters.has(possibleNextLetter)) return;
-      if (!letterTiles) return;
+      if (letterTiles === undefined) return;
       const tile = letterTiles.at(-1);
-      if (!tile) return;
+      if (tile === undefined) return;
       const resolution: Resolution = { tile };
       const resolutionComputeds: ResolutionComputeds = { letterTiles };
       const applyTask: ApplyTask = {
@@ -187,16 +186,16 @@ class TaskDispatcher {
     const { traversal } = task;
     const position = traversal.position + traversal.direction;
     const cell = this.computeds.axisCells[position];
-    if (cell === undefined) throw new ReferenceError('Cell must be defined');
+    if (cell === undefined) throw new ReferenceError(`expected cell at position ${String(position)}, got undefined`);
     const tile = this.board.findTileByCell(cell);
-    const resolution: Resolution | undefined = tile ? { tile } : undefined;
+    const resolution: Resolution | undefined = tile !== undefined ? { tile } : undefined;
     const candidate: Candidate = { cell, position, resolution };
     return this.emitContinue([{ ...task, candidate, type: GenerationTask.ResolveCandidate }]);
   }
 
   private createTraversalFromCandidate(traversal: Traversal, candidate: Candidate): ContinueTaskCommand | StopTaskCommand {
     const { position, resolution } = candidate;
-    if (resolution === undefined) throw new ReferenceError('Resolution must be defined');
+    if (resolution === undefined) throw new ReferenceError('expected candidate resolution, got undefined');
     const nextNode = this.dictionary.getNode(this.inventory.getTileLetter(resolution.tile), traversal.node);
     if (nextNode === null) return this.emitStop();
     const traversalFromCandidate: Traversal = { ...traversal, node: nextNode, position };
@@ -224,7 +223,7 @@ class TaskDispatcher {
         tiles.push(link.tile);
         this.context.turns.addPlacedTile(link.tile);
       }
-      const validationResult = TurnValidationService.execute(this.context as ValidatorContext);
+      const validationResult = TurnValidationService.execute(this.context);
       for (const tile of tiles) this.context.turns.removePlacedTile(tile);
       if (validationResult.status === ValidationStatus.Valid) {
         const cells = this.placement.map(link => link.cell);
@@ -245,7 +244,7 @@ class TaskDispatcher {
 
   private resolveCandidate(task: ResolveTask): ContinueTaskCommand | StopTaskCommand {
     const { candidate, traversal } = task;
-    return candidate.resolution
+    return candidate.resolution !== undefined
       ? this.createTraversalFromCandidate(traversal, candidate)
       : this.calculateAndExploreResolution(traversal, candidate);
   }
@@ -287,7 +286,8 @@ export default class TurnGenerationService {
     const anchorCells = board.calculateAnchorCells();
     if (anchorCells.size === 0) return;
     const allAnchors = Array.from(anchorCells);
-    const anchors = partition ? allAnchors.slice(partition.offset, partition.offset + partition.length) : allAnchors;
+    const anchors =
+      partition !== undefined ? allAnchors.slice(partition.offset, partition.offset + partition.length) : allAnchors;
     if (anchors.length === 0) return;
     const crossChecker = new CrossCheckService(board, dictionary, inventory);
     for (const cell of anchors) {
@@ -299,12 +299,12 @@ export default class TurnGenerationService {
   }
 
   static hydrateContext(data: unknown, dictionary: Dictionary): GeneratorContext {
-    const d = data as { board: Board; inventory: Inventory; turns: Turns };
+    const source = data as { board: Board; inventory: Inventory; turns: Turns };
     return {
-      board: Board.clone(d.board),
+      board: Board.clone(source.board),
       dictionary,
-      inventory: Inventory.clone(d.inventory),
-      turns: Turns.clone(d.turns, { createUniqueId: () => '' }),
+      inventory: Inventory.clone(source.inventory),
+      turns: Turns.clone(source.turns, { createUniqueId: () => '' }),
     };
   }
 

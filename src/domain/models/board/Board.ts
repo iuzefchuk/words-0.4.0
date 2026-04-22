@@ -15,8 +15,8 @@ export default class Board {
 
   private constructor(
     private readonly bonusByCell: BonusDistribution,
-    private tileByCell: Map<Cell, Tile>,
-    private cellByTile: Map<Tile, Cell>,
+    private readonly tileByCell: Map<Cell, Tile>,
+    private readonly cellByTile: Map<Tile, Cell>,
   ) {}
 
   static clone(source: Board): Board {
@@ -43,21 +43,21 @@ export default class Board {
     let normalizedSequence = cells;
     if (cells.length === 1) {
       const [firstCell] = cells;
-      if (firstCell === undefined) throw new ReferenceError('First cell must be defined');
+      if (firstCell === undefined) throw new ReferenceError('expected first cell, got undefined');
       const connectedAdjacents = LayoutService.getAdjacentCells(firstCell).filter(cell => this.isCellOccupied(cell));
       const firstConnectedAdjacent = connectedAdjacents[0];
       normalizedSequence = firstConnectedAdjacent === undefined ? [] : [firstConnectedAdjacent, firstCell];
     }
     if (normalizedSequence.length === 0) return LayoutService.DEFAULT_AXIS;
     const [firstIndex] = normalizedSequence;
-    if (firstIndex === undefined) throw new ReferenceError('First index must be defined');
+    if (firstIndex === undefined) throw new ReferenceError('expected first index, got undefined');
     const firstColumn = LayoutService.getCellPositionInColumn(firstIndex);
     const isVertical = normalizedSequence.every(cell => LayoutService.getCellPositionInColumn(cell) === firstColumn);
     return isVertical ? Axis.Y : Axis.X;
   }
 
   createPlacement(coords: AnchorCoordinates, tiles: ReadonlyArray<Tile>): Placement {
-    if (tiles.length === 0) throw new Error('Tiles must not be empty');
+    if (tiles.length === 0) throw new Error('cannot create placement from empty tiles');
     const axisCells = LayoutService.getAxisCells(coords);
     const tilesToPlace = new Set(tiles);
     let links: Array<Link> = [];
@@ -65,7 +65,7 @@ export default class Board {
     let matchedTilesCount = 0;
     for (const cell of axisCells) {
       const tile = this.findTileByCell(cell);
-      if (!tile) {
+      if (tile === undefined) {
         if (links.length === 0) continue;
         if (segmentContainsTile) break;
         links = [];
@@ -150,8 +150,8 @@ export default class Board {
   }
 
   placeTile(cell: Cell, tile: Tile): void {
-    if (this.tileByCell.has(cell)) throw new Error(`Cell ${cell} is already occupied`);
-    if (this.cellByTile.has(tile)) throw new Error(`Tile ${tile} is already placed on the board`);
+    if (this.tileByCell.has(cell)) throw new Error(`cell ${String(cell)} is already occupied`);
+    if (this.cellByTile.has(tile)) throw new Error(`tile ${tile} is already placed on the board`);
     this.tileByCell.set(cell, tile);
     this.cellByTile.set(tile, cell);
   }
@@ -160,15 +160,15 @@ export default class Board {
     return tiles
       .map(tile => {
         const cell = this.cellByTile.get(tile);
-        if (cell === undefined) throw new Error(`Tile ${tile} is not placed on the board`);
+        if (cell === undefined) throw new Error(`tile ${tile} is not placed on the board`);
         return { cell, tile };
       })
-      .sort((a, b) => a.cell - b.cell);
+      .sort((first, second) => first.cell - second.cell);
   }
 
   undoPlaceTile(tile: Tile): void {
     const cell = this.cellByTile.get(tile);
-    if (cell === undefined) throw new Error(`Tile ${tile} is not on the board`);
+    if (cell === undefined) throw new Error(`tile ${tile} is not on the board`);
     this.tileByCell.delete(cell);
     this.cellByTile.delete(tile);
   }

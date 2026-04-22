@@ -12,7 +12,7 @@ import WebWorkerService from '@/infrastructure/services/WebWorkerService.ts';
 export default class Infrastructure {
   private static readonly DICTIONARY_URL = '/dictionary.bin';
 
-  static async createAppDependencies(): Promise<AppDependencies> {
+  static createAppDependencies(): AppDependencies {
     const version = new VersioningService().getAppVersion();
     const identity = new CryptoIdentityService();
     const turnGenerationTaskId = identity.createUniqueId();

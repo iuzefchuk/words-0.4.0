@@ -6,7 +6,7 @@ import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
 
 export default class CrossCheckService {
-  private cache = new Map<Axis, Map<Cell, ReadonlySet<Letter>>>(Object.values(Axis).map(axis => [axis, new Map()]));
+  private readonly cache = new Map<Axis, Map<Cell, ReadonlySet<Letter>>>(Object.values(Axis).map(axis => [axis, new Map()]));
 
   constructor(
     private readonly board: Board,
@@ -17,9 +17,9 @@ export default class CrossCheckService {
   execute(coords: AnchorCoordinates): ReadonlySet<Letter> {
     const { axis, cell } = coords;
     const axisCache = this.cache.get(axis);
-    if (axisCache === undefined) throw new ReferenceError('Axis cache has to exist');
+    if (axisCache === undefined) throw new ReferenceError(`expected axis cache for axis ${axis}, got undefined`);
     const cachedResult = axisCache.get(cell);
-    if (cachedResult) return cachedResult;
+    if (cachedResult !== undefined) return cachedResult;
     const newResult = this.computeFor(coords);
     axisCache.set(cell, newResult);
     return newResult;
@@ -27,11 +27,11 @@ export default class CrossCheckService {
 
   private collectAdjacentTileLetters(axisCells: ReadonlyArray<Cell>, startPosition: number, direction: -1 | 1): string {
     let result = '';
-    for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
-      const cell = axisCells[i];
-      if (cell === undefined) throw new ReferenceError('Cell must be defined');
+    for (let idx = startPosition + direction; idx >= 0 && idx < axisCells.length; idx += direction) {
+      const cell = axisCells[idx];
+      if (cell === undefined) throw new ReferenceError(`expected cell at index ${String(idx)}, got undefined`);
       const tile = this.board.findTileByCell(cell);
-      if (!tile) break;
+      if (tile === undefined) break;
       const letter = this.inventory.getTileLetter(tile);
       result = direction === -1 ? letter + result : result + letter;
     }
@@ -44,17 +44,17 @@ export default class CrossCheckService {
       coords.axis === Axis.X ? this.board.getCellPositionInColumn(coords.cell) : this.board.getCellPositionInRow(coords.cell);
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
     const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
-    if (!prefix && !suffix) return new Set(Object.values(Letter));
-    const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
-    if (!prefixNode) return new Set();
+    if (prefix === '' && suffix === '') return new Set(Object.values(Letter));
+    const prefixNode = prefix !== '' ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
+    if (prefixNode === null) return new Set();
     const anchorLetters = new Set<Letter>();
     this.dictionary.forEachNodeChild(prefixNode, (possibleNextLetter, nodeWithPossibleNextLetter) => {
-      if (!suffix) {
+      if (suffix === '') {
         anchorLetters.add(possibleNextLetter);
         return;
       }
       const suffixNode = this.dictionary.getNode(suffix, nodeWithPossibleNextLetter);
-      if (suffixNode && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
+      if (suffixNode !== null && this.dictionary.isNodeFinal(suffixNode)) anchorLetters.add(possibleNextLetter);
     });
     return anchorLetters;
   }

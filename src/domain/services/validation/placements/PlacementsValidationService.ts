@@ -14,7 +14,7 @@ export default class PlacementsValidationService {
   ): ReadonlyArray<Placement> | ValidationError {
     const primaryAxis = calculateAxis(cells);
     const cell = cells[0];
-    if (cell === undefined) throw new ReferenceError('Cell must be defined');
+    if (cell === undefined) throw new ReferenceError('expected first cell, got undefined');
     const coords = { axis: primaryAxis, cell };
     const primaryPlacement = createPlacement(coords, tiles);
     const areLinksUsable = (placement: Placement): boolean => placement.length > 1;
@@ -23,7 +23,7 @@ export default class PlacementsValidationService {
     for (const cell of cells) {
       const coords: AnchorCoordinates = { axis: getOppositeAxis(primaryAxis), cell };
       const tile = findTileByCell(cell);
-      if (!tile) continue;
+      if (tile === undefined) continue;
       const secondaryPlacement = createPlacement(coords, [tile]);
       if (areLinksUsable(secondaryPlacement)) result.push(secondaryPlacement);
     }

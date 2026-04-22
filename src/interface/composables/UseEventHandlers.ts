@@ -11,15 +11,15 @@ export default class UseEventHandlers {
     return this.inventoryStore.selectedTile;
   }
 
-  private get applicationStore() {
+  private get applicationStore(): ReturnType<typeof ApplicationStore.INSTANCE> {
     return ApplicationStore.INSTANCE();
   }
 
-  private get dialogStore() {
+  private get dialogStore(): ReturnType<typeof DialogStore.INSTANCE> {
     return DialogStore.INSTANCE();
   }
 
-  private get inventoryStore() {
+  private get inventoryStore(): ReturnType<typeof InventoryStore.INSTANCE> {
     return InventoryStore.INSTANCE();
   }
 
@@ -75,7 +75,7 @@ export default class UseEventHandlers {
 
   handleClickRackCell(idx: number): void {
     const tile = this.inventoryStore.tiles[idx];
-    if (tile === undefined) throw new ReferenceError('Tile must be defined');
+    if (tile === undefined) throw new ReferenceError(`expected tile at rack index ${String(idx)}, got undefined`);
     const selected = this.selectedTile;
     if (selected === null) {
       if (this.applicationStore.isTilePlaced(tile)) this.applicationStore.undoPlaceTile(tile);
@@ -129,7 +129,9 @@ export default class UseEventHandlers {
   async handleResign(): Promise<void> {
     const { isConfirmed } = await this.triggerResignDialog();
     if (!isConfirmed) return;
-    setTimeout(() => this.applicationStore.resign(), this.resignDelayMs);
+    setTimeout(() => {
+      this.applicationStore.resign();
+    }, this.resignDelayMs);
   }
 
   handleShuffle(): void {
@@ -137,19 +139,19 @@ export default class UseEventHandlers {
     SoundPlayer.play(Sound.SystemShuffle);
   }
 
-  private async triggerPassDialog() {
+  private async triggerPassDialog(): Promise<{ isCanceled: boolean; isConfirmed: boolean; isDismissed: boolean }> {
     return await this.dialogStore.trigger({
-      cancelText: window.t('game.dialog_cancel'),
-      confirmText: window.t('game.dialog_confirm'),
-      html: window.t('game.dialog_html_pass'),
+      cancelText: window.text('game.dialog_cancel'),
+      confirmText: window.text('game.dialog_confirm'),
+      html: window.text('game.dialog_html_pass'),
     });
   }
 
-  private async triggerResignDialog() {
+  private async triggerResignDialog(): Promise<{ isCanceled: boolean; isConfirmed: boolean; isDismissed: boolean }> {
     return await this.dialogStore.trigger({
-      cancelText: window.t('game.dialog_cancel'),
-      confirmText: window.t('game.dialog_confirm'),
-      html: window.t('game.dialog_html_resign'),
+      cancelText: window.text('game.dialog_cancel'),
+      confirmText: window.text('game.dialog_confirm'),
+      html: window.text('game.dialog_html_resign'),
     });
   }
 }

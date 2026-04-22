@@ -4,7 +4,7 @@ import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 type Location = { col: number; colSpan: number; row: number; rowSpan: number };
 
 export default class UseTileLocator {
-  private get applicationStore() {
+  private get applicationStore(): ReturnType<typeof ApplicationStore.INSTANCE> {
     return ApplicationStore.INSTANCE();
   }
 
@@ -13,16 +13,17 @@ export default class UseTileLocator {
     let minRow = Infinity;
     let rightmostIdx = -1;
     let rightmostEdge = -Infinity;
-    for (let i = 0; i < locations.length; i++) {
-      const group = locations[i]!;
+    for (let idx = 0; idx < locations.length; idx++) {
+      const group = locations[idx];
+      if (group === undefined) throw new ReferenceError(`expected location group at index ${String(idx)}, got undefined`);
       if (group.row < minRow) {
         minRow = group.row;
-        rightmostIdx = i;
+        rightmostIdx = idx;
         rightmostEdge = group.col + group.colSpan;
       } else if (group.row === minRow) {
         const edge = group.col + group.colSpan;
         if (edge > rightmostEdge) {
-          rightmostIdx = i;
+          rightmostIdx = idx;
           rightmostEdge = edge;
         }
       }
@@ -44,7 +45,7 @@ export default class UseTileLocator {
 
   isLocationOnRightmostColumn(locations: ReadonlyArray<Location>, idx: number): boolean {
     const group = locations[idx];
-    if (!group) return false;
+    if (group === undefined) return false;
     return group.col + group.colSpan >= this.applicationStore.boardCellsPerAxis;
   }
 
@@ -56,7 +57,8 @@ export default class UseTileLocator {
     let minCol = Infinity;
     let maxCol = -Infinity;
     while (stack.length > 0) {
-      const cell = stack.pop()!;
+      const cell = stack.pop();
+      if (cell === undefined) throw new ReferenceError('expected cell from traversal stack, got undefined');
       const row = this.applicationStore.getCellRowIndex(cell);
       const col = this.applicationStore.getCellColumnIndex(cell);
       if (row < minRow) minRow = row;

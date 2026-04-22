@@ -9,12 +9,12 @@ export default class WordsValidationService {
     containsAllWords: (words: ReadonlyArray<string>) => boolean,
   ): ReadonlyArray<string> | ValidationError {
     const words: Array<string> = [];
-    for (let i = 0; i < placements.length; i++) {
-      const placement = placements[i];
-      if (placement === undefined) throw new ReferenceError('Placement must be defined');
+    for (let idx = 0; idx < placements.length; idx++) {
+      const placement = placements[idx];
+      if (placement === undefined) throw new ReferenceError(`expected placement at index ${String(idx)}, got undefined`);
       let word = '';
       for (const { tile } of placement) word += getTileLetter(tile);
-      words[i] = word;
+      words[idx] = word;
     }
     return containsAllWords(words) ? words : ValidationError.WordNotInDictionary;
   }

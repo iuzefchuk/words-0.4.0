@@ -19,8 +19,8 @@ type CoordsCases = {
   readonly coords: AnchorCoordinates;
 };
 
-class CasesFactory {
-  static createCellCases(): ReadonlyArray<CellCases> {
+class LayoutServiceCases {
+  static forCells(): ReadonlyArray<CellCases> {
     const altGrid = this.buildAltGrid();
     return altGrid.flatMap((altRowCells, row) =>
       altRowCells.map((cell, column) => ({
@@ -36,12 +36,19 @@ class CasesFactory {
     );
   }
 
-  static createCoordsCases(): ReadonlyArray<CoordsCases> {
+  static forCoords(): ReadonlyArray<CoordsCases> {
     const altGrid = this.buildAltGrid();
     return altGrid.flatMap(altRowCells =>
       altRowCells.flatMap((cell, column) => [
         { axisCells: altRowCells, coords: { axis: Axis.X, cell } },
-        { axisCells: altGrid.map(altGridRow => altGridRow[column]!), coords: { axis: Axis.Y, cell } },
+        {
+          axisCells: altGrid.map(altGridRow => {
+            const columnCell = altGridRow[column];
+            if (columnCell === undefined) throw new ReferenceError('Cell must be defined');
+            return columnCell;
+          }),
+          coords: { axis: Axis.Y, cell },
+        },
       ]),
     );
   }
@@ -69,13 +76,18 @@ class CasesFactory {
       [-1, 0],
       [1, 0],
     ]
-      .map(([rowOffset, columnOffset]) => altGrid[row + rowOffset!]?.[column + columnOffset!])
+      .map(([rowOffset, columnOffset]) => {
+        if (rowOffset === undefined || columnOffset === undefined) {
+          throw new ReferenceError('Offsets must be defined');
+        }
+        return altGrid[row + rowOffset]?.[column + columnOffset];
+      })
       .filter((neighbor): neighbor is Cell => neighbor !== undefined);
   }
 }
 
 describe('LayoutService', () => {
-  describe.each(CasesFactory.createCellCases())(
+  describe.each(LayoutServiceCases.forCells())(
     'for cell $cell',
     ({ adjacentCells, cell, column, isBottomEdge, isLeftEdge, isRightEdge, isTopEdge, row }) => {
       test('calculates adjacent cells', () => {
@@ -108,12 +120,9 @@ describe('LayoutService', () => {
     },
   );
 
-  describe.each(CasesFactory.createCoordsCases())(
-    'for coords (axis $coords.axis, cell $coords.cell)',
-    ({ axisCells, coords }) => {
-      test('calculates axis cells', () => {
-        expect(LayoutService.getAxisCells(coords)).toEqual(axisCells);
-      });
-    },
-  );
+  describe.each(LayoutServiceCases.forCoords())('for coords (axis $coords.axis, cell $coords.cell)', ({ axisCells, coords }) => {
+    test('calculates axis cells', () => {
+      expect(LayoutService.getAxisCells(coords)).toEqual(axisCells);
+    });
+  });
 });
