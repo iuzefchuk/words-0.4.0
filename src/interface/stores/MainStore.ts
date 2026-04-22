@@ -128,6 +128,8 @@ class Getters {
 
   readonly currentTurnScore = computed(() => this.readBoard(() => this.queriesService.getCurrentTurnScore()));
 
+  readonly dictionaryLoadError = computed(() => this.state.dictionaryLoadError.value); // TODO show
+
   readonly eventsLog = computed(() => this.readState(() => [...this.queriesService.getEventsLog()]));
 
   readonly hasPriorTurns = computed(() => this.readState(() => this.queriesService.hasPriorTurns()));
@@ -191,6 +193,8 @@ class Getters {
 }
 
 class State {
+  readonly dictionaryLoadError = ref<null | string>(null);
+
   readonly tileByCellCache: Map<GameCell, GameTile> = reactive(new Map());
 
   private readonly boardVersion = ref(0);
@@ -222,9 +226,14 @@ class State {
     const result = fn();
     this.incrementVersions();
     if (result instanceof Promise) {
-      void result.then(() => {
-        this.incrementVersions();
-      });
+      result.then(
+        () => {
+          this.incrementVersions();
+        },
+        () => {
+          this.incrementVersions();
+        },
+      );
     }
     return result;
   }
@@ -271,7 +280,10 @@ export default class MainStore {
     this.state = new State(cell => app.queriesService.findTileOnCell(cell), app.config.boardCells);
     this.getters = new Getters(app.queriesService, this.state);
     this.actions = new Actions(app.commandsService, app.queriesService, app.schedulingService, this.state);
-    void this.state.write(() => app.loadDictionary());
+    const dictionaryLoad = this.state.write(() => app.loadDictionary());
+    dictionaryLoad.catch((error: unknown) => {
+      this.state.dictionaryLoadError.value = error instanceof Error ? error.message : String(error);
+    });
   }
 
   static async initiate(): Promise<void> {

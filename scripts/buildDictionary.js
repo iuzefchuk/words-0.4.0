@@ -95,9 +95,8 @@ class DictionaryBuilder {
 
 // Build
 const buffer = DictionaryBuilder.buildFromFile('scripts/dictionary.txt');
-writeFileSync('public/dictionary.bin', Buffer.from(buffer.buffer));
 writeFileSync('public/dictionary.bin.gz', gzipSync(Buffer.from(buffer.buffer)));
-console.log('Written to public/dictionary.bin and public/dictionary.bin.gz');
+console.log('Written to public/dictionary.bin.gz');
 
 // Verify
 if (!DictionaryBuilder.verify(buffer, ['AA', 'CAT', 'DOG', 'HELLO', 'ZYZZYVAS', 'ZZZ'])) {
