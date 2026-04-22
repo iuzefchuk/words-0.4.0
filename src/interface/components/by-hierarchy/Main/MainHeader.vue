@@ -2,10 +2,10 @@
 import { computed } from 'vue';
 import { GameMatchDifficulty, GameMatchType } from '@/application/types/index.ts';
 import AppSelect from '@/interface/components/shared/AppSelect/AppSelect.vue';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 type OptionValue = GameMatchDifficulty | GameMatchType;
-const applicationStore = ApplicationStore.INSTANCE();
-const optionsAreDisabled = computed(() => !applicationStore.settingsChangeIsAllowed);
+const mainStore = MainStore.INSTANCE();
+const optionsAreDisabled = computed(() => !mainStore.settingsChangeIsAllowed);
 const options = [
   {
     items: [
@@ -13,9 +13,9 @@ const options = [
       { text: window.text('game.bonus_distribution_random'), value: GameMatchType.Random },
     ],
     label: window.text('game.settings_bonuses'),
-    modelValue: () => applicationStore.matchType,
+    modelValue: () => mainStore.matchType,
     onChange: (value: OptionValue) => {
-      applicationStore.changeMatchType(value as GameMatchType);
+      mainStore.changeMatchType(value as GameMatchType);
     },
   },
   {
@@ -25,20 +25,20 @@ const options = [
       { text: window.text('game.difficulty_high'), value: GameMatchDifficulty.High },
     ],
     label: window.text('game.settings_difficulty'),
-    modelValue: () => applicationStore.matchDifficulty,
+    modelValue: () => mainStore.matchDifficulty,
     onChange: (value: OptionValue) => {
-      applicationStore.changeMatchDifficulty(value as GameMatchDifficulty);
+      mainStore.changeMatchDifficulty(value as GameMatchDifficulty);
     },
   },
 ];
 const players = [
   {
     name: window.text('game.player_user'),
-    score: () => applicationStore.userScore,
+    score: () => mainStore.userScore,
   },
   {
     name: window.text('game.player_opponent'),
-    score: () => applicationStore.opponentScore,
+    score: () => mainStore.opponentScore,
   },
 ];
 </script>

@@ -249,13 +249,13 @@ class State {
   }
 }
 
-export default class ApplicationStore {
+export default class MainStore {
   private static app: Application;
 
   static readonly INSTANCE = defineStore('main', () => {
-    const store = new ApplicationStore(ApplicationStore.app);
+    const store = new MainStore(MainStore.app);
     return {
-      ...ApplicationStore.app.config,
+      ...MainStore.app.config,
       ...(store.getters as { [K in keyof Getters]: Getters[K] }),
       ...(store.actions as { [K in keyof Actions]: Actions[K] }),
     };
@@ -275,6 +275,6 @@ export default class ApplicationStore {
   }
 
   static async initiate(): Promise<void> {
-    ApplicationStore.app = markRaw(await bootstrapApplication());
+    MainStore.app = markRaw(await bootstrapApplication());
   }
 }

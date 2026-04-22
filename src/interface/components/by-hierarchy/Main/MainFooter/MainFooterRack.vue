@@ -4,16 +4,16 @@ import { computed } from 'vue';
 import { GameTile } from '@/application/types/index.ts';
 import AppTile from '@/interface/components/shared/AppTile/AppTile.vue';
 import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 import InventoryStore from '@/interface/stores/InventoryStore.ts';
 const events = UseEventHandlers.create();
-const applicationStore = ApplicationStore.INSTANCE();
+const mainStore = MainStore.INSTANCE();
 const inventoryStore = InventoryStore.INSTANCE();
-const { allActionsAreDisabled, tilesRemaining } = storeToRefs(applicationStore);
+const { allActionsAreDisabled, tilesRemaining } = storeToRefs(mainStore);
 const { tiles } = storeToRefs(inventoryStore);
 const paddedTiles = computed<Array<GameTile | null>>(() => {
   const result: Array<GameTile | null> = [...tiles.value];
-  while (result.length < applicationStore.tilesPerPlayer) result.push(null);
+  while (result.length < mainStore.tilesPerPlayer) result.push(null);
   return result;
 });
 </script>
@@ -28,7 +28,7 @@ const paddedTiles = computed<Array<GameTile | null>>(() => {
     >
       <AppTile
         v-if="tile !== null && inventoryStore.isTileVisible(tile)"
-        :letter="applicationStore.getTileLetter(tile)"
+        :letter="mainStore.getTileLetter(tile)"
         :is-inverted="inventoryStore.isTileSelected(tile)"
         @click.stop="events.handleClickRackTile(tile)"
       />

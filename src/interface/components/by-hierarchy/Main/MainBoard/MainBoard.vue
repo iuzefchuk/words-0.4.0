@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import MainBoardCell from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoardCell.vue';
 import MainBoardOutline from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoardOutline.vue';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
-const applicationStore = ApplicationStore.INSTANCE();
+import MainStore from '@/interface/stores/MainStore.ts';
+const mainStore = MainStore.INSTANCE();
 </script>
 
 <template>
@@ -14,7 +14,7 @@ const applicationStore = ApplicationStore.INSTANCE();
       grid: true,
     }"
   >
-    <MainBoardCell v-for="cell in applicationStore.boardCells" :key="cell" :cell="cell" />
+    <MainBoardCell v-for="cell in mainStore.boardCells" :key="cell" :cell="cell" />
     <MainBoardOutline />
   </ul>
 </template>

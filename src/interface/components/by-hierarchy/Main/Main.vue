@@ -7,11 +7,11 @@ import MainEndscreen from '@/interface/components/by-hierarchy/Main/MainEndscree
 import MainFooter from '@/interface/components/by-hierarchy/Main/MainFooter/MainFooter.vue';
 import MainHeader from '@/interface/components/by-hierarchy/Main/MainHeader.vue';
 import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 import InventoryStore from '@/interface/stores/InventoryStore.ts';
-await ApplicationStore.initiate();
-const applicationStore = ApplicationStore.INSTANCE();
-const { matchIsFinished } = storeToRefs(applicationStore);
+import MainStore from '@/interface/stores/MainStore.ts';
+await MainStore.initiate();
+const mainStore = MainStore.INSTANCE();
+const { matchIsFinished } = storeToRefs(mainStore);
 const inventoryStore = InventoryStore.INSTANCE();
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const isMounted = ref(false);

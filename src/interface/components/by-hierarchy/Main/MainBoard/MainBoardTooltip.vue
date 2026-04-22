@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 const props = defineProps<{ isFlipped?: boolean }>();
-const applicationStore = ApplicationStore.INSTANCE();
-const { currentTurnScore } = storeToRefs(applicationStore);
+const mainStore = MainStore.INSTANCE();
+const { currentTurnScore } = storeToRefs(mainStore);
 const SHIMMER_THRESHOLD_SCORE = 29;
 </script>
 

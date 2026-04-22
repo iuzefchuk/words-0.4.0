@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { GameEvent, GameEventType, GamePlayer } from '@/application/types/index.ts';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 
 export default class UseNotifications {
   private static readonly MAX_DISPLAYED_MESSAGES = 3;
@@ -13,11 +13,11 @@ export default class UseNotifications {
   });
 
   private get allDisplayedEvents(): ReadonlyArray<GameEvent> {
-    return this.applicationStore.eventsLog.filter(event => this.isEventDisplayed(event));
+    return this.mainStore.eventsLog.filter(event => this.isEventDisplayed(event));
   }
 
-  private get applicationStore(): ReturnType<typeof ApplicationStore.INSTANCE> {
-    return ApplicationStore.INSTANCE();
+  private get mainStore(): ReturnType<typeof MainStore.INSTANCE> {
+    return MainStore.INSTANCE();
   }
 
   private get displayedEvents(): ReadonlyArray<GameEvent> {

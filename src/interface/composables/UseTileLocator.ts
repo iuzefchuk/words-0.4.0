@@ -1,15 +1,15 @@
 import { GameCell, GameTile } from '@/application/types/index.ts';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 
 type Location = { col: number; colSpan: number; row: number; rowSpan: number };
 
 export default class UseTileLocator {
-  private get applicationStore(): ReturnType<typeof ApplicationStore.INSTANCE> {
-    return ApplicationStore.INSTANCE();
+  private get mainStore(): ReturnType<typeof MainStore.INSTANCE> {
+    return MainStore.INSTANCE();
   }
 
   areLocationsForSelectedTiles(locations: ReadonlyArray<Location>, idx: number): boolean {
-    if (this.applicationStore.currentTurnScore === undefined) return false;
+    if (this.mainStore.currentTurnScore === undefined) return false;
     let minRow = Infinity;
     let rightmostIdx = -1;
     let rightmostEdge = -Infinity;
@@ -46,7 +46,7 @@ export default class UseTileLocator {
   isLocationOnRightmostColumn(locations: ReadonlyArray<Location>, idx: number): boolean {
     const group = locations[idx];
     if (group === undefined) return false;
-    return group.col + group.colSpan >= this.applicationStore.boardCellsPerAxis;
+    return group.col + group.colSpan >= this.mainStore.boardCellsPerAxis;
   }
 
   private calculateLocation(start: GameCell, cells: ReadonlySet<GameCell>, visited: Set<GameCell>): Location {
@@ -59,13 +59,13 @@ export default class UseTileLocator {
     while (stack.length > 0) {
       const cell = stack.pop();
       if (cell === undefined) throw new ReferenceError('expected cell from traversal stack, got undefined');
-      const row = this.applicationStore.getCellRowIndex(cell);
-      const col = this.applicationStore.getCellColumnIndex(cell);
+      const row = this.mainStore.getCellRowIndex(cell);
+      const col = this.mainStore.getCellColumnIndex(cell);
       if (row < minRow) minRow = row;
       if (row > maxRow) maxRow = row;
       if (col < minCol) minCol = col;
       if (col > maxCol) maxCol = col;
-      for (const adjacent of this.applicationStore.getAdjacentCells(cell)) {
+      for (const adjacent of this.mainStore.getAdjacentCells(cell)) {
         if (!cells.has(adjacent) || visited.has(adjacent)) continue;
         visited.add(adjacent);
         stack.push(adjacent);
@@ -77,7 +77,7 @@ export default class UseTileLocator {
   private findCellsFor(tiles: ReadonlyArray<GameTile>): Set<GameCell> {
     const cells = new Set<GameCell>();
     for (const tile of tiles) {
-      const cell = this.applicationStore.findCellWithTile(tile);
+      const cell = this.mainStore.findCellWithTile(tile);
       if (cell !== undefined) cells.add(cell);
     }
     return cells;

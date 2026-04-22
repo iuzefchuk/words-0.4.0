@@ -3,10 +3,10 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
 import { getMatchResultText } from '@/interface/mappings.ts';
-import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
-const applicationStore = ApplicationStore.INSTANCE();
+import MainStore from '@/interface/stores/MainStore.ts';
+const mainStore = MainStore.INSTANCE();
 const events = UseEventHandlers.create();
-const { matchResult, opponentScore, userScore } = storeToRefs(applicationStore);
+const { matchResult, opponentScore, userScore } = storeToRefs(mainStore);
 const resultText = computed(() => getMatchResultText(matchResult.value, userScore.value - opponentScore.value));
 </script>
 
