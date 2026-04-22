@@ -1,5 +1,5 @@
 import { ValidationError, ValidationStatus } from '@/domain/models/turns/enums.ts';
-import { ComputedValue, InvalidResult, ValidationResult, ValidResult } from '@/domain/models/turns/types.ts';
+import { ComputedValue, InvalidResult, ValidationResult } from '@/domain/models/turns/types.ts';
 import ScoringService from '@/domain/services/scoring/ScoringService.ts';
 import CellsValidationService from '@/domain/services/validation/cells/CellsValidationService.ts';
 import PlacementsValidationService from '@/domain/services/validation/placements/PlacementsValidationService.ts';
@@ -44,8 +44,7 @@ class Pipeline<State extends PipelineInput> {
   end(): PipelineOutput {
     if (this.throughput.status === ValidationStatus.Invalid) return this.throughput;
     const { cells, placements, score, words } = this.throughput.state as unknown as PipelineState<ScoreOutput>;
-    if (score === undefined) throw new Error('Can`t end pipeline until it`s completed');
-    return { cells, placements, score, status: ValidationStatus.Valid, words } as ValidResult;
+    return { cells, placements, score, status: ValidationStatus.Valid, words };
   }
 }
 
@@ -72,7 +71,7 @@ export default class TurnValidationService {
     return Pipeline.pass(state, { score });
   }
 
-  private static isError<T>(result: T | ValidationError): result is ValidationError {
+  private static isError(result: unknown): result is ValidationError {
     return typeof result === 'string';
   }
 
@@ -83,7 +82,7 @@ export default class TurnValidationService {
       turns.historyHasPriorTurns,
       tiles => board.resolvePlacement(tiles),
       cell => board.isCellCenter(cell),
-      cell => board.calculateAdjacentCells(cell),
+      cell => board.getAdjacentCells(cell),
       cell => board.isCellOccupied(cell),
     );
     if (this.isError(result)) return Pipeline.fail(result);

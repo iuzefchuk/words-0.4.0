@@ -10,7 +10,9 @@ const emit = defineEmits<{
 }>();
 const selectedOption = computed({
   get: () => props.modelValue,
-  set: value => emit('change', value),
+  set: value => {
+    emit('change', value);
+  },
 });
 </script>
 

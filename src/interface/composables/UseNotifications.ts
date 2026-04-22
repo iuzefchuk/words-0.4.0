@@ -16,7 +16,7 @@ export default class UseNotifications {
     return this.applicationStore.eventsLog.filter(event => this.isEventDisplayed(event));
   }
 
-  private get applicationStore() {
+  private get applicationStore(): ReturnType<typeof ApplicationStore.INSTANCE> {
     return ApplicationStore.INSTANCE();
   }
 
@@ -26,18 +26,31 @@ export default class UseNotifications {
     return events.slice(start);
   }
 
+  private static createPassMessage(player: GamePlayer): string {
+    return player === GamePlayer.User ? window.text('game.message_pass_user') : window.text('game.message_pass_opponent');
+  }
+
+  private static createSaveMessage(player: GamePlayer, score: number, words: ReadonlyArray<string>): string {
+    const joinedWords = words.join(', ');
+    return player === GamePlayer.User
+      ? window.text('game.message_save_user', { score, words: joinedWords })
+      : window.text('game.message_save_opponent', { score, words: joinedWords });
+  }
+
   private createEventHtml(event: GameEvent): string {
     switch (event.type) {
-      case GameEventType.TurnPassed:
-        return event.player === GamePlayer.User ? window.t('game.message_pass_user') : window.t('game.message_pass_opponent');
-      case GameEventType.TurnSaved: {
-        const words = event.words.join(', ');
-        return event.player === GamePlayer.User
-          ? window.t('game.message_save_user', { score: event.score, words })
-          : window.t('game.message_save_opponent', { score: event.score, words });
-      }
-      default:
+      case GameEventType.BoardTypeChanged:
+      case GameEventType.DifficultyChanged:
+      case GameEventType.MatchFinished:
+      case GameEventType.MatchStarted:
+      case GameEventType.TilePlaced:
+      case GameEventType.TileUndoPlaced:
+      case GameEventType.TurnValidated:
         return '';
+      case GameEventType.TurnPassed:
+        return UseNotifications.createPassMessage(event.player);
+      case GameEventType.TurnSaved:
+        return UseNotifications.createSaveMessage(event.player, event.score, event.words);
     }
   }
 

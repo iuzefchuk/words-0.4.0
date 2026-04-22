@@ -5,9 +5,9 @@ import { Cell } from '@/domain/models/board/types.ts';
 export default class CrossCheckTable {
   static readonly ALL_LETTERS_MASK = (1 << 26) - 1;
 
-  static readonly BYTE_LENGTH = LayoutService.TOTAL_CELLS * 2 * Uint32Array.BYTES_PER_ELEMENT;
+  static readonly BYTE_LENGTH = LayoutService.CELLS_PER_LAYOUT * 2 * Uint32Array.BYTES_PER_ELEMENT;
 
-  private static readonly Y_OFFSET = LayoutService.TOTAL_CELLS;
+  private static readonly Y_OFFSET = LayoutService.CELLS_PER_LAYOUT;
 
   get buffer(): ArrayBuffer | SharedArrayBuffer {
     return this.data.buffer;
@@ -28,7 +28,9 @@ export default class CrossCheckTable {
   }
 
   getMask(axis: Axis, cell: Cell): number {
-    return this.data[(axis === Axis.X ? 0 : CrossCheckTable.Y_OFFSET) + cell]!;
+    const mask = this.data[(axis === Axis.X ? 0 : CrossCheckTable.Y_OFFSET) + cell];
+    if (mask === undefined) throw new ReferenceError(`expected mask for axis ${axis} cell ${String(cell)}, got undefined`);
+    return mask;
   }
 
   setMask(axis: Axis, cell: Cell, mask: number): void {

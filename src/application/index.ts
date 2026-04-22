@@ -29,7 +29,7 @@ export default class Application {
   }
 
   static async create(settings: GameSettings): Promise<Application> {
-    const { repositories, services, tasks } = await Infrastructure.createAppDependencies();
+    const { repositories, services, tasks } = Infrastructure.createAppDependencies();
     const game = await this.createGame(services, repositories, settings);
     const queriesService = new QueriesService(game);
     const commandsService = new CommandsService(
@@ -56,7 +56,7 @@ export default class Application {
     settings: GameSettings,
   ): Promise<Game> {
     const events = await repositories.events.load();
-    return events && events.length > 0
+    return events !== null && events.length > 0
       ? Game.createFromEvents(events, services.identity, services.seeding)
       : Game.create(services.identity, services.seeding, settings);
   }

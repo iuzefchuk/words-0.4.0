@@ -9,7 +9,7 @@ import VersioningService from '@/infrastructure/services/VersioningService.ts';
 import WebWorkerService from '@/infrastructure/services/WebWorkerService.ts';
 
 export default class Infrastructure {
-  static async createAppDependencies(): Promise<AppDependencies> {
+  static createAppDependencies(): AppDependencies {
     const version = new VersioningService().getAppVersion();
     const identity = new CryptoIdentityService();
     const turnGenerationTaskId = identity.createUniqueId();

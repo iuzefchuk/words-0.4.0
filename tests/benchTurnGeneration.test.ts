@@ -121,7 +121,7 @@ describe.skipIf(!process.env.BENCH)('TurnGeneration bench', () => {
     const WARMUP = 1;
     const REPS = 5;
     const run = (): { best: number; count: number; ms: number } => {
-      const ctx = TurnGenerationService.createContext(board, dictionary, inventory, turns);
+      const ctx = TurnGenerationService.createContext(board, dictionary, inventory!, turns);
       let count = 0;
       let best = -1;
       const t0 = performance.now();

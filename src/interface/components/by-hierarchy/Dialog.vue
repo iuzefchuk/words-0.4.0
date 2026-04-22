@@ -12,14 +12,14 @@ function respond(status: DialogStatus): void {
   isRendered.value = false;
   dialogStore.resolve({ status });
 }
-function toggleExitAnimation() {
+function toggleExitAnimation(): void {
   exitAnimation.value = true;
   setTimeout(() => {
     exitAnimation.value = false;
   }, transitionDurationMs);
 }
 watch(html, newValue => {
-  if (newValue) isRendered.value = true;
+  if (newValue !== '') isRendered.value = true;
 });
 </script>
 

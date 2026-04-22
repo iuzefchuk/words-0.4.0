@@ -12,15 +12,21 @@ export default class InventoryStore {
     return {
       anyTileIsPlaced: computed(() => store.anyTileIsPlaced),
       deselectTile: store.deselectTile.bind(store),
-      initialize: () => store.initialize(applicationStore.userTiles),
+      initialize: () => {
+        store.initialize(applicationStore.userTiles);
+      },
       isTileInRack: store.isTileInRack.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       isTileVisible: store.isTileVisible.bind(store),
       selectedTile: computed(() => store.selectedTile),
       selectedTileIsPlaced: computed(() => store.selectedTileIsPlaced),
       selectTile: store.selectTile.bind(store),
-      shuffle: () => store.shuffle(),
-      switchTiles: (firstTile: GameTile, secondTile: GameTile) => store.switchTiles(firstTile, secondTile),
+      shuffle: () => {
+        store.shuffle();
+      },
+      switchTiles: (firstTile: GameTile, secondTile: GameTile) => {
+        store.switchTiles(firstTile, secondTile);
+      },
       tiles: store.tilesRef,
     };
   });
@@ -29,7 +35,7 @@ export default class InventoryStore {
     return this.tiles.some(tile => this.applicationStore.isTilePlaced(tile));
   }
 
-  private get applicationStore() {
+  private get applicationStore(): ReturnType<typeof ApplicationStore.INSTANCE> {
     return ApplicationStore.INSTANCE();
   }
 
@@ -50,8 +56,8 @@ export default class InventoryStore {
   }
 
   private constructor(
-    private tilesRef = shallowRef<Array<GameTile>>([]),
-    private selectedTileRef = ref<GameTile | null>(null),
+    private readonly tilesRef = shallowRef<Array<GameTile>>([]),
+    private readonly selectedTileRef = ref<GameTile | null>(null),
   ) {}
 
   private deselectTile(): void {
@@ -93,10 +99,12 @@ export default class InventoryStore {
   private switchTiles(firstTile: GameTile, secondTile: GameTile): void {
     const firstIdx = this.getTileIdx(firstTile);
     const secondIdx = this.getTileIdx(secondTile);
-    if (firstIdx < 0 || secondIdx < 0) throw new Error('Can`t find tile indexes');
+    if (firstIdx < 0 || secondIdx < 0) throw new Error(`cannot switch tiles: ${firstTile} or ${secondTile} is not in rack`);
     const first = this.tiles[firstIdx];
     const second = this.tiles[secondIdx];
-    if (!first || !second) throw new Error('Invalid tile index');
+    if (first === undefined || second === undefined) {
+      throw new Error(`expected tiles at rack indices ${String(firstIdx)} and ${String(secondIdx)}, got undefined`);
+    }
     this.tiles[firstIdx] = second;
     this.tiles[secondIdx] = first;
     triggerRef(this.tilesRef);

@@ -33,16 +33,16 @@ export default class QueriesService {
     return this.inventoryView.areTilesEqual(first, second);
   }
 
-  calculateAdjacentCells(cell: GameCell): ReadonlyArray<GameCell> {
-    return this.boardView.calculateAdjacentCells(cell);
-  }
-
   findCellWithTile(tile: GameTile): GameCell | undefined {
     return this.boardView.findCellByTile(tile);
   }
 
   findTileOnCell(cell: GameCell): GameTile | undefined {
     return this.boardView.findTileByCell(cell);
+  }
+
+  getAdjacentCells(cell: GameCell): ReadonlyArray<GameCell> {
+    return this.boardView.getAdjacentCells(cell);
   }
 
   getBoardType(): GameBoardType {

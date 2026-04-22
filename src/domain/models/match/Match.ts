@@ -30,8 +30,8 @@ export default class Match {
   }
 
   private constructor(
-    private results: Map<Player, MatchResult>,
-    private scores: Map<Player, number>,
+    private readonly results: Map<Player, MatchResult>,
+    private readonly scores: Map<Player, number>,
   ) {}
 
   static create(players: ReadonlyArray<Player>): Match {
@@ -42,18 +42,18 @@ export default class Match {
 
   getResultFor(player: Player): MatchResult {
     const result = this.results.get(player);
-    if (result === undefined) throw new ReferenceError('Result for player must be defined');
+    if (result === undefined) throw new ReferenceError(`expected result for player ${player}, got undefined`);
     return result;
   }
 
   getScoreFor(player: Player): number {
     const score = this.scores.get(player);
-    if (score === undefined) throw new ReferenceError('Score for player must be defined');
+    if (score === undefined) throw new ReferenceError(`expected score for player ${player}, got undefined`);
     return score;
   }
 
   incrementScore(player: Player, incrementation: number): void {
-    if (incrementation < 0) throw new Error('Score incrementation must be positive');
+    if (incrementation < 0) throw new Error(`expected non-negative increment, got ${String(incrementation)}`);
     const currentScore = this.getScoreFor(player);
     const newScore = currentScore + incrementation;
     this.scores.set(player, newScore);
@@ -72,7 +72,7 @@ export default class Match {
   }
 
   private ensureMutability(): void {
-    if (this.isFinished) throw new Error('Match is finished');
+    if (this.isFinished) throw new Error('cannot mutate finished match');
   }
 
   private recordResult(player: Player, result: MatchResult): void {

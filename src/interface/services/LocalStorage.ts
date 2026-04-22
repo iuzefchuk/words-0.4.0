@@ -5,7 +5,7 @@ export default class LocalStorage {
     localStorage.removeItem(key);
   }
 
-  static load(key: string, expireMs: number = 0): null | unknown {
+  static load(key: string, expireMs = 0): unknown {
     try {
       const raw = localStorage.getItem(key);
       if (raw === null) return null;

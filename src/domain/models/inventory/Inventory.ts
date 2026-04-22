@@ -21,26 +21,28 @@ class TilePool {
   }
 
   addTile(tile: Tile): void {
-    if (this.tiles.includes(tile)) throw new Error(`Tile ${tile} is already present`);
+    if (this.tiles.includes(tile)) throw new Error(`tile ${tile} is already in pool`);
     this.validateCapacity(this.tiles.length + 1);
     this.tiles.push(tile);
   }
 
   popTile(): Tile {
     const tile = this.tiles.pop();
-    if (tile === undefined) throw new Error('No tiles left');
+    if (tile === undefined) throw new Error('cannot pop tile: pool is empty');
     return tile;
   }
 
   removeTile(tile: Tile): Tile {
     const index = this.tiles.indexOf(tile);
     const [removedTile] = this.tiles.splice(index, 1);
-    if (removedTile === undefined) throw new ReferenceError(`Tile ${tile} absent`);
+    if (removedTile === undefined) throw new ReferenceError(`tile ${tile} is not in pool`);
     return removedTile;
   }
 
   private validateCapacity(newTileCount: number): void {
-    if (this.capacity !== undefined && newTileCount > this.capacity) throw new Error('Tiles limit exceeded');
+    if (this.capacity !== undefined && newTileCount > this.capacity) {
+      throw new Error(`cannot add tile: pool capacity ${String(this.capacity)} exceeded`);
+    }
   }
 }
 
@@ -78,8 +80,8 @@ export default class Inventory {
 
   private static readonly LETTER_BY_TILE: ReadonlyMap<Tile, Letter> = new Map(
     Object.values(Letter).flatMap(letter =>
-      Array.from({ length: Inventory.LETTER_CONFIG[letter].count }, (_, i) => {
-        const tile = `${letter}-${i}` as Tile;
+      Array.from({ length: Inventory.LETTER_CONFIG[letter].count }, (_, idx) => {
+        const tile = `${letter}-${String(idx)}` as Tile;
         return [tile, letter] as const;
       }),
     ),
@@ -94,9 +96,9 @@ export default class Inventory {
   }
 
   private constructor(
-    private drawPool: TilePool,
-    private playerPools: ReadonlyMap<Player, TilePool>,
-    private discardPool: TilePool,
+    private readonly drawPool: TilePool,
+    private readonly playerPools: ReadonlyMap<Player, TilePool>,
+    private readonly discardPool: TilePool,
   ) {}
 
   static clone(source: Inventory): Inventory {
@@ -139,7 +141,7 @@ export default class Inventory {
     for (const tile of tiles) {
       const letter = this.getTileLetter(tile);
       let letterArray = collection.get(letter);
-      if (!letterArray) collection.set(letter, (letterArray = []));
+      if (letterArray === undefined) collection.set(letter, (letterArray = []));
       letterArray.push(tile);
     }
     return collection;
@@ -147,7 +149,7 @@ export default class Inventory {
 
   getTileLetter(tile: Tile): Letter {
     const letter = Inventory.LETTER_BY_TILE.get(tile);
-    if (letter === undefined) throw new ReferenceError('Letter must be defined');
+    if (letter === undefined) throw new ReferenceError(`expected letter for tile ${tile}, got undefined`);
     return letter;
   }
 
@@ -171,16 +173,18 @@ export default class Inventory {
 
   private getTilePoolFor(player: Player): TilePool {
     const pool = this.playerPools.get(player);
-    if (pool === undefined) throw new ReferenceError('Tile pool must be defined');
+    if (pool === undefined) throw new ReferenceError(`expected tile pool for player ${player}, got undefined`);
     return pool;
   }
 
   private initializePlayerPools(): void {
-    this.playerPools.forEach(pool => this.replenishPlayerPool(pool));
+    this.playerPools.forEach(pool => {
+      this.replenishPlayerPool(pool);
+    });
   }
 
   private replenishPlayerPool(pool: TilePool): void {
     const drawCount = Math.min(Inventory.PLAYER_POOL_CAPACITY - pool.tileCount, this.unusedTilesCount);
-    for (let i = 0; i < drawCount; i++) pool.addTile(this.drawPool.popTile());
+    for (let idx = 0; idx < drawCount; idx++) pool.addTile(this.drawPool.popTile());
   }
 }

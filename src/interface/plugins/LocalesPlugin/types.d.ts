@@ -3,9 +3,9 @@ import { Ref } from 'vue';
 import { LocaleNumberGetter, LocaleTextGetter, LocaleType } from './LocalesPlugin.ts';
 
 export interface LocaleProps {
+  number: LocaleNumberGetter;
   localeType: Ref<LocaleType>;
-  t: LocaleTextGetter;
-  n: LocaleNumberGetter;
+  text: LocaleTextGetter;
 }
 
 declare global {

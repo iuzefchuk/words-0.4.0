@@ -8,7 +8,7 @@ export default class CellsValidationService {
     historyHasPriorTurns: boolean,
     resolvePlacement: (tiles: ReadonlyArray<Tile>) => Placement,
     isCellCenter: (cell: Cell) => boolean,
-    calculateAdjacentCells: (cell: Cell) => ReadonlyArray<Cell>,
+    getAdjacentCells: (cell: Cell) => ReadonlyArray<Cell>,
     isCellOccupied: (cell: Cell) => boolean,
   ): ReadonlyArray<Cell> | ValidationError {
     if (tiles.length === 0) return ValidationError.InvalidTilePlacement;
@@ -18,7 +18,7 @@ export default class CellsValidationService {
     const someCellsAreAnchor = cells.some(cell => {
       if (isCellCenter(cell)) return true;
       if (!historyHasPriorTurns) return false;
-      return calculateAdjacentCells(cell).some(adj => isCellOccupied(adj) && !placementCells.has(adj));
+      return getAdjacentCells(cell).some(adj => isCellOccupied(adj) && !placementCells.has(adj));
     });
     return someCellsAreAnchor ? cells : ValidationError.NoCellsUsableAsFirst;
   }

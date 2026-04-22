@@ -1,7 +1,10 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 
-const URL = `http://localhost:${process.env.VITE_PORT ?? 5173}`;
+const dirName = path.dirname(fileURLToPath(import.meta.url));
+const URL = `http://localhost:${String(process.env.VITE_PORT ?? 5173)}`;
+const isCi = Boolean(process.env.CI);
 
 export default defineConfig({
   expect: {
@@ -10,16 +13,16 @@ export default defineConfig({
       maxDiffPixelRatio: 0.01,
     },
   },
-  forbidOnly: Boolean(process.env.CI),
-  outputDir: path.resolve(__dirname, '.playwright'),
+  forbidOnly: isCi,
+  outputDir: path.resolve(dirName, '.playwright'),
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
     { name: 'firefox', use: { browserName: 'firefox' } },
     { name: 'webkit', use: { browserName: 'webkit' } },
   ],
-  reporter: process.env.CI ? [['dot'], ['html', { open: 'never' }]] : 'list',
-  retries: process.env.CI ? 2 : 0,
-  testDir: path.resolve(__dirname, './tests/e2e'),
+  reporter: isCi ? [['dot'], ['html', { open: 'never' }]] : 'list',
+  retries: isCi ? 2 : 0,
+  testDir: path.resolve(dirName, './tests/e2e'),
   timeout: 30_000,
   use: {
     baseURL: URL,
@@ -27,9 +30,9 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm run serve',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !isCi,
     timeout: 120_000,
     url: URL,
   },
-  ...(process.env.CI && { workers: 1 }),
+  ...(isCi && { workers: 1 }),
 });

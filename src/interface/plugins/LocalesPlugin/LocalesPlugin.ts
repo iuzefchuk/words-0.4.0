@@ -26,8 +26,8 @@ export default class LocalesPlugin {
   };
 
   private constructor(
-    private type: Ref<LocaleType>,
-    private content: Ref<LocaleFileContent>,
+    private readonly type: Ref<LocaleType>,
+    private readonly content: Ref<LocaleFileContent>,
   ) {}
 
   static create(): LocalesPlugin {
@@ -42,7 +42,7 @@ export default class LocalesPlugin {
     this.setGlobals(app);
   }
 
-  private async fetchContent() {
+  private async fetchContent(): Promise<void> {
     await Promise.all(
       Object.values(LocaleFile).map(async file => {
         this.content.value[file] = await import(`./${this.type.value}/${file}.json`);
@@ -50,30 +50,34 @@ export default class LocalesPlugin {
     );
   }
 
-  private getLocalizedNumber: LocaleNumberGetter = (number: number) => {
-    return new Intl.NumberFormat(LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value] || NumberSeparatorType.Comma, {
+  private readonly getLocalizedNumber: LocaleNumberGetter = (number: number) => {
+    return new Intl.NumberFormat(LocalesPlugin.NUMBER_SEPARATOR_TYPE_FOR_LOCALE[this.type.value], {
       maximumFractionDigits: 2,
-    }).format(Number(number));
+    }).format(number);
   };
 
-  private getLocalizedText: LocaleTextGetter = (string: string, props?: object) => {
+  private readonly getLocalizedText: LocaleTextGetter = (string: string, props?: object) => {
     const [file, key] = string.split('.');
-    if (file === undefined || key === undefined) throw new ReferenceError('File and key must be defined');
-    if (!this.content.value) throw new Error('Locales didn`t fetch content');
-    let localizedText = this.content.value[file as LocaleFile][key];
-    if (!localizedText) throw new ReferenceError(`Locales file ${file} or key ${key} are incorrect`);
-    if (props) {
-      for (const [key, value] of Object.entries(props)) {
-        localizedText = localizedText.replaceAll(`{${key}}`, String(value));
+    if (file === undefined || key === undefined) {
+      throw new ReferenceError(`expected locale key in "file.key" format, got "${string}"`);
+    }
+    const localizedText = this.content.value[file as LocaleFile][key];
+    if (localizedText === undefined || localizedText === '') {
+      throw new ReferenceError(`locale not found for "${file}.${key}"`);
+    }
+    let result = localizedText;
+    if (props !== undefined) {
+      for (const [propKey, value] of Object.entries(props)) {
+        result = result.replaceAll(`{${propKey}}`, String(value));
       }
     }
-    return localizedText;
+    return result;
   };
 
   private setGlobals(app: App): void {
     const globals = app.config.globalProperties;
     window.localeType = globals.localeType = this.type;
-    window.t = globals.t = this.getLocalizedText.bind(this);
-    window.n = globals.n = this.getLocalizedNumber.bind(this);
+    window.text = globals.text = this.getLocalizedText.bind(this);
+    window.number = globals.number = this.getLocalizedNumber.bind(this);
   }
 }

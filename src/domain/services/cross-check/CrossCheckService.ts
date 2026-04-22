@@ -25,11 +25,11 @@ export default class CrossCheckService {
 
   private collectAdjacentTileLetters(axisCells: ReadonlyArray<Cell>, startPosition: number, direction: -1 | 1): string {
     let result = '';
-    for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
-      const cell = axisCells[i];
-      if (cell === undefined) throw new ReferenceError('Cell must be defined');
+    for (let idx = startPosition + direction; idx >= 0 && idx < axisCells.length; idx += direction) {
+      const cell = axisCells[idx];
+      if (cell === undefined) throw new ReferenceError(`expected cell at index ${String(idx)}, got undefined`);
       const tile = this.board.findTileByCell(cell);
-      if (!tile) break;
+      if (tile === undefined) break;
       const letter = this.inventory.getTileLetter(tile);
       result = direction === -1 ? letter + result : result + letter;
     }
@@ -37,22 +37,22 @@ export default class CrossCheckService {
   }
 
   private computeFor(coords: AnchorCoordinates): number {
-    const axisCells = this.board.calculateAxisCells(coords);
+    const axisCells = this.board.getAxisCells(coords);
     const position =
       coords.axis === Axis.X ? this.board.getCellPositionInColumn(coords.cell) : this.board.getCellPositionInRow(coords.cell);
     const prefix = this.collectAdjacentTileLetters(axisCells, position, -1);
     const suffix = this.collectAdjacentTileLetters(axisCells, position, 1);
-    if (!prefix && !suffix) return CrossCheckTable.ALL_LETTERS_MASK;
-    const prefixNode = prefix ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
+    if (prefix === '' && suffix === '') return CrossCheckTable.ALL_LETTERS_MASK;
+    const prefixNode = prefix !== '' ? this.dictionary.getNode(prefix) : this.dictionary.rootNode;
     if (prefixNode === null) return 0;
     let mask = 0;
     this.dictionary.forEachNodeChild(prefixNode, (_letter, nodeWithPossibleNextLetter, letterIndex) => {
-      if (!suffix) {
+      if (suffix === '') {
         mask |= 1 << letterIndex;
         return;
       }
       const suffixNode = this.dictionary.getNode(suffix, nodeWithPossibleNextLetter);
-      if (suffixNode && this.dictionary.isNodeFinal(suffixNode)) mask |= 1 << letterIndex;
+      if (suffixNode !== null && this.dictionary.isNodeFinal(suffixNode)) mask |= 1 << letterIndex;
     });
     return mask;
   }
