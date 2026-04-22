@@ -1,13 +1,6 @@
+import { GameMatchDifficulty, GameMatchType, GamePlayer } from '@/domain/enums.ts';
 import { EventType } from '@/domain/events/enums.ts';
-import {
-  GameCell,
-  GameMatchDifficulty,
-  GameMatchSettings,
-  GameMatchType,
-  GamePlayer,
-  GameTile,
-  GameValidationResult,
-} from '@/domain/types/index.ts';
+import { GameCell, GameMatchSettings, GameTile, GameValidationResult } from '@/domain/types/index.ts';
 
 export type Event =
   | { cell: GameCell; tile: GameTile; type: EventType.TilePlaced }

@@ -5,15 +5,15 @@ import { IdentityService, SeedingService } from '@/domain/types/ports.ts';
 
 export {
   GameBonus,
-  GameDictionary,
   GameEventType,
   GameLetter,
   GameMatchDifficulty,
   GameMatchResult,
   GameMatchType,
   GamePlayer,
-  GameTurnGenerator,
-} from '@/domain/types/index.ts';
+} from '@/domain/enums.ts';
+
+export { GameDictionary, GameTurnGenerator } from '@/domain/types/index.ts';
 
 export type {
   GameBoardView,

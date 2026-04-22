@@ -129,11 +129,11 @@ class Getters {
 
   readonly currentTurnScore = computed(() => this.readBoard(() => this.queriesService.getCurrentTurnScore()));
 
-  readonly matchDifficulty = computed(() => this.readState(() => this.queriesService.getMatchDifficulty()));
-
   readonly eventsLog = computed(() => this.readState(() => [...this.queriesService.getEventsLog()]));
 
   readonly hasPriorTurns = computed(() => this.readState(() => this.queriesService.hasPriorTurns()));
+
+  readonly matchDifficulty = computed(() => this.readState(() => this.queriesService.getMatchDifficulty()));
 
   readonly matchIsFinished = computed(() => this.readState(() => this.queriesService.isMatchFinished()));
 

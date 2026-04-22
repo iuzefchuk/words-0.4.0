@@ -1,3 +1,11 @@
+import {
+  GameBoardType,
+  GameEventType,
+  GameMatchDifficulty,
+  GameMatchType,
+  GamePlayer,
+  GameValidationStatus,
+} from '@/domain/enums.ts';
 import Events from '@/domain/events/Events.ts';
 import PassIsResignSpec from '@/domain/events/specifications/PassIsResignSpec.ts';
 import Board from '@/domain/models/board/Board.ts';
@@ -5,7 +13,6 @@ import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
 import Match from '@/domain/models/match/Match.ts';
 import WinnerDerivationPolicy from '@/domain/models/match/policies/WinnerDerivationPolicy.ts';
-import { ValidationStatus } from '@/domain/models/turns/enums.ts';
 import SettingsMutationSpec from '@/domain/models/turns/specifications/SettingsMutationSpec.ts';
 import Turns from '@/domain/models/turns/Turns.ts';
 import MatchTerminationPolicy from '@/domain/policies/MatchTerminationPolicy.ts';
@@ -13,17 +20,12 @@ import TurnGenerationService from '@/domain/services/generation/turn/TurnGenerat
 import { GeneratorContext, GeneratorResult } from '@/domain/services/generation/turn/types.ts';
 import TurnValidationService from '@/domain/services/validation/turn/TurnValidationService.ts';
 import {
-  GameBoardType,
   GameBoardView,
   GameCell,
   GameEvent,
-  GameEventType,
   GameInventoryView,
-  GameMatchDifficulty,
   GameMatchSettings,
-  GameMatchType,
   GameMatchView,
-  GamePlayer,
   GameTile,
   GameTurnsView,
 } from '@/domain/types/index.ts';
@@ -65,7 +67,7 @@ export default class Game {
   }
 
   get turnGenerationAttempts(): number {
-    return Game.TURN_GENERATION_ATTEMPTS[this.match.difficulty];
+    return Game.TURN_GENERATION_ATTEMPTS[this.match.settings.difficulty];
   }
 
   get turnsView(): Readonly<GameTurnsView> {
@@ -172,7 +174,7 @@ export default class Game {
         this.initialize(
           Game.createInitParams(
             event.seed,
-            { difficulty: this.match.difficulty, type: event.matchType },
+            { difficulty: this.match.settings.difficulty, type: event.matchType },
             this.seedingService,
             this.identityService,
           ),
@@ -215,7 +217,7 @@ export default class Game {
       if (cell === undefined) throw new Error(`tile ${tile} is not on the board`);
       this.applyEvent({ cell, tile, type: GameEventType.TileUndoPlaced });
     }
-    this.applyEvent({ result: { status: ValidationStatus.Unvalidated }, type: GameEventType.TurnValidated });
+    this.applyEvent({ result: { status: GameValidationStatus.Unvalidated }, type: GameEventType.TurnValidated });
   }
 
   createTurnGenerationContext(): GeneratorContext {
@@ -230,7 +232,7 @@ export default class Game {
   }
 
   invalidateTurnForCurrentPlayer(): void {
-    this.applyEvent({ result: { status: ValidationStatus.Unvalidated }, type: GameEventType.TurnValidated });
+    this.applyEvent({ result: { status: GameValidationStatus.Unvalidated }, type: GameEventType.TurnValidated });
   }
 
   passTurnForCurrentPlayer(): void {
@@ -257,7 +259,7 @@ export default class Game {
 
   restart(): void {
     const seed = this.seedingService.createSeed();
-    const settings: GameMatchSettings = { difficulty: this.match.difficulty, type: this.match.type };
+    const settings: GameMatchSettings = { ...this.match.settings };
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     this.events.reset(event);
     this.initialize(Game.createInitParams(seed, settings, this.seedingService, this.identityService));

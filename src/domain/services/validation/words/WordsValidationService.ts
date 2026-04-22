@@ -1,13 +1,12 @@
-import { Placement } from '@/domain/models/board/types.ts';
-import { Tile } from '@/domain/models/inventory/types.ts';
-import { ValidationError } from '@/domain/models/turns/enums.ts';
+import { GameValidationError } from '@/domain/enums.ts';
+import { GamePlacement, GameTile } from '@/domain/types/index.ts';
 
 export default class WordsValidationService {
   static execute(
-    placements: ReadonlyArray<Placement>,
-    getTileLetter: (tile: Tile) => string,
+    placements: ReadonlyArray<GamePlacement>,
+    getTileLetter: (tile: GameTile) => string,
     containsAllWords: (words: ReadonlyArray<string>) => boolean,
-  ): ReadonlyArray<string> | ValidationError {
+  ): GameValidationError | ReadonlyArray<string> {
     const words: Array<string> = [];
     for (let idx = 0; idx < placements.length; idx++) {
       const placement = placements[idx];
@@ -16,6 +15,6 @@ export default class WordsValidationService {
       for (const { tile } of placement) word += getTileLetter(tile);
       words[idx] = word;
     }
-    return containsAllWords(words) ? words : ValidationError.WordNotInDictionary;
+    return containsAllWords(words) ? words : GameValidationError.WordNotInDictionary;
   }
 }

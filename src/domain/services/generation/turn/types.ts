@@ -1,15 +1,19 @@
-import { Letter } from '@/domain/enums.ts';
+import { GameAxis, GameLetter } from '@/domain/enums.ts';
 import Board from '@/domain/models/board/Board.ts';
-import { Axis } from '@/domain/models/board/enums.ts';
-import { AnchorCoordinates, Cell, Link } from '@/domain/models/board/types.ts';
 import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
-import { Node } from '@/domain/models/dictionary/types.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
-import { Tile, TileCollection } from '@/domain/models/inventory/types.ts';
 import Turns from '@/domain/models/turns/Turns.ts';
-import { ValidResult } from '@/domain/models/turns/types.ts';
 import CrossCheckService from '@/domain/services/cross-check/CrossCheckService.ts';
 import { GenerationCommandType, GenerationDirection, GenerationTask } from '@/domain/services/generation/turn/enums.ts';
+import {
+  GameAnchorCoordinates,
+  GameCell,
+  GameLink,
+  GameNode,
+  GameTile,
+  GameTileCollection,
+  GameValidResult,
+} from '@/domain/types/index.ts';
 
 export type ApplyTask = {
   candidate: Candidate;
@@ -21,21 +25,21 @@ export type ApplyTask = {
 
 export type CalculateTask = { traversal: Traversal; type: GenerationTask.CalculateCandidate };
 
-export type Candidate = { cell: Cell; position: number; resolution: Resolution | undefined };
+export type Candidate = { cell: GameCell; position: number; resolution: Resolution | undefined };
 
 export type ContinueTaskCommand = { newTasks: Array<Task>; type: GenerationCommandType.ContinueExecute };
 
-export type DispatcherComputeds = { axisCells: ReadonlyArray<Cell>; oppositeAxis: Axis };
+export type DispatcherComputeds = { axisCells: ReadonlyArray<GameCell>; oppositeAxis: GameAxis };
 
-export type DispatcherState = { placement: Array<Link>; tiles: MutableTileCollection };
+export type DispatcherState = { placement: Array<GameLink>; tiles: MutableTileCollection };
 
 export type EvaluateTask = { traversal: Traversal; type: GenerationTask.EvaluateTraversal };
 
 export type GeneratorArguments = {
   context: GeneratorContext;
-  coords: AnchorCoordinates;
+  coords: GameAnchorCoordinates;
   crossChecker: CrossCheckService;
-  playerTileCollection: TileCollection;
+  playerTileCollection: GameTileCollection;
 };
 
 export type GeneratorContext = { dictionary: Dictionary } & GeneratorContextData;
@@ -44,13 +48,17 @@ export type GeneratorContextData = { readonly board: Board; readonly inventory: 
 
 export type GeneratorPartition = { length: number; offset: number };
 
-export type GeneratorResult = { cells: ReadonlyArray<Cell>; tiles: ReadonlyArray<Tile>; validationResult: ValidResult };
+export type GeneratorResult = {
+  cells: ReadonlyArray<GameCell>;
+  tiles: ReadonlyArray<GameTile>;
+  validationResult: GameValidResult;
+};
 
-export type MutableTileCollection = Map<Letter, Array<Tile>>;
+export type MutableTileCollection = Map<GameLetter, Array<GameTile>>;
 
-export type Resolution = { tile: Tile };
+export type Resolution = { tile: GameTile };
 
-export type ResolutionComputeds = { letterTiles: Array<Tile> };
+export type ResolutionComputeds = { letterTiles: Array<GameTile> };
 
 export type ResolveTask = { candidate: Candidate; traversal: Traversal; type: GenerationTask.ResolveCandidate };
 
@@ -69,6 +77,6 @@ export type Task = ApplyTask | CalculateTask | EvaluateTask | ResolveTask | Reve
 
 export type TaskCommand = ContinueTaskCommand | ReturnTaskCommand | StopTaskCommand;
 
-export type Traversal = { direction: GenerationDirection; node: Node; position: number };
+export type Traversal = { direction: GenerationDirection; node: GameNode; position: number };
 
 export type ValidateTask = { traversal: Traversal; type: GenerationTask.ValidateTraversal };

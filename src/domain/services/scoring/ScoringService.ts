@@ -1,13 +1,12 @@
-import { Cell, Placement } from '@/domain/models/board/types.ts';
-import { Tile } from '@/domain/models/inventory/types.ts';
+import { GameCell, GamePlacement, GameTile } from '@/domain/types/index.ts';
 
 export default class ScoringService {
   static execute(
-    placements: ReadonlyArray<Placement>,
-    newCells: ReadonlySet<Cell>,
-    getTilePoints: (tile: Tile) => number,
-    getMultiplierForLetter: (cell: Cell) => number,
-    getMultiplierForWord: (cell: Cell) => number,
+    placements: ReadonlyArray<GamePlacement>,
+    newCells: ReadonlySet<GameCell>,
+    getTilePoints: (tile: GameTile) => number,
+    getMultiplierForLetter: (cell: GameCell) => number,
+    getMultiplierForWord: (cell: GameCell) => number,
   ): number {
     let totalScore = 0;
     for (const placement of placements) {

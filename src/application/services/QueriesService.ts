@@ -66,7 +66,7 @@ export default class QueriesService {
   }
 
   getMatchDifficulty(): GameMatchDifficulty {
-    return this.game.matchView.difficulty;
+    return this.game.matchView.settings.difficulty;
   }
 
   getMatchResult(): GameMatchResult {
@@ -74,7 +74,7 @@ export default class QueriesService {
   }
 
   getMatchType(): GameMatchType {
-    return this.game.matchView.type;
+    return this.game.matchView.settings.type;
   }
 
   getOpponentScore(): number {

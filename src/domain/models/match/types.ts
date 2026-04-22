@@ -7,10 +7,8 @@ export type MatchSettings = {
 };
 
 export type MatchView = {
-  readonly difficulty: Difficulty;
   getResultFor(player: GamePlayer): Result;
   getScoreFor(player: GamePlayer): number;
   readonly isFinished: boolean;
-  readonly type: Type;
+  readonly settings: MatchSettings;
 };
-// TODO merge with MatchSettings

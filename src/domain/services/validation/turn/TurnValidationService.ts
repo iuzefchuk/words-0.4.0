@@ -1,5 +1,4 @@
-import { ValidationError, ValidationStatus } from '@/domain/models/turns/enums.ts';
-import { ComputedValue, InvalidResult, ValidationResult } from '@/domain/models/turns/types.ts';
+import { GameValidationError, GameValidationStatus } from '@/domain/enums.ts';
 import ScoringService from '@/domain/services/scoring/ScoringService.ts';
 import CellsValidationService from '@/domain/services/validation/cells/CellsValidationService.ts';
 import PlacementsValidationService from '@/domain/services/validation/placements/PlacementsValidationService.ts';
@@ -16,40 +15,41 @@ import {
   WordsOutput,
 } from '@/domain/services/validation/turn/types.ts';
 import WordsValidationService from '@/domain/services/validation/words/WordsValidationService.ts';
+import { GameComputedValue, GameInvalidResult, GameValidationResult } from '@/domain/types/index.ts';
 
 class Pipeline<State extends PipelineInput> {
   private constructor(private throughput: PipelineThroughput<State>) {}
 
-  static fail(error: ValidationError): InvalidResult {
-    return { error, status: ValidationStatus.Invalid };
+  static fail(error: GameValidationError): GameInvalidResult {
+    return { error, status: GameValidationStatus.Invalid };
   }
 
-  static pass<State extends PipelineInput, NewValue extends ComputedValue>(
+  static pass<State extends PipelineInput, NewValue extends GameComputedValue>(
     state: State,
     newValue: NewValue,
   ): PendingResult<NewValue & State> {
     Object.assign(state, newValue);
-    return { state: state as NewValue & State, status: ValidationStatus.Pending };
+    return { state: state as NewValue & State, status: GameValidationStatus.Pending };
   }
 
   static start(context: ValidatorContext): Pipeline<PipelineInput> {
-    return new Pipeline({ state: { context }, status: ValidationStatus.Pending });
+    return new Pipeline({ state: { context }, status: GameValidationStatus.Pending });
   }
 
   continue<NextState extends State>(callback: (state: State) => PipelineThroughput<NextState>): Pipeline<NextState> {
-    if (this.throughput.status === ValidationStatus.Pending) this.throughput = callback(this.throughput.state);
+    if (this.throughput.status === GameValidationStatus.Pending) this.throughput = callback(this.throughput.state);
     return this as unknown as Pipeline<NextState>;
   }
 
   end(): PipelineOutput {
-    if (this.throughput.status === ValidationStatus.Invalid) return this.throughput;
+    if (this.throughput.status === GameValidationStatus.Invalid) return this.throughput;
     const { cells, placements, score, words } = this.throughput.state as unknown as PipelineState<ScoreOutput>;
-    return { cells, placements, score, status: ValidationStatus.Valid, words };
+    return { cells, placements, score, status: GameValidationStatus.Valid, words };
   }
 }
 
 export default class TurnValidationService {
-  static execute(context: ValidatorContext): ValidationResult {
+  static execute(context: ValidatorContext): GameValidationResult {
     return Pipeline.start(context)
       .continue(state => this.validateCells(state))
       .continue(state => this.validatePlacements(state))
@@ -71,7 +71,7 @@ export default class TurnValidationService {
     return Pipeline.pass(state, { score });
   }
 
-  private static isError(result: unknown): result is ValidationError {
+  private static isError(result: unknown): result is GameValidationError {
     return typeof result === 'string';
   }
 

@@ -19,14 +19,13 @@ export default class Match {
   private constructor(
     private readonly results: Map<GamePlayer, Result>,
     private readonly scores: Map<GamePlayer, number>,
-    public type: Type,
-    public difficulty: Difficulty,
+    public settings: MatchSettings,
   ) {}
 
   static create(players: ReadonlyArray<GamePlayer>, settings: MatchSettings): Match {
     const results = new Map(players.map(player => [player, Result.Undecided]));
     const scores = new Map(players.map(player => [player, 0]));
-    return new Match(results, scores, settings.type, settings.difficulty);
+    return new Match(results, scores, settings);
   }
 
   getResultFor(player: GamePlayer): Result {
@@ -61,11 +60,11 @@ export default class Match {
   }
 
   setDifficulty(difficulty: Difficulty): void {
-    this.difficulty = difficulty;
+    this.settings.difficulty = difficulty;
   }
 
   setType(type: Type): void {
-    this.type = type;
+    this.settings.type = type;
   }
 
   private ensureMutability(): void {
