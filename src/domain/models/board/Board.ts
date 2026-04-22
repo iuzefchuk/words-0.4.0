@@ -16,8 +16,8 @@ export default class Board {
   private constructor(
     private readonly bonusByCell: BonusDistribution,
     public readonly type: BoardType,
-    private tileByCell: Map<Cell, Tile>,
-    private cellByTile: Map<Tile, Cell>,
+    private readonly tileByCell: Map<Cell, Tile>,
+    private readonly cellByTile: Map<Tile, Cell>,
   ) {}
 
   static clone(source: Board): Board {
@@ -151,7 +151,7 @@ export default class Board {
   }
 
   placeTile(cell: Cell, tile: Tile): void {
-    if (this.tileByCell.has(cell)) throw new Error(`cell ${cell} is already occupied`);
+    if (this.tileByCell.has(cell)) throw new Error(`cell ${String(cell)} is already occupied`);
     if (this.cellByTile.has(tile)) throw new Error(`tile ${tile} is already placed on the board`);
     this.tileByCell.set(cell, tile);
     this.cellByTile.set(tile, cell);
@@ -164,7 +164,7 @@ export default class Board {
         if (cell === undefined) throw new Error(`tile ${tile} is not placed on the board`);
         return { cell, tile };
       })
-      .sort((a, b) => a.cell - b.cell);
+      .sort((first, second) => first.cell - second.cell);
   }
 
   undoPlaceTile(tile: Tile): void {

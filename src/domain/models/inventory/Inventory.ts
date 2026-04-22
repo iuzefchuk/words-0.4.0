@@ -41,7 +41,7 @@ class TilePool {
 
   private validateCapacity(newTileCount: number): void {
     if (this.capacity !== undefined && newTileCount > this.capacity) {
-      throw new Error(`cannot add tile: pool capacity ${this.capacity} exceeded`);
+      throw new Error(`cannot add tile: pool capacity ${String(this.capacity)} exceeded`);
     }
   }
 }
@@ -80,8 +80,8 @@ export default class Inventory {
 
   private static readonly LETTER_BY_TILE: ReadonlyMap<Tile, Letter> = new Map(
     Object.values(Letter).flatMap(letter =>
-      Array.from({ length: Inventory.LETTER_CONFIG[letter].count }, (_, i) => {
-        const tile = `${letter}-${i}` as Tile;
+      Array.from({ length: Inventory.LETTER_CONFIG[letter].count }, (_, idx) => {
+        const tile = `${letter}-${String(idx)}` as Tile;
         return [tile, letter] as const;
       }),
     ),
@@ -96,9 +96,9 @@ export default class Inventory {
   }
 
   private constructor(
-    private drawPool: TilePool,
-    private playerPools: ReadonlyMap<Player, TilePool>,
-    private discardPool: TilePool,
+    private readonly drawPool: TilePool,
+    private readonly playerPools: ReadonlyMap<Player, TilePool>,
+    private readonly discardPool: TilePool,
   ) {}
 
   static clone(source: Inventory): Inventory {
@@ -178,11 +178,13 @@ export default class Inventory {
   }
 
   private initializePlayerPools(): void {
-    this.playerPools.forEach(pool => this.replenishPlayerPool(pool));
+    this.playerPools.forEach(pool => {
+      this.replenishPlayerPool(pool);
+    });
   }
 
   private replenishPlayerPool(pool: TilePool): void {
     const drawCount = Math.min(Inventory.PLAYER_POOL_CAPACITY - pool.tileCount, this.unusedTilesCount);
-    for (let i = 0; i < drawCount; i++) pool.addTile(this.drawPool.popTile());
+    for (let idx = 0; idx < drawCount; idx++) pool.addTile(this.drawPool.popTile());
   }
 }

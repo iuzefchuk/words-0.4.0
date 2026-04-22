@@ -28,9 +28,9 @@ export default class BonusService {
     const availableCells = LayoutService.CELLS_BY_INDEX.filter(cell => cell !== LayoutService.CENTER_CELL);
     shuffleWithFisherYates({ array: availableCells, ...(randomizer !== undefined && { randomizer }) });
     return new Map(
-      Array.from(this.CLASSIC_DISTRIBUTION.values(), (bonus, i) => {
-        const cell = availableCells[i];
-        if (cell === undefined) throw new ReferenceError(`expected cell at index ${i}, got undefined`);
+      Array.from(this.CLASSIC_DISTRIBUTION.values(), (bonus, idx) => {
+        const cell = availableCells[idx];
+        if (cell === undefined) throw new ReferenceError(`expected cell at index ${String(idx)}, got undefined`);
         return [cell, bonus];
       }),
     );

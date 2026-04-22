@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@playwright/test';
 
 const dirName = path.dirname(fileURLToPath(import.meta.url));
-const URL = `http://localhost:${process.env.VITE_PORT ?? 5173}`;
+const URL = `http://localhost:${String(process.env.VITE_PORT ?? 5173)}`;
 const isCi = Boolean(process.env.CI);
 
 export default defineConfig({

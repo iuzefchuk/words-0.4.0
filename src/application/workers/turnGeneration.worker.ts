@@ -19,11 +19,11 @@ type StreamInput = {
 class TurnGenerationHandler {
   private dictionary: Dictionary | null = null;
 
-  handleMessage(e: MessageEvent<{ input: unknown; type: string }>): void {
-    if (e.data.type === (WorkerRequestType.Init as string)) {
-      this.init(e.data.input as SharedArrayBuffer);
+  handleMessage(event: MessageEvent<{ input: unknown; type: string }>): void {
+    if (event.data.type === (WorkerRequestType.Init as string)) {
+      this.init(event.data.input as SharedArrayBuffer);
     } else {
-      this.stream(e.data.input as StreamInput);
+      this.stream(event.data.input as StreamInput);
     }
   }
 
@@ -59,9 +59,9 @@ class TurnGenerationHandler {
 
 const handler = new TurnGenerationHandler();
 
-self.onmessage = (e: MessageEvent<{ input: unknown; type: string }>) => {
+self.onmessage = (event: MessageEvent<{ input: unknown; type: string }>) => {
   try {
-    handler.handleMessage(e);
+    handler.handleMessage(event);
   } catch (error) {
     self.postMessage({ error: String(error), type: WorkerResponseType.Error });
   }

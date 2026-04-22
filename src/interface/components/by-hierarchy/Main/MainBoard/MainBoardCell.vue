@@ -16,7 +16,7 @@ const isCellCenter = computed(() => applicationStore.isCellCenter(props.cell));
 const bonus = computed(() => applicationStore.getCellBonus(props.cell));
 const bonusName = computed(() => (bonus.value !== null ? getBonusName(bonus.value) : ''));
 const tile = computed(() => applicationStore.findTileOnCell(props.cell));
-const isTileSaturated = computed(() => tile.value != null && applicationStore.wasTileUsedInPreviousTurn(tile.value));
+const isTileSaturated = computed(() => tile.value !== undefined && applicationStore.wasTileUsedInPreviousTurn(tile.value));
 </script>
 
 <template>

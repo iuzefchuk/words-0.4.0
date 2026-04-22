@@ -7,7 +7,7 @@ export default class DirectivesPlugin {
 
   private static readonly CLICK_OUTSIDE = new ClickOutside().directive;
 
-  install(app: App) {
+  install(app: App): void {
     app
       .directive('animate-number', DirectivesPlugin.ANIMATE_NUMBER)
       .directive('on-click-outside', DirectivesPlugin.CLICK_OUTSIDE);

@@ -8,7 +8,6 @@ import Turns from '@/domain/models/turns/Turns.ts';
 import TurnGenerationService from '@/domain/services/generation/turn/TurnGenerationService.ts';
 import { GeneratorContext, GeneratorResult } from '@/domain/services/generation/turn/types.ts';
 import TurnValidationService from '@/domain/services/validation/turn/TurnValidationService.ts';
-import { ValidatorContext } from '@/domain/services/validation/turn/types.ts';
 import {
   GameBoardType,
   GameBoardView,
@@ -105,9 +104,9 @@ export default class Game {
     const events = Events.create([...initialEvents]);
     const game = new Game(events, identityService, seedingService, first.settings.difficulty);
     game.initialize(Game.createInitParams(first.seed, first.settings, seedingService, identityService));
-    for (let i = 1; i < initialEvents.length; i++) {
-      const event = initialEvents[i];
-      if (event === undefined) throw new ReferenceError(`expected event at index ${i}, got undefined`);
+    for (let idx = 1; idx < initialEvents.length; idx++) {
+      const event = initialEvents[idx];
+      if (event === undefined) throw new ReferenceError(`expected event at index ${String(idx)}, got undefined`);
       game.applyToState(event);
     }
     return game;
@@ -118,7 +117,7 @@ export default class Game {
     settings: GameSettings,
     seedingService: SeedingService,
     identityService: IdentityService,
-  ) {
+  ): { board: Board; inventory: Inventory; match: Match; turns: Turns } {
     const players = Object.values(GamePlayer);
     const randomizer = seedingService.createRandomizer(seed);
     return {
@@ -131,11 +130,11 @@ export default class Game {
 
   applyGeneratedTurn(result: GeneratorResult): { score: number; words: ReadonlyArray<string> } {
     this.ensureMutability();
-    for (let i = 0; i < result.tiles.length; i++) {
-      const cell = result.cells[i];
-      if (cell === undefined) throw new ReferenceError(`expected cell at index ${i}, got undefined`);
-      const tile = result.tiles[i];
-      if (tile === undefined) throw new ReferenceError(`expected tile at index ${i}, got undefined`);
+    for (let idx = 0; idx < result.tiles.length; idx++) {
+      const cell = result.cells[idx];
+      if (cell === undefined) throw new ReferenceError(`expected cell at index ${String(idx)}, got undefined`);
+      const tile = result.tiles[idx];
+      if (tile === undefined) throw new ReferenceError(`expected tile at index ${String(idx)}, got undefined`);
       this.applyEvent({ cell, tile, type: GameEventType.TilePlaced });
     }
     this.applyEvent({ result: result.validationResult, type: GameEventType.TurnValidated });
@@ -160,12 +159,7 @@ export default class Game {
         this.difficulty = event.difficulty;
         break;
       case GameEventType.MatchFinished:
-        if (event.winner === null) {
-          this.match.recordTie(this.turnsView.currentPlayer, this.turnsView.nextPlayer);
-        } else {
-          const loser = event.winner === GamePlayer.User ? GamePlayer.Opponent : GamePlayer.User;
-          this.match.recordCompletion(event.winner, loser);
-        }
+        this.applyMatchFinished(event.winner);
         break;
       case GameEventType.MatchStarted:
         throw new Error('cannot apply MatchStarted after game creation');
@@ -180,14 +174,9 @@ export default class Game {
       case GameEventType.TurnPassed:
         this.turns.startTurnFor(this.turns.nextPlayer);
         break;
-      case GameEventType.TurnSaved: {
-        const tiles = this.turns.currentTurnTiles;
-        tiles.forEach(tile => this.inventory.discardTile({ player: event.player, tile }));
-        this.inventory.replenishTilesFor(event.player);
-        this.match.incrementScore(event.player, event.score);
-        this.turns.startTurnFor(this.turns.nextPlayer);
+      case GameEventType.TurnSaved:
+        this.applyTurnSaved(event.player, event.score);
         break;
-      }
       case GameEventType.TurnValidated:
         this.turns.recordValidationResult(event.result);
         break;
@@ -290,7 +279,7 @@ export default class Game {
       dictionary: this.dictionary,
       inventory: this.inventory,
       turns: this.turns,
-    } as ValidatorContext);
+    });
     this.applyEvent({ result, type: GameEventType.TurnValidated });
   }
 
@@ -305,6 +294,25 @@ export default class Game {
   private applyEvent(event: GameEvent): void {
     this.applyToState(event);
     this.events.record(event);
+  }
+
+  private applyMatchFinished(winner: GamePlayer | null): void {
+    if (winner === null) {
+      this.match.recordTie(this.turnsView.currentPlayer, this.turnsView.nextPlayer);
+      return;
+    }
+    const loser = winner === GamePlayer.User ? GamePlayer.Opponent : GamePlayer.User;
+    this.match.recordCompletion(winner, loser);
+  }
+
+  private applyTurnSaved(player: GamePlayer, score: number): void {
+    const tiles = this.turns.currentTurnTiles;
+    tiles.forEach(tile => {
+      this.inventory.discardTile({ player, tile });
+    });
+    this.inventory.replenishTilesFor(player);
+    this.match.incrementScore(player, score);
+    this.turns.startTurnFor(this.turns.nextPlayer);
   }
 
   private ensureMutability(): void {

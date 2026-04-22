@@ -6,7 +6,7 @@ import LocalesPlugin from '@/interface/plugins/LocalesPlugin/LocalesPlugin.ts';
 import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 
 class Presentation {
-  private app = createApp(Index);
+  private readonly app = createApp(Index);
 
   async start(): Promise<void> {
     await this.installAsyncPlugins();
@@ -29,4 +29,4 @@ class Presentation {
   }
 }
 
-new Presentation().start();
+void new Presentation().start();

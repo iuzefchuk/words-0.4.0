@@ -16,7 +16,7 @@ export enum Sound {
 type Note = { duration: number; frequency: number; gain: number; ramp?: number; type: OscillatorType };
 
 export default class SoundPlayer {
-  private static context = new AudioContext();
+  private static readonly CONTEXT = new AudioContext();
 
   private static readonly FADE_OUT_MS = 0.03;
 
@@ -75,28 +75,30 @@ export default class SoundPlayer {
 
   static play(sound: Sound): void {
     const notes = this.NOTES[sound];
-    setTimeout(() => this.playNotes(notes), 0);
+    setTimeout(() => {
+      this.playNotes(notes);
+    }, 0);
   }
 
   private static playNote(note: Note, start: number, end: number): void {
     const { frequency, gain, type } = note;
-    const oscillator = this.context.createOscillator();
-    const gainNode = this.context.createGain();
+    const oscillator = this.CONTEXT.createOscillator();
+    const gainNode = this.CONTEXT.createGain();
     oscillator.type = type;
     oscillator.frequency.value = frequency;
     gainNode.gain.setValueAtTime(gain, start);
     gainNode.gain.setValueAtTime(gain, end - this.FADE_OUT_MS);
     gainNode.gain.linearRampToValueAtTime(0.001, end);
     oscillator.connect(gainNode);
-    gainNode.connect(this.context.destination);
+    gainNode.connect(this.CONTEXT.destination);
     oscillator.start(start);
     oscillator.stop(end);
   }
 
   private static playNotes(notes: ReadonlyArray<Note>): void {
     try {
-      if (this.context.state === 'suspended') this.context.resume();
-      const now = this.context.currentTime + this.FADE_OUT_MS;
+      if (this.CONTEXT.state === 'suspended') void this.CONTEXT.resume();
+      const now = this.CONTEXT.currentTime + this.FADE_OUT_MS;
       let time = Math.max(now, this.queueEnd);
       for (const note of notes) {
         const end = time + note.duration;

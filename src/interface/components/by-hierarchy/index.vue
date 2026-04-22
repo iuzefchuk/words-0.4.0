@@ -7,8 +7,8 @@ import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const style = computed(() => ({
   ...(transitionDurationMs !== undefined && {
-    '--transition-duration': `${transitionDurationMs}ms`,
-    '--transition-duration-half': `${transitionDurationMs / 2}ms`,
+    '--transition-duration': `${String(transitionDurationMs)}ms`,
+    '--transition-duration-half': `${String(transitionDurationMs / 2)}ms`,
   }),
   '--cell-count-per-axis': 15, // TODO remove when implementing dynamic board sizes
 }));

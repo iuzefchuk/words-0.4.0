@@ -6,7 +6,7 @@ export default class LayoutService {
 
   static readonly CELLS_PER_LAYOUT = this.CELLS_PER_AXIS ** 2;
 
-  static readonly CELLS_BY_INDEX: ReadonlyArray<Cell> = Array.from({ length: this.CELLS_PER_LAYOUT }, (_, i) => i as Cell);
+  static readonly CELLS_BY_INDEX: ReadonlyArray<Cell> = Array.from({ length: this.CELLS_PER_LAYOUT }, (_, idx) => idx as Cell);
 
   static readonly CENTER_CELL = Math.floor(this.CELLS_PER_LAYOUT / 2) as Cell;
 
@@ -41,8 +41,8 @@ export default class LayoutService {
       const lines: Array<ReadonlyArray<Cell>> = [];
       for (let lineIndex = 0; lineIndex < this.CELLS_PER_AXIS; lineIndex++) {
         const cells: Array<Cell> = [];
-        for (let i = 0; i < this.CELLS_PER_AXIS; i++) {
-          cells.push((axis === Axis.X ? lineIndex * this.CELLS_PER_AXIS + i : lineIndex + i * this.CELLS_PER_AXIS) as Cell);
+        for (let idx = 0; idx < this.CELLS_PER_AXIS; idx++) {
+          cells.push((axis === Axis.X ? lineIndex * this.CELLS_PER_AXIS + idx : lineIndex + idx * this.CELLS_PER_AXIS) as Cell);
         }
         lines.push(cells);
       }
@@ -53,7 +53,7 @@ export default class LayoutService {
 
   static getAdjacentCells(cell: Cell): ReadonlyArray<Cell> {
     const adjacentCells = this.ADJACENT_CELLS.get(cell);
-    if (adjacentCells === undefined) throw new ReferenceError(`expected adjacent cells for cell ${cell}, got undefined`);
+    if (adjacentCells === undefined) throw new ReferenceError(`expected adjacent cells for cell ${String(cell)}, got undefined`);
     return adjacentCells;
   }
 
@@ -63,7 +63,7 @@ export default class LayoutService {
     const axisCells = this.AXIS_CELLS.get(axis);
     if (axisCells === undefined) throw new ReferenceError(`expected axis cells for axis ${axis}, got undefined`);
     const line = axisCells[cellPosition];
-    if (line === undefined) throw new ReferenceError(`expected axis line at position ${cellPosition}, got undefined`);
+    if (line === undefined) throw new ReferenceError(`expected axis line at position ${String(cellPosition)}, got undefined`);
     return line;
   }
 

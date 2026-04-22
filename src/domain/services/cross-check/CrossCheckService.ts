@@ -6,7 +6,7 @@ import Dictionary from '@/domain/models/dictionary/Dictionary.ts';
 import Inventory from '@/domain/models/inventory/Inventory.ts';
 
 export default class CrossCheckService {
-  private cache = new Map<Axis, Map<Cell, ReadonlySet<Letter>>>(Object.values(Axis).map(axis => [axis, new Map()]));
+  private readonly cache = new Map<Axis, Map<Cell, ReadonlySet<Letter>>>(Object.values(Axis).map(axis => [axis, new Map()]));
 
   constructor(
     private readonly board: Board,
@@ -27,9 +27,9 @@ export default class CrossCheckService {
 
   private collectAdjacentTileLetters(axisCells: ReadonlyArray<Cell>, startPosition: number, direction: -1 | 1): string {
     let result = '';
-    for (let i = startPosition + direction; i >= 0 && i < axisCells.length; i += direction) {
-      const cell = axisCells[i];
-      if (cell === undefined) throw new ReferenceError(`expected cell at index ${i}, got undefined`);
+    for (let idx = startPosition + direction; idx >= 0 && idx < axisCells.length; idx += direction) {
+      const cell = axisCells[idx];
+      if (cell === undefined) throw new ReferenceError(`expected cell at index ${String(idx)}, got undefined`);
       const tile = this.board.findTileByCell(cell);
       if (tile === undefined) break;
       const letter = this.inventory.getTileLetter(tile);

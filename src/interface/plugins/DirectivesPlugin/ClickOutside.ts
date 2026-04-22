@@ -21,6 +21,5 @@ export default class ClickOutside extends Directive<ClickOutsideHtmlElement, Bin
   override unmounted(element: ClickOutsideHtmlElement): void {
     document.removeEventListener('click', element._clickOutside);
     document.removeEventListener('touchstart', element._clickOutside);
-    element._clickOutside = () => {};
   }
 }

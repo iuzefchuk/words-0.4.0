@@ -8,18 +8,18 @@ export default function shuffleWithFisherYates<T>({
   randomizer?: () => number;
 }): Array<T> {
   const length = array.length - (array.length % groupSize);
-  for (let i = length - groupSize; i >= 0; i -= groupSize) {
-    const j = Math.floor(randomizer() * (i / groupSize + 1)) * groupSize;
-    for (let k = 0; k < groupSize; k++) {
-      const a = i + k;
-      const b = j + k;
-      const itemA = array[a];
-      const itemB = array[b];
+  for (let srcIdx = length - groupSize; srcIdx >= 0; srcIdx -= groupSize) {
+    const targetIdx = Math.floor(randomizer() * (srcIdx / groupSize + 1)) * groupSize;
+    for (let offset = 0; offset < groupSize; offset++) {
+      const fromIdx = srcIdx + offset;
+      const toIdx = targetIdx + offset;
+      const itemA = array[fromIdx];
+      const itemB = array[toIdx];
       if (itemA === undefined || itemB === undefined) {
-        throw new ReferenceError(`expected array items at indices ${a} and ${b}, got undefined`);
+        throw new ReferenceError(`expected array items at indices ${String(fromIdx)} and ${String(toIdx)}, got undefined`);
       }
-      array[a] = itemB;
-      array[b] = itemA;
+      array[fromIdx] = itemB;
+      array[toIdx] = itemA;
     }
   }
   return array;

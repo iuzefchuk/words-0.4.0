@@ -12,6 +12,14 @@ export const enum WorkerResponseType {
   Result = 'Result',
 }
 
+type StreamState = {
+  doneCount: number;
+  error: Error | null;
+  queue: Array<WorkerResponse>;
+  queueReadIndex: number;
+  resolve: (() => void) | null;
+};
+
 type WorkerRequest = { input: unknown; type: WorkerRequestType };
 
 type WorkerResponse =
@@ -25,19 +33,55 @@ export default class WebWorkerService implements WorkerService {
 
   constructor(private readonly workers: Record<string, new () => Worker>) {}
 
+  private static createStreamState(): StreamState {
+    return { doneCount: 0, error: null, queue: [], queueReadIndex: 0, resolve: null };
+  }
+
+  private static async *drainStream<O>(state: StreamState, isDone: () => boolean): AsyncGenerator<O> {
+    for (;;) {
+      while (state.queueReadIndex >= state.queue.length) {
+        if (state.error !== null) throw state.error;
+        if (isDone()) return;
+        await new Promise<void>(res => {
+          state.resolve = res;
+        });
+        state.resolve = null;
+      }
+      const msg = state.queue[state.queueReadIndex++];
+      if (msg === undefined) throw new ReferenceError('expected worker message, got undefined');
+      if (state.queueReadIndex > 64) {
+        state.queue.splice(0, state.queueReadIndex);
+        state.queueReadIndex = 0;
+      }
+      if (msg.type === WorkerResponseType.Error) throw new Error(msg.error);
+      if (msg.type === WorkerResponseType.Done) return;
+      if (msg.type === WorkerResponseType.Result) yield msg.value as O;
+    }
+  }
+
+  private static wireWorker(worker: Worker, state: StreamState): void {
+    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+      if (event.data.type === WorkerResponseType.Done) state.doneCount++;
+      else state.queue.push(event.data);
+      state.resolve?.();
+    };
+    worker.onerror = () => {
+      state.error = new Error('worker error');
+      state.resolve?.();
+    };
+  }
+
   getPoolSize(taskId: string): number {
     return this.pool.get(taskId)?.length ?? 0;
   }
 
   async init(taskId: string, data: unknown): Promise<void> {
-    const deviceMemoryGb = (globalThis.navigator as { deviceMemory?: number })?.deviceMemory;
+    const deviceMemoryGb = (globalThis.navigator as { deviceMemory?: number }).deviceMemory;
     const poolSize = Math.min(
       8,
       Math.max(
         1,
-        deviceMemoryGb !== undefined
-          ? Math.floor(deviceMemoryGb)
-          : Math.floor((globalThis.navigator?.hardwareConcurrency ?? 2) / 2),
+        deviceMemoryGb !== undefined ? Math.floor(deviceMemoryGb) : Math.floor(globalThis.navigator.hardwareConcurrency / 2),
       ),
     );
     const workers = Array.from({ length: poolSize }, () => this.createWorker(taskId));
@@ -47,38 +91,11 @@ export default class WebWorkerService implements WorkerService {
 
   async *stream<O>(taskId: string, data: unknown): AsyncGenerator<O> {
     const worker = this.createWorker(taskId);
-    const queue: Array<WorkerResponse> = [];
-    let queueReadIndex = 0;
-    let resolve: (() => void) | null = null;
-    let error: Error | null = null;
-    worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
-      queue.push(e.data);
-      resolve?.();
-    };
-    worker.onerror = e => {
-      error = e instanceof Error ? e : new Error(String(e));
-      resolve?.();
-    };
+    const state = WebWorkerService.createStreamState();
+    WebWorkerService.wireWorker(worker, state);
     worker.postMessage({ input: data, type: WorkerRequestType.Stream } satisfies WorkerRequest);
     try {
-      while (true) {
-        while (queueReadIndex >= queue.length) {
-          if (error !== null) throw error;
-          await new Promise<void>(r => {
-            resolve = r;
-          });
-          resolve = null;
-        }
-        const msg = queue[queueReadIndex++];
-        if (msg === undefined) throw new ReferenceError('expected worker message, got undefined');
-        if (queueReadIndex > 64) {
-          queue.splice(0, queueReadIndex);
-          queueReadIndex = 0;
-        }
-        if (msg.type === WorkerResponseType.Error) throw new Error(msg.error);
-        if (msg.type === WorkerResponseType.Done) return;
-        if (msg.type === WorkerResponseType.Result) yield msg.value as O;
-      }
+      yield* WebWorkerService.drainStream<O>(state, () => state.doneCount > 0);
     } finally {
       worker.terminate();
     }
@@ -86,47 +103,18 @@ export default class WebWorkerService implements WorkerService {
 
   async *streamParallel<O>(taskId: string, inputs: ReadonlyArray<unknown>): AsyncGenerator<O> {
     const workers: Array<Worker> = inputs.map(() => this.takeFromPool(taskId) ?? this.createWorker(taskId));
-    const queue: Array<WorkerResponse> = [];
-    let queueReadIndex = 0;
-    let resolve: (() => void) | null = null;
-    let error: Error | null = null;
-    let doneCount = 0;
+    const state = WebWorkerService.createStreamState();
     const totalWorkers = workers.length;
-    for (let i = 0; i < workers.length; i++) {
-      const worker = workers[i];
-      if (worker === undefined) throw new ReferenceError(`expected worker at index ${i}, got undefined`);
-      worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
-        if (e.data.type === WorkerResponseType.Done) doneCount++;
-        else queue.push(e.data);
-        resolve?.();
-      };
-      worker.onerror = e => {
-        error = e instanceof Error ? e : new Error(String(e));
-        resolve?.();
-      };
-      worker.postMessage({ input: inputs[i], type: WorkerRequestType.Stream } satisfies WorkerRequest);
+    for (let idx = 0; idx < workers.length; idx++) {
+      const worker = workers[idx];
+      if (worker === undefined) throw new ReferenceError(`expected worker at index ${String(idx)}, got undefined`);
+      WebWorkerService.wireWorker(worker, state);
+      worker.postMessage({ input: inputs[idx], type: WorkerRequestType.Stream } satisfies WorkerRequest);
     }
     try {
-      while (true) {
-        while (queueReadIndex >= queue.length) {
-          if (error !== null) throw error;
-          if (doneCount >= totalWorkers) return;
-          await new Promise<void>(r => {
-            resolve = r;
-          });
-          resolve = null;
-        }
-        const msg = queue[queueReadIndex++];
-        if (msg === undefined) throw new ReferenceError('expected worker message, got undefined');
-        if (queueReadIndex > 64) {
-          queue.splice(0, queueReadIndex);
-          queueReadIndex = 0;
-        }
-        if (msg.type === WorkerResponseType.Error) throw new Error(msg.error);
-        if (msg.type === WorkerResponseType.Result) yield msg.value as O;
-      }
+      yield* WebWorkerService.drainStream<O>(state, () => state.doneCount >= totalWorkers);
     } finally {
-      if (doneCount >= totalWorkers) {
+      if (state.doneCount >= totalWorkers) {
         for (const worker of workers) this.returnToPool(taskId, worker);
       } else {
         for (const worker of workers) worker.terminate();
@@ -143,11 +131,13 @@ export default class WebWorkerService implements WorkerService {
 
   private initWorker(worker: Worker, data: unknown): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
-        if (e.data.type === WorkerResponseType.Ready) resolve();
-        else reject(new Error(`expected worker Ready response, got ${e.data.type}`));
+      worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+        if (event.data.type === WorkerResponseType.Ready) resolve();
+        else reject(new Error(`expected worker Ready response, got ${event.data.type}`));
       };
-      worker.onerror = e => reject(e instanceof Error ? e : new Error(String(e)));
+      worker.onerror = () => {
+        reject(new Error('worker error'));
+      };
       worker.postMessage({ input: data, type: WorkerRequestType.Init } satisfies WorkerRequest);
     });
   }

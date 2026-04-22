@@ -9,31 +9,35 @@ const optionsAreDisabled = computed(() => !applicationStore.settingsChangeIsAllo
 const options = [
   {
     items: [
-      { text: window.t('game.bonus_distribution_classic'), value: GameBoardType.Classic },
-      { text: window.t('game.bonus_distribution_random'), value: GameBoardType.Random },
+      { text: window.text('game.bonus_distribution_classic'), value: GameBoardType.Classic },
+      { text: window.text('game.bonus_distribution_random'), value: GameBoardType.Random },
     ],
-    label: window.t('game.settings_bonuses'),
+    label: window.text('game.settings_bonuses'),
     modelValue: () => applicationStore.boardType,
-    onChange: (value: OptionValue) => applicationStore.changeBoardType(value as GameBoardType),
+    onChange: (value: OptionValue) => {
+      applicationStore.changeBoardType(value as GameBoardType);
+    },
   },
   {
     items: [
-      { text: window.t('game.difficulty_low'), value: GameDifficulty.Low },
-      { text: window.t('game.difficulty_medium'), value: GameDifficulty.Medium },
-      { text: window.t('game.difficulty_high'), value: GameDifficulty.High },
+      { text: window.text('game.difficulty_low'), value: GameDifficulty.Low },
+      { text: window.text('game.difficulty_medium'), value: GameDifficulty.Medium },
+      { text: window.text('game.difficulty_high'), value: GameDifficulty.High },
     ],
-    label: window.t('game.settings_difficulty'),
+    label: window.text('game.settings_difficulty'),
     modelValue: () => applicationStore.difficulty,
-    onChange: (value: OptionValue) => applicationStore.changeDifficulty(value as GameDifficulty),
+    onChange: (value: OptionValue) => {
+      applicationStore.changeDifficulty(value as GameDifficulty);
+    },
   },
 ];
 const players = [
   {
-    name: window.t('game.player_user'),
+    name: window.text('game.player_user'),
     score: () => applicationStore.userScore,
   },
   {
-    name: window.t('game.player_opponent'),
+    name: window.text('game.player_opponent'),
     score: () => applicationStore.opponentScore,
   },
 ];

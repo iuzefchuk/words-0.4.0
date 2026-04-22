@@ -23,45 +23,63 @@ class Actions {
 
   changeBoardType = (boardType: GameBoardType): void => {
     ApplicationStore.saveSettings({ boardType });
-    return this.state.writeBoard(() => this.commandsService.changeBoardType(boardType));
+    this.state.writeBoard(() => {
+      this.commandsService.changeBoardType(boardType);
+    });
   };
 
   changeDifficulty = (difficulty: GameDifficulty): void => {
     ApplicationStore.saveSettings({ difficulty });
-    return this.state.write(() => this.commandsService.changeDifficulty(difficulty));
+    this.state.write(() => {
+      this.commandsService.changeDifficulty(difficulty);
+    });
   };
 
   clearTiles = (): void => {
-    return this.state.writeBoard(() => this.commandsService.clearTiles());
+    this.state.writeBoard(() => {
+      this.commandsService.clearTiles();
+    });
   };
 
   pass = (): void => {
     const { opponentTurn } = this.writeAndPlaySound(() => this.commandsService.handlePassTurn());
-    opponentTurn?.then(() => this.syncAndPlaySound());
+    void opponentTurn?.then(() => {
+      this.syncAndPlaySound();
+    });
   };
 
   placeTile = (args: { cell: GameCell; tile: GameTile }): void => {
-    this.writeBoardAndPlaySound(() => this.commandsService.placeTile(args), [args.cell]);
+    this.writeBoardAndPlaySound(() => {
+      this.commandsService.placeTile(args);
+    }, [args.cell]);
     this.scheduleDeferredValidation();
   };
 
   resign = (): void => {
-    return this.writeAndPlaySound(() => this.commandsService.handleResignMatch());
+    this.writeAndPlaySound(() => {
+      this.commandsService.handleResignMatch();
+    });
   };
 
   restartGame = (): void => {
-    return this.state.write(() => this.commandsService.restartGame());
+    this.state.write(() => {
+      this.commandsService.restartGame();
+    });
   };
 
   save = (): void => {
     const { opponentTurn } = this.writeAndPlaySound(() => this.commandsService.handleSaveTurn());
-    opponentTurn?.then(() => this.syncAndPlaySound());
+    void opponentTurn?.then(() => {
+      this.syncAndPlaySound();
+    });
   };
 
   undoPlaceTile = (tile: GameTile): void => {
     const previousCell = this.queriesService.findCellWithTile(tile);
     const affectedCells = previousCell === undefined ? undefined : [previousCell];
-    this.writeBoardAndPlaySound(() => this.commandsService.undoPlaceTile(tile), affectedCells);
+    this.writeBoardAndPlaySound(() => {
+      this.commandsService.undoPlaceTile(tile);
+    }, affectedCells);
     this.scheduleDeferredValidation();
   };
 
@@ -72,11 +90,13 @@ class Actions {
     }
   }
 
-  private scheduleDeferredValidation = (): void => {
-    const id = ++this.pendingValidationId;
-    this.schedulingService.yield().then(() => {
-      if (id !== this.pendingValidationId) return;
-      this.writeBoardAndPlaySound(() => this.commandsService.validateAndSync(), []);
+  private readonly scheduleDeferredValidation = (): void => {
+    const validationId = ++this.pendingValidationId;
+    void this.schedulingService.yield().then(() => {
+      if (validationId !== this.pendingValidationId) return;
+      this.writeBoardAndPlaySound(() => {
+        this.commandsService.validateAndSync();
+      }, []);
     });
   };
 
@@ -141,27 +161,29 @@ class Getters {
     private readonly state: State,
   ) {}
 
-  areTilesSame = (firstTile: GameTile, secondTile: GameTile) => this.queriesService.areTilesSame(firstTile, secondTile);
+  areTilesSame = (firstTile: GameTile, secondTile: GameTile): boolean => this.queriesService.areTilesSame(firstTile, secondTile);
 
-  findCellWithTile = (tile: GameTile) => this.readBoard(() => this.queriesService.findCellWithTile(tile));
+  findCellWithTile = (tile: GameTile): GameCell | undefined => this.readBoard(() => this.queriesService.findCellWithTile(tile));
 
-  findTileOnCell = (cell: GameCell) => this.state.tileByCellCache.get(cell);
+  findTileOnCell = (cell: GameCell): GameTile | undefined => this.state.tileByCellCache.get(cell);
 
-  getAdjacentCells = (cell: GameCell) => this.queriesService.getAdjacentCells(cell);
+  getAdjacentCells = (cell: GameCell): ReadonlyArray<GameCell> => this.queriesService.getAdjacentCells(cell);
 
-  getCellBonus = (cell: GameCell) => this.readBoard(() => this.queriesService.getCellBonus(cell));
+  getCellBonus = (cell: GameCell): ReturnType<QueriesService['getCellBonus']> =>
+    this.readBoard(() => this.queriesService.getCellBonus(cell));
 
-  getCellColumnIndex = (cell: GameCell) => this.queriesService.getCellColumnIndex(cell);
+  getCellColumnIndex = (cell: GameCell): number => this.queriesService.getCellColumnIndex(cell);
 
-  getCellRowIndex = (cell: GameCell) => this.queriesService.getCellRowIndex(cell);
+  getCellRowIndex = (cell: GameCell): number => this.queriesService.getCellRowIndex(cell);
 
-  getTileLetter = (tile: GameTile) => this.queriesService.getTileLetter(tile);
+  getTileLetter = (tile: GameTile): ReturnType<QueriesService['getTileLetter']> => this.queriesService.getTileLetter(tile);
 
-  isCellCenter = (cell: GameCell) => this.queriesService.isCellCenter(cell);
+  isCellCenter = (cell: GameCell): boolean => this.queriesService.isCellCenter(cell);
 
-  isTilePlaced = (tile: GameTile) => this.readBoard(() => this.queriesService.isTilePlaced(tile));
+  isTilePlaced = (tile: GameTile): boolean => this.readBoard(() => this.queriesService.isTilePlaced(tile));
 
-  wasTileUsedInPreviousTurn = (tile: GameTile) => this.readBoard(() => this.queriesService.wasTileUsedInPreviousTurn(tile));
+  wasTileUsedInPreviousTurn = (tile: GameTile): boolean =>
+    this.readBoard(() => this.queriesService.wasTileUsedInPreviousTurn(tile));
 
   private readBoard<T>(fn: () => T): T {
     return this.state.readBoard(fn);
@@ -204,7 +226,9 @@ class State {
     const result = fn();
     this.incrementVersions();
     if (result instanceof Promise) {
-      result.then(() => this.incrementVersions());
+      void result.then(() => {
+        this.incrementVersions();
+      });
     }
     return result;
   }
@@ -236,8 +260,8 @@ export default class ApplicationStore {
     const store = new ApplicationStore(ApplicationStore.app);
     return {
       ...ApplicationStore.app.config,
-      ...store.getters,
-      ...store.actions,
+      ...(store.getters as { [K in keyof Getters]: Getters[K] }),
+      ...(store.actions as { [K in keyof Actions]: Actions[K] }),
     };
   });
 
@@ -251,7 +275,7 @@ export default class ApplicationStore {
     this.state = new State(cell => app.queriesService.findTileOnCell(cell), app.config.boardCells);
     this.getters = new Getters(app.queriesService, this.state);
     this.actions = new Actions(app.commandsService, app.queriesService, app.schedulingService, this.state);
-    this.state.write(() => app.loadDictionary());
+    void this.state.write(() => app.loadDictionary());
   }
 
   static async initiate(): Promise<void> {
@@ -262,8 +286,8 @@ export default class ApplicationStore {
   static saveSettings(data: { boardType?: GameBoardType; difficulty?: GameDifficulty }): void {
     const existingCache = this.loadSettings();
     const newCache = {
-      boardType: data?.boardType ?? existingCache?.boardType,
-      difficulty: data?.difficulty ?? existingCache?.difficulty,
+      boardType: data.boardType ?? existingCache.boardType,
+      difficulty: data.difficulty ?? existingCache.difficulty,
     };
     LocalStorage.save(StorageKey.Settings, newCache);
   }

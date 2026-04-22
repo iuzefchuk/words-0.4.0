@@ -12,7 +12,7 @@ function respond(status: DialogStatus): void {
   isRendered.value = false;
   dialogStore.resolve({ status });
 }
-function toggleExitAnimation() {
+function toggleExitAnimation(): void {
   exitAnimation.value = true;
   setTimeout(() => {
     exitAnimation.value = false;

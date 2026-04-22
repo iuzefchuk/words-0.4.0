@@ -11,34 +11,44 @@ const { anyTileIsPlaced } = storeToRefs(inventoryStore);
 const { allActionsAreDisabled } = storeToRefs(applicationStore);
 const items = reactive([
   {
-    action: () => events.handleResign(),
+    action: () => {
+      void events.handleResign();
+    },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
-    name: window.t('game.action_resign'),
+    name: window.text('game.action_resign'),
   },
   {
-    action: () => events.handlePass(),
+    action: () => {
+      void events.handlePass();
+    },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
-    name: window.t('game.action_pass'),
+    name: window.text('game.action_pass'),
   },
   {
-    action: () => events.handleShuffle(),
+    action: () => {
+      events.handleShuffle();
+    },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => !anyTileIsPlaced.value,
-    name: window.t('game.action_shuffle'),
+    name: window.text('game.action_shuffle'),
   },
   {
-    action: () => events.handleClear(),
+    action: () => {
+      events.handleClear();
+    },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => anyTileIsPlaced.value,
-    name: window.t('game.action_clear'),
+    name: window.text('game.action_clear'),
   },
   {
-    action: () => events.handlePlay(),
+    action: () => {
+      events.handlePlay();
+    },
     isDisabled: () => allActionsAreDisabled.value || !applicationStore.currentTurnIsValid,
     isRendered: () => true,
-    name: window.t('game.action_play'),
+    name: window.text('game.action_play'),
   },
 ]);
 </script>

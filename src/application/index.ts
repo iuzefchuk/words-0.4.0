@@ -29,7 +29,7 @@ export default class Application {
   }
 
   static async create(settings: GameSettings): Promise<Application> {
-    const { repositories, services, tasks } = await Infrastructure.createAppDependencies();
+    const { repositories, services, tasks } = Infrastructure.createAppDependencies();
     const game = await this.createGame(services, repositories, settings);
     const queriesService = new QueriesService(game);
     const commandsService = new CommandsService(

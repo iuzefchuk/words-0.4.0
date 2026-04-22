@@ -34,7 +34,6 @@ import {
   ValidateTask,
 } from '@/domain/services/generation/turn/types.ts';
 import TurnValidationService from '@/domain/services/validation/turn/TurnValidationService.ts';
-import { ValidatorContext } from '@/domain/services/validation/turn/types.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
 class TaskCommandResolver {
@@ -73,9 +72,9 @@ class TaskCommandResolver {
   }
 
   private pushToStack(tasks: Array<Task>): void {
-    for (let i = tasks.length - 1; i >= 0; i--) {
-      const task = tasks[i];
-      if (task === undefined) throw new ReferenceError(`expected task at index ${i}, got undefined`);
+    for (let idx = tasks.length - 1; idx >= 0; idx--) {
+      const task = tasks[idx];
+      if (task === undefined) throw new ReferenceError(`expected task at index ${String(idx)}, got undefined`);
       this.stack.push(task);
     }
   }
@@ -105,7 +104,7 @@ class TaskDispatcher {
   private constructor(
     private readonly context: GeneratorContext,
     private readonly crossChecker: CrossCheckService,
-    private state: DispatcherState,
+    private readonly state: DispatcherState,
     public computeds: DispatcherComputeds,
   ) {}
 
@@ -142,7 +141,7 @@ class TaskDispatcher {
     const { tile } = task.resolution;
     const { letterTiles } = task.resolutionComputeds;
     letterTiles.pop();
-    this.placement.push({ cell, tile } as Link);
+    this.placement.push({ cell, tile });
     this.board.placeTile(cell, tile);
     return this.emitContinue();
   }
@@ -187,7 +186,7 @@ class TaskDispatcher {
     const { traversal } = task;
     const position = traversal.position + traversal.direction;
     const cell = this.computeds.axisCells[position];
-    if (cell === undefined) throw new ReferenceError(`expected cell at position ${position}, got undefined`);
+    if (cell === undefined) throw new ReferenceError(`expected cell at position ${String(position)}, got undefined`);
     const tile = this.board.findTileByCell(cell);
     const resolution: Resolution | undefined = tile !== undefined ? { tile } : undefined;
     const candidate: Candidate = { cell, position, resolution };
@@ -224,7 +223,7 @@ class TaskDispatcher {
         tiles.push(link.tile);
         this.context.turns.addPlacedTile(link.tile);
       }
-      const validationResult = TurnValidationService.execute(this.context as ValidatorContext);
+      const validationResult = TurnValidationService.execute(this.context);
       for (const tile of tiles) this.context.turns.removePlacedTile(tile);
       if (validationResult.status === ValidationStatus.Valid) {
         const cells = this.placement.map(link => link.cell);
@@ -300,12 +299,12 @@ export default class TurnGenerationService {
   }
 
   static hydrateContext(data: unknown, dictionary: Dictionary): GeneratorContext {
-    const d = data as { board: Board; inventory: Inventory; turns: Turns };
+    const source = data as { board: Board; inventory: Inventory; turns: Turns };
     return {
-      board: Board.clone(d.board),
+      board: Board.clone(source.board),
       dictionary,
-      inventory: Inventory.clone(d.inventory),
-      turns: Turns.clone(d.turns, { createUniqueId: () => '' }),
+      inventory: Inventory.clone(source.inventory),
+      turns: Turns.clone(source.turns, { createUniqueId: () => '' }),
     };
   }
 

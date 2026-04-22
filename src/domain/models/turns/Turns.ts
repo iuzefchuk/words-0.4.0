@@ -33,7 +33,7 @@ class Turn {
   private constructor(
     readonly id: string,
     readonly player: Player,
-    private tiles: Array<Tile>,
+    private readonly tiles: Array<Tile>,
     private validationResult: ValidationResult = { status: ValidationStatus.Unvalidated },
   ) {}
 
@@ -62,7 +62,7 @@ class Turn {
     this.validationResult = { status: ValidationStatus.Unvalidated };
   }
 
-  setValidationResult(result: ValidationResult) {
+  setValidationResult(result: ValidationResult): void {
     this.validationResult = result;
   }
 }
@@ -115,7 +115,7 @@ export default class Turns {
 
   private constructor(
     private readonly identityService: IdentityService,
-    private history: Array<Turn>,
+    private readonly history: Array<Turn>,
   ) {}
 
   static clone(source: Turns, identityService?: IdentityService): Turns {

@@ -18,8 +18,8 @@ const isMounted = ref(false);
 onMounted(() => nextTick(() => (isMounted.value = true)));
 const style = computed(() => ({
   ...(transitionDurationMs !== undefined && {
-    '--transition-duration': `${transitionDurationMs}ms`,
-    '--transition-duration-half': `${transitionDurationMs / 2}ms`,
+    '--transition-duration': `${String(transitionDurationMs)}ms`,
+    '--transition-duration-half': `${String(transitionDurationMs / 2)}ms`,
   }),
   '--cell-count-per-axis': 15, // TODO remove when implementing dynamic board sizes
 }));

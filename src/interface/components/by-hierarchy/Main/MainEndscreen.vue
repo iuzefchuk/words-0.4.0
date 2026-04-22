@@ -7,13 +7,13 @@ import ApplicationStore from '@/interface/stores/ApplicationStore.ts';
 const applicationStore = ApplicationStore.INSTANCE();
 const events = UseEventHandlers.create();
 const { matchResult, opponentScore, userScore } = storeToRefs(applicationStore);
-const text = computed(() => getMatchResultText(matchResult.value, userScore.value - opponentScore.value));
+const resultText = computed(() => getMatchResultText(matchResult.value, userScore.value - opponentScore.value));
 </script>
 
 <template>
   <button class="endscreen" @dblclick="events.handleGameRestart()">
-    <p class="endscreen__text">{{ text }}</p>
-    <p class="endscreen__hint app__make-secondary">{{ t('game.action_new_match') }}</p>
+    <p class="endscreen__text">{{ resultText }}</p>
+    <p class="endscreen__hint app__make-secondary">{{ text('game.action_new_match') }}</p>
   </button>
 </template>
 

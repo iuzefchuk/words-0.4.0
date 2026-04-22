@@ -51,19 +51,19 @@ export default class DialogStore {
 
   private static readonly DEFAULT_TITLE = '';
 
-  private cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
+  private readonly cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
 
-  private cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
+  private readonly cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
 
-  private confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
+  private readonly confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
 
-  private confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
+  private readonly confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
 
-  private htmlRef = ref(DialogStore.DEFAULT_HTML);
+  private readonly htmlRef = ref(DialogStore.DEFAULT_HTML);
 
   private pendingResolve: ((result: DialogResult) => void) | null = null;
 
-  private titleRef = ref(DialogStore.DEFAULT_TITLE);
+  private readonly titleRef = ref(DialogStore.DEFAULT_TITLE);
 
   private set cancelIsHidden(newValue: boolean) {
     this.cancelIsHiddenRef.value = newValue;
@@ -89,7 +89,7 @@ export default class DialogStore {
     this.titleRef.value = newValue;
   }
 
-  private resetState() {
+  private resetState(): void {
     this.title = DialogStore.DEFAULT_TITLE;
     this.html = DialogStore.DEFAULT_HTML;
     this.cancelText = DialogStore.DEFAULT_CANCEL_TEXT;

@@ -30,8 +30,8 @@ export default class Match {
   }
 
   private constructor(
-    private results: Map<Player, MatchResult>,
-    private scores: Map<Player, number>,
+    private readonly results: Map<Player, MatchResult>,
+    private readonly scores: Map<Player, number>,
   ) {}
 
   static create(players: ReadonlyArray<Player>): Match {
@@ -53,7 +53,7 @@ export default class Match {
   }
 
   incrementScore(player: Player, incrementation: number): void {
-    if (incrementation < 0) throw new Error(`expected non-negative increment, got ${incrementation}`);
+    if (incrementation < 0) throw new Error(`expected non-negative increment, got ${String(incrementation)}`);
     const currentScore = this.getScoreFor(player);
     const newScore = currentScore + incrementation;
     this.scores.set(player, newScore);

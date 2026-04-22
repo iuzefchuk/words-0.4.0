@@ -13,8 +13,8 @@ class DictionaryBuilder {
       ...new Set(
         text
           .split('\n')
-          .map(w => w.trim().toUpperCase())
-          .filter(w => w.length > 0 && /^[A-Z]+$/.test(w)),
+          .map(line => line.trim().toUpperCase())
+          .filter(line => line.length > 0 && /^[A-Z]+$/.test(line)),
       ),
     ];
     console.log(`Words: ${words.length.toLocaleString()}`);
@@ -39,8 +39,8 @@ class DictionaryBuilder {
     const root = { children: Object.create(null), isFinal: false };
     for (const word of words) {
       let node = root;
-      for (let i = 0; i < word.length; i++) {
-        const letter = word[i];
+      for (let idx = 0; idx < word.length; idx++) {
+        const letter = word[idx];
         if (!node.children[letter]) {
           node.children[letter] = { children: Object.create(null), isFinal: false };
         }
@@ -53,8 +53,8 @@ class DictionaryBuilder {
 
   static #containsWord(buffer, word) {
     let offset = 0;
-    for (let i = 0; i < word.length; i++) {
-      const childOffset = buffer[offset + 1 + (word.charCodeAt(i) - DictionaryBuilder.FIRST_LETTER_CODE)];
+    for (let idx = 0; idx < word.length; idx++) {
+      const childOffset = buffer[offset + 1 + (word.charCodeAt(idx) - DictionaryBuilder.FIRST_LETTER_CODE)];
       if (!childOffset) return false;
       offset = childOffset;
     }
@@ -71,13 +71,13 @@ class DictionaryBuilder {
 
   static #flatten(root) {
     const nodeCount = DictionaryBuilder.#countNodes(root);
-    const N = DictionaryBuilder.ENTRIES_PER_NODE;
-    const buffer = new Int32Array(nodeCount * N);
+    const entriesPerNode = DictionaryBuilder.ENTRIES_PER_NODE;
+    const buffer = new Int32Array(nodeCount * entriesPerNode);
     let nextOffset = 0;
 
     function visit(node) {
       const base = nextOffset;
-      nextOffset += N;
+      nextOffset += entriesPerNode;
       buffer[base] = node.isFinal ? 1 : 0;
       for (const letter in node.children) {
         buffer[base + 1 + (letter.charCodeAt(0) - DictionaryBuilder.FIRST_LETTER_CODE)] = visit(node.children[letter]);
@@ -86,7 +86,9 @@ class DictionaryBuilder {
     }
 
     visit(root);
-    if (nextOffset !== nodeCount * N) throw new Error(`Expected ${nodeCount * N} entries, got ${nextOffset}`);
+    if (nextOffset !== nodeCount * entriesPerNode) {
+      throw new Error(`Expected ${nodeCount * entriesPerNode} entries, got ${nextOffset}`);
+    }
     return buffer;
   }
 }

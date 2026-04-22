@@ -111,7 +111,7 @@ export default class CommandsService {
   }
 
   private clearPersistence(): void {
-    this.eventRepository.delete();
+    void this.eventRepository.delete();
   }
 
   private async createOpponentTurn(): Promise<GameEvent> {
@@ -153,9 +153,9 @@ export default class CommandsService {
       return this.workerService.stream<GameGeneratorResult>(this.turnGenerationTaskId, workerInput);
     }
     const inputs: Array<unknown> = [];
-    for (let i = 0; i < workerCount; i++) {
-      const offset = Math.round((anchorCount * i) / workerCount);
-      const end = Math.round((anchorCount * (i + 1)) / workerCount);
+    for (let idx = 0; idx < workerCount; idx++) {
+      const offset = Math.round((anchorCount * idx) / workerCount);
+      const end = Math.round((anchorCount * (idx + 1)) / workerCount);
       inputs.push({ ...workerInput, partition: { length: end - offset, offset } });
     }
     return this.workerService.streamParallel<GameGeneratorResult>(this.turnGenerationTaskId, inputs);
@@ -172,27 +172,31 @@ export default class CommandsService {
 
   private async executeOpponentTurn(): Promise<AppTurnResponse> {
     const event = await this.ensureMinimumDuration(() => this.createOpponentTurn());
-    let response: AppTurnResponse;
-    switch (event.type) {
-      case GameEventType.MatchFinished:
-        response = { ok: true, value: { words: [] } };
-        break;
-      case GameEventType.TurnPassed:
-        response = { ok: true, value: { words: [] } };
-        break;
-      case GameEventType.TurnSaved:
-        if (!this.inventoryView.hasTilesFor(GamePlayer.Opponent)) this.game.finishMatchByScore();
-        response = { ok: true, value: { words: event.words } };
-        break;
-      default:
-        throw new ReferenceError(`unexpected opponent event type "${(event as { type: string }).type}"`);
-    }
+    const response = this.opponentResponseFor(event);
     if (this.game.matchView.isFinished) {
       this.clearPersistence();
     } else {
       this.syncPersistence();
     }
     return response;
+  }
+
+  private opponentResponseFor(event: GameEvent): AppTurnResponse {
+    switch (event.type) {
+      case GameEventType.MatchFinished:
+      case GameEventType.TurnPassed:
+        return { ok: true, value: { words: [] } };
+      case GameEventType.TurnSaved:
+        if (!this.inventoryView.hasTilesFor(GamePlayer.Opponent)) this.game.finishMatchByScore();
+        return { ok: true, value: { words: event.words } };
+      case GameEventType.BoardTypeChanged:
+      case GameEventType.DifficultyChanged:
+      case GameEventType.MatchStarted:
+      case GameEventType.TilePlaced:
+      case GameEventType.TileUndoPlaced:
+      case GameEventType.TurnValidated:
+        throw new ReferenceError(`unexpected opponent event type "${event.type}"`);
+    }
   }
 
   private saveTurnForCurrentPlayer(): AppTurnResponse {
@@ -202,6 +206,6 @@ export default class CommandsService {
   }
 
   private syncPersistence(): void {
-    this.eventRepository.save(this.game.eventsLogView);
+    void this.eventRepository.save(this.game.eventsLogView);
   }
 }

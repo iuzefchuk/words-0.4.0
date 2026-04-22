@@ -40,11 +40,11 @@ export default class Dictionary {
 
   forEachNodeChild(node: Node, callback: (letter: Letter, childNode: Node) => void): void {
     const data = this.data;
-    for (let i = 0; i < Dictionary.LETTERS.length; i++) {
-      const childOffset = data[(node as number) + 1 + i];
-      if (childOffset === undefined) throw new ReferenceError(`expected child offset at index ${i}, got undefined`);
-      const letter = Dictionary.LETTERS[i];
-      if (letter === undefined) throw new ReferenceError(`expected letter at index ${i}, got undefined`);
+    for (let idx = 0; idx < Dictionary.LETTERS.length; idx++) {
+      const childOffset = data[(node as number) + 1 + idx];
+      if (childOffset === undefined) throw new ReferenceError(`expected child offset at index ${String(idx)}, got undefined`);
+      const letter = Dictionary.LETTERS[idx];
+      if (letter === undefined) throw new ReferenceError(`expected letter at index ${String(idx)}, got undefined`);
       if (childOffset !== 0) callback(letter, childOffset as Node);
     }
   }
@@ -52,9 +52,10 @@ export default class Dictionary {
   getNode(word: string, startNode: Node = this.rootNode): Node | null {
     const data = this.data;
     let current = startNode as number;
-    for (let i = 0; i < word.length; i++) {
-      const childOffset = data[current + 1 + word.charCodeAt(i) - Dictionary.FIRST_LETTER_CODE];
-      if (childOffset === undefined) throw new ReferenceError(`expected child offset for letter "${word[i]}", got undefined`);
+    for (let idx = 0; idx < word.length; idx++) {
+      const childOffset = data[current + 1 + word.charCodeAt(idx) - Dictionary.FIRST_LETTER_CODE];
+      if (childOffset === undefined)
+        throw new ReferenceError(`expected child offset for letter "${String(word[idx])}", got undefined`);
       if (childOffset === 0) return null;
       current = childOffset;
     }
