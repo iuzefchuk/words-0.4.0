@@ -17,9 +17,7 @@ export default defineConfigWithVueTs([
   {
     languageOptions: {
       parserOptions: {
-        projectService: {
-          allowDefaultProject: ['scripts/*.js', '*.mjs'],
-        },
+        projectService: true,
         tsconfigRootDir: path.dirname(fileURLToPath(import.meta.url)),
       },
     },
@@ -191,16 +189,6 @@ export default defineConfigWithVueTs([
     rules: {
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/prefer-for-of': 'off',
-    },
-  },
-  {
-    files: ['scripts/bench*.js', 'tests/bench*.test.ts'],
-    rules: {
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/restrict-template-expressions': 'off',
-      '@typescript-eslint/strict-boolean-expressions': 'off',
-      'id-length': 'off',
-      'perfectionist/sort-modules': 'off',
     },
   },
   prettierConfig,
