@@ -17,12 +17,13 @@ import SettingsMutationSpec from '@/domain/models/turns/specifications/SettingsM
 import Turns from '@/domain/models/turns/Turns.ts';
 import MatchTerminationPolicy from '@/domain/policies/MatchTerminationPolicy.ts';
 import TurnGenerationService from '@/domain/services/generation/turn/TurnGenerationService.ts';
-import { GeneratorContext, GeneratorResult } from '@/domain/services/generation/turn/types.ts';
 import TurnValidationService from '@/domain/services/validation/turn/TurnValidationService.ts';
 import {
   GameBoardView,
   GameCell,
   GameEvent,
+  GameGeneratorContext,
+  GameGeneratorResult,
   GameInventoryView,
   GameMatchSettings,
   GameMatchView,
@@ -141,7 +142,7 @@ export default class Game {
     }[matchType];
   }
 
-  applyGeneratedTurn(result: GeneratorResult): { score: number; words: ReadonlyArray<string> } {
+  applyGeneratedTurn(result: GameGeneratorResult): { score: number; words: ReadonlyArray<string> } {
     this.ensureMutability();
     for (let idx = 0; idx < result.tiles.length; idx++) {
       const cell = result.cells[idx];
@@ -220,7 +221,7 @@ export default class Game {
     this.applyEvent({ result: { status: GameValidationStatus.Unvalidated }, type: GameEventType.TurnValidated });
   }
 
-  createTurnGenerationContext(): GeneratorContext {
+  createTurnGenerationContext(): GameGeneratorContext {
     if (this.dictionary === undefined) throw new Error('cannot create turn generation context: dictionary is undefined');
     return TurnGenerationService.createContext(this.board, this.dictionary, this.inventory, this.turns);
   }

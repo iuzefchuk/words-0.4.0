@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
-import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
-import MainStore from '@/interface/stores/MainStore.ts';
+import UseEvents from '@/interface/composables/UseEvents';
 import InventoryStore from '@/interface/stores/InventoryStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
 const inventoryStore = InventoryStore.INSTANCE();
-const events = UseEventHandlers.create();
+const events = UseEvents.create();
 const { anyTileIsPlaced } = storeToRefs(inventoryStore);
 const { allActionsAreDisabled } = storeToRefs(mainStore);
 const items = reactive([
@@ -36,7 +36,7 @@ const items = reactive([
   },
   {
     action: () => {
-      events.handleClear();
+      events.handleClearTiles();
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => anyTileIsPlaced.value,
@@ -44,7 +44,7 @@ const items = reactive([
   },
   {
     action: () => {
-      events.handlePlay();
+      events.handleSave();
     },
     isDisabled: () => allActionsAreDisabled.value || !mainStore.currentTurnIsValid,
     isRendered: () => true,

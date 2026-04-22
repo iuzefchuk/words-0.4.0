@@ -1,17 +1,17 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import UseEvents from '@/interface/composables/UseEvents';
 import { getMatchResultText } from '@/interface/mappings.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
-const events = UseEventHandlers.create();
+const events = UseEvents.create();
 const { matchResult, opponentScore, userScore } = storeToRefs(mainStore);
 const resultText = computed(() => getMatchResultText(matchResult.value, userScore.value - opponentScore.value));
 </script>
 
 <template>
-  <button class="endscreen" @dblclick="events.handleGameRestart()">
+  <button class="endscreen" @dblclick="events.handleRestartGame()">
     <p class="endscreen__text">{{ resultText }}</p>
     <p class="endscreen__hint app__make-secondary">{{ text('game.action_new_match') }}</p>
   </button>

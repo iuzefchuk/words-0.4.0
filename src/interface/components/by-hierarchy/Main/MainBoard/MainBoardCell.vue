@@ -2,11 +2,11 @@
 import { computed } from 'vue';
 import { GameBonus, GameCell } from '@/application/types/index.ts';
 import GameTile from '@/interface/components/shared/AppTile/AppTile.vue';
-import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import UseEvents from '@/interface/composables/UseEvents';
 import { getBonusName } from '@/interface/mappings.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 import InventoryStore from '@/interface/stores/InventoryStore.ts';
-const events = UseEventHandlers.create();
+const events = UseEvents.create();
 const props = defineProps<{
   cell: GameCell;
 }>();

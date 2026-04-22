@@ -34,6 +34,7 @@ class TilePool {
 
   removeTile(tile: Tile): Tile {
     const index = this.tiles.indexOf(tile);
+    if (index === -1) throw new ReferenceError(`tile ${tile} is not in pool`);
     const [removedTile] = this.tiles.splice(index, 1);
     if (removedTile === undefined) throw new ReferenceError(`tile ${tile} is not in pool`);
     return removedTile;

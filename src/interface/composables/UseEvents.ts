@@ -1,18 +1,14 @@
 import { inject } from 'vue';
-import { GameCell, GameTile } from '@/application/types/index.ts';
+import { GameCell, GameMatchDifficulty, GameMatchType, GameTile } from '@/application/types/index.ts';
 import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 import SoundPlayer, { Sound } from '@/interface/services/SoundPlayer.ts';
-import MainStore from '@/interface/stores/MainStore.ts';
 import DialogStore from '@/interface/stores/DialogStore.ts';
 import InventoryStore from '@/interface/stores/InventoryStore.ts';
+import MainStore from '@/interface/stores/MainStore.ts';
 
-export default class UseEventHandlers {
+export default class UseUserEvents {
   get selectedTile(): GameTile | null {
     return this.inventoryStore.selectedTile;
-  }
-
-  private get mainStore(): ReturnType<typeof MainStore.INSTANCE> {
-    return MainStore.INSTANCE();
   }
 
   private get dialogStore(): ReturnType<typeof DialogStore.INSTANCE> {
@@ -23,15 +19,28 @@ export default class UseEventHandlers {
     return InventoryStore.INSTANCE();
   }
 
-  private constructor(private readonly resignDelayMs: number) {}
-
-  static create(): UseEventHandlers {
-    const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY, 0);
-    const resignDelayMs = transitionDurationMs * 2;
-    return new UseEventHandlers(resignDelayMs);
+  private get mainStore(): ReturnType<typeof MainStore.INSTANCE> {
+    return MainStore.INSTANCE();
   }
 
-  handleClear(): void {
+  private constructor(private readonly resignDelayMs: number) {}
+
+  static create(): UseUserEvents {
+    const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY, 0);
+    const resignDelayMs = transitionDurationMs * 2;
+    return new UseUserEvents(resignDelayMs);
+  }
+
+  handleChangeMatchDifficulty(matchDifficulty: GameMatchDifficulty): void {
+    this.mainStore.changeMatchDifficulty(matchDifficulty);
+  }
+
+  handleChangeMatchType(matchType: GameMatchType): void {
+    this.mainStore.changeMatchType(matchType);
+    this.inventoryStore.initialize();
+  }
+
+  handleClearTiles(): void {
     this.mainStore.clearTiles();
     this.inventoryStore.initialize();
     SoundPlayer.play(Sound.SystemClear);
@@ -109,21 +118,11 @@ export default class UseEventHandlers {
     this.mainStore.undoPlaceTile(tile);
   }
 
-  handleGameRestart(): void {
-    this.mainStore.restartGame();
-    this.inventoryStore.initialize();
-  }
-
   async handlePass(): Promise<void> {
     if (this.mainStore.userPassWillBeResign) return this.handleResign();
     const { isConfirmed } = await this.triggerPassDialog();
     if (!isConfirmed) return;
     this.mainStore.pass();
-  }
-
-  handlePlay(): void {
-    this.mainStore.save();
-    this.inventoryStore.initialize();
   }
 
   async handleResign(): Promise<void> {
@@ -132,6 +131,16 @@ export default class UseEventHandlers {
     setTimeout(() => {
       this.mainStore.resign();
     }, this.resignDelayMs);
+  }
+
+  handleRestartGame(): void {
+    this.mainStore.restartGame();
+    this.inventoryStore.initialize();
+  }
+
+  handleSave(): void {
+    this.mainStore.save();
+    this.inventoryStore.initialize();
   }
 
   handleShuffle(): void {

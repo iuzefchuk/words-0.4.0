@@ -16,7 +16,12 @@ import type {
   ValidationResult,
   ValidResult,
 } from '@/domain/models/turns/types.ts';
-import type { GeneratorContextData, GeneratorPartition, GeneratorResult } from '@/domain/services/generation/turn/types.ts';
+import type {
+  GeneratorContext,
+  GeneratorContextData,
+  GeneratorPartition,
+  GeneratorResult,
+} from '@/domain/services/generation/turn/types.ts';
 
 export { GameDictionary, GameTurnGenerator };
 
@@ -30,6 +35,7 @@ export type {
   ComputedValue as GameComputedValue,
   ComputedWords as GameComputedWords,
   Event as GameEvent,
+  GeneratorContext as GameGeneratorContext,
   GeneratorContextData as GameGeneratorContextData,
   GeneratorPartition as GameGeneratorPartition,
   GeneratorResult as GameGeneratorResult,
