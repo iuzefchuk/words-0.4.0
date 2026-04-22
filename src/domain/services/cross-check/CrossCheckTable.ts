@@ -1,13 +1,8 @@
-import { GameAxis } from '@/domain/enums.ts';
-import LayoutService from '@/domain/models/board/services/layout/LayoutService.ts';
+import { GameAxis, GameLetter } from '@/domain/enums.ts';
 import { GameCell } from '@/domain/types/index.ts';
 
 export default class CrossCheckTable {
-  static readonly ALL_LETTERS_MASK = (1 << 26) - 1;
-
-  static readonly BYTE_LENGTH = LayoutService.CELLS_PER_LAYOUT * 2 * Uint32Array.BYTES_PER_ELEMENT;
-
-  private static readonly Y_OFFSET = LayoutService.CELLS_PER_LAYOUT;
+  static readonly ALL_LETTERS_MASK = (1 << Object.values(GameLetter).length) - 1;
 
   get buffer(): ArrayBuffer | SharedArrayBuffer {
     return this.data.buffer;
@@ -15,25 +10,29 @@ export default class CrossCheckTable {
 
   private readonly data: Uint32Array;
 
-  private constructor(buffer: ArrayBuffer | SharedArrayBuffer) {
+  private readonly yOffset: number;
+
+  private constructor(buffer: ArrayBuffer | SharedArrayBuffer, cellCount: number) {
     this.data = new Uint32Array(buffer);
+    this.yOffset = cellCount;
   }
 
-  static create(): CrossCheckTable {
-    return new CrossCheckTable(new SharedArrayBuffer(CrossCheckTable.BYTE_LENGTH));
+  static create(cellCount: number): CrossCheckTable {
+    const byteLength = cellCount * 2 * Uint32Array.BYTES_PER_ELEMENT;
+    return new CrossCheckTable(new SharedArrayBuffer(byteLength), cellCount);
   }
 
-  static fromBuffer(buffer: ArrayBuffer | SharedArrayBuffer): CrossCheckTable {
-    return new CrossCheckTable(buffer);
+  static createFromBuffer(buffer: ArrayBuffer | SharedArrayBuffer, cellCount: number): CrossCheckTable {
+    return new CrossCheckTable(buffer, cellCount);
   }
 
   getMask(axis: GameAxis, cell: GameCell): number {
-    const mask = this.data[(axis === GameAxis.X ? 0 : CrossCheckTable.Y_OFFSET) + cell];
+    const mask = this.data[(axis === GameAxis.X ? 0 : this.yOffset) + cell];
     if (mask === undefined) throw new ReferenceError(`expected mask for axis ${axis} cell ${String(cell)}, got undefined`);
     return mask;
   }
 
   setMask(axis: GameAxis, cell: GameCell, mask: number): void {
-    this.data[(axis === GameAxis.X ? 0 : CrossCheckTable.Y_OFFSET) + cell] = mask;
+    this.data[(axis === GameAxis.X ? 0 : this.yOffset) + cell] = mask;
   }
 }

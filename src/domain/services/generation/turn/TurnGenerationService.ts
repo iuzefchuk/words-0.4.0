@@ -298,9 +298,10 @@ export default class TurnGenerationService {
 
   static hydrateContext(data: unknown, dictionary: Dictionary, crossCheckBuffer: SharedArrayBuffer): GeneratorContext {
     const source = data as { board: Board; inventory: Inventory; turns: Turns };
+    const board = Board.clone(source.board);
     return {
-      board: Board.clone(source.board),
-      crossCheckTable: CrossCheckTable.fromBuffer(crossCheckBuffer),
+      board,
+      crossCheckTable: CrossCheckTable.createFromBuffer(crossCheckBuffer, board.cells.length),
       dictionary,
       inventory: Inventory.clone(source.inventory),
       turns: Turns.clone(source.turns, { createUniqueId: () => '' }),

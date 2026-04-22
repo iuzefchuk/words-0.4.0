@@ -14,7 +14,7 @@ export default class CrossCheckService {
 
   static precompute(board: Board, dictionary: Dictionary, inventory: Inventory): CrossCheckTable {
     const service = new CrossCheckService(board, dictionary, inventory);
-    const table = CrossCheckTable.create();
+    const table = CrossCheckTable.create(board.cells.length);
     for (const axis of Object.values(GameAxis)) {
       for (const cell of board.cells) {
         table.setMask(axis, cell, service.computeFor({ axis, cell }));
