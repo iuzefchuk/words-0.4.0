@@ -7,12 +7,12 @@ import MainEndscreen from '@/interface/components/by-hierarchy/Main/MainEndscree
 import MainFooter from '@/interface/components/by-hierarchy/Main/MainFooter/MainFooter.vue';
 import MainHeader from '@/interface/components/by-hierarchy/Main/MainHeader.vue';
 import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
-import InventoryStore from '@/interface/stores/InventoryStore.ts';
+import UserStore from '@/interface/stores/UserStore.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 await MainStore.initiate();
 const mainStore = MainStore.INSTANCE();
 const { matchIsFinished } = storeToRefs(mainStore);
-const inventoryStore = InventoryStore.INSTANCE();
+const userStore = UserStore.INSTANCE();
 const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY);
 const isMounted = ref(false);
 onMounted(() => nextTick(() => (isMounted.value = true)));
@@ -26,7 +26,7 @@ const style = computed(() => ({
 </script>
 
 <template>
-  <main :style="style" :class="{ main: true, 'main--blurred': matchIsFinished }" @click="inventoryStore.deselectTile()">
+  <main :style="style" :class="{ main: true, 'main--blurred': matchIsFinished }" @click="userStore.deselectTile()">
     <Transition name="fade-down-up">
       <MainHeader v-if="isMounted" />
     </Transition>

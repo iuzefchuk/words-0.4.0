@@ -3,20 +3,20 @@ import { GameCell, GameMatchDifficulty, GameMatchType, GameTile } from '@/applic
 import ProvidesPlugin from '@/interface/plugins/ProvidesPlugin.ts';
 import SoundPlayer, { Sound } from '@/interface/services/SoundPlayer.ts';
 import DialogStore from '@/interface/stores/DialogStore.ts';
-import InventoryStore from '@/interface/stores/InventoryStore.ts';
+import UserStore from '@/interface/stores/UserStore.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 
-export default class UseUserEvents {
+export default class UseEventHandlers {
   get selectedTile(): GameTile | null {
-    return this.inventoryStore.selectedTile;
+    return this.userStore.selectedTile;
   }
 
   private get dialogStore(): ReturnType<typeof DialogStore.INSTANCE> {
     return DialogStore.INSTANCE();
   }
 
-  private get inventoryStore(): ReturnType<typeof InventoryStore.INSTANCE> {
-    return InventoryStore.INSTANCE();
+  private get userStore(): ReturnType<typeof UserStore.INSTANCE> {
+    return UserStore.INSTANCE();
   }
 
   private get mainStore(): ReturnType<typeof MainStore.INSTANCE> {
@@ -25,10 +25,10 @@ export default class UseUserEvents {
 
   private constructor(private readonly resignDelayMs: number) {}
 
-  static create(): UseUserEvents {
+  static create(): UseEventHandlers {
     const transitionDurationMs = inject(ProvidesPlugin.TRANSITION_DURATION_MS_KEY, 0);
     const resignDelayMs = transitionDurationMs * 2;
-    return new UseUserEvents(resignDelayMs);
+    return new UseEventHandlers(resignDelayMs);
   }
 
   handleChangeMatchDifficulty(matchDifficulty: GameMatchDifficulty): void {
@@ -37,12 +37,12 @@ export default class UseUserEvents {
 
   handleChangeMatchType(matchType: GameMatchType): void {
     this.mainStore.changeMatchType(matchType);
-    this.inventoryStore.initialize();
+    this.userStore.initialize();
   }
 
   handleClearTiles(): void {
     this.mainStore.clearTiles();
-    this.inventoryStore.initialize();
+    this.userStore.initialize();
     SoundPlayer.play(Sound.SystemClear);
   }
 
@@ -50,20 +50,20 @@ export default class UseUserEvents {
     const selected = this.selectedTile;
     if (selected === null) return;
     if (this.mainStore.findTileOnCell(cell) !== undefined) return;
-    if (this.inventoryStore.selectedTileIsPlaced) this.mainStore.undoPlaceTile(selected);
+    if (this.userStore.selectedTileIsPlaced) this.mainStore.undoPlaceTile(selected);
     this.mainStore.placeTile({ cell, tile: selected });
-    this.inventoryStore.deselectTile();
+    this.userStore.deselectTile();
   }
 
   handleClickBoardTile(tile: GameTile): void {
-    if (!this.inventoryStore.isTileInRack(tile)) return;
-    if (this.inventoryStore.isTileSelected(tile)) {
-      this.inventoryStore.deselectTile();
+    if (!this.userStore.isTileInRack(tile)) return;
+    if (this.userStore.isTileSelected(tile)) {
+      this.userStore.deselectTile();
       return;
     }
     const selected = this.selectedTile;
     if (selected === null) {
-      this.inventoryStore.selectTile(tile);
+      this.userStore.selectTile(tile);
       return;
     }
     const targetCell = this.mainStore.findCellWithTile(tile);
@@ -77,44 +77,44 @@ export default class UseUserEvents {
     } else {
       this.mainStore.undoPlaceTile(tile);
       this.mainStore.placeTile({ cell: targetCell, tile: selected });
-      this.inventoryStore.switchTiles(selected, tile);
+      this.userStore.switchTiles(selected, tile);
     }
-    this.inventoryStore.deselectTile();
+    this.userStore.deselectTile();
   }
 
   handleClickRackCell(idx: number): void {
-    const tile = this.inventoryStore.tiles[idx];
+    const tile = this.userStore.tiles[idx];
     if (tile === undefined) throw new ReferenceError(`expected tile at rack index ${String(idx)}, got undefined`);
     const selected = this.selectedTile;
     if (selected === null) {
       if (this.mainStore.isTilePlaced(tile)) this.mainStore.undoPlaceTile(tile);
       return;
     }
-    if (this.inventoryStore.selectedTileIsPlaced) this.mainStore.undoPlaceTile(selected);
-    this.inventoryStore.switchTiles(selected, tile);
-    this.inventoryStore.deselectTile();
+    if (this.userStore.selectedTileIsPlaced) this.mainStore.undoPlaceTile(selected);
+    this.userStore.switchTiles(selected, tile);
+    this.userStore.deselectTile();
   }
 
   handleClickRackTile(tile: GameTile): void {
     const selected = this.selectedTile;
     if (selected === null) {
-      this.inventoryStore.selectTile(tile);
+      this.userStore.selectTile(tile);
       return;
     }
-    if (!this.inventoryStore.isTileSelected(tile)) {
+    if (!this.userStore.isTileSelected(tile)) {
       const selectedCell = this.mainStore.findCellWithTile(selected);
       if (selectedCell !== undefined) {
         this.mainStore.undoPlaceTile(selected);
         this.mainStore.placeTile({ cell: selectedCell, tile });
       }
-      this.inventoryStore.switchTiles(selected, tile);
+      this.userStore.switchTiles(selected, tile);
     }
-    this.inventoryStore.deselectTile();
+    this.userStore.deselectTile();
   }
 
   handleDoubleClickBoardTile(tile: GameTile): void {
-    if (!this.inventoryStore.isTileInRack(tile)) return;
-    this.inventoryStore.deselectTile();
+    if (!this.userStore.isTileInRack(tile)) return;
+    this.userStore.deselectTile();
     this.mainStore.undoPlaceTile(tile);
   }
 
@@ -135,16 +135,16 @@ export default class UseUserEvents {
 
   handleRestartGame(): void {
     this.mainStore.restartGame();
-    this.inventoryStore.initialize();
+    this.userStore.initialize();
   }
 
   handleSave(): void {
     this.mainStore.save();
-    this.inventoryStore.initialize();
+    this.userStore.initialize();
   }
 
   handleShuffle(): void {
-    this.inventoryStore.shuffle();
+    this.userStore.shuffleTiles();
     SoundPlayer.play(Sound.SystemShuffle);
   }
 

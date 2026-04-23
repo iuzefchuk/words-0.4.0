@@ -2,16 +2,16 @@
 import { computed } from 'vue';
 import { GameBonus, GameCell } from '@/application/types/index.ts';
 import GameTile from '@/interface/components/shared/AppTile/AppTile.vue';
-import UseEvents from '@/interface/composables/UseEvents';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
 import { getBonusName } from '@/interface/mappings.ts';
-import InventoryStore from '@/interface/stores/InventoryStore.ts';
+import UserStore from '@/interface/stores/UserStore.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
-const events = UseEvents.create();
+const eventHandlers = UseEventHandlers.create();
 const props = defineProps<{
   cell: GameCell;
 }>();
 const mainStore = MainStore.INSTANCE();
-const inventoryStore = InventoryStore.INSTANCE();
+const userStore = UserStore.INSTANCE();
 const isCellCenter = computed(() => mainStore.isCellCenter(props.cell));
 const bonus = computed(() => mainStore.getCellBonus(props.cell));
 const bonusName = computed(() => (bonus.value !== null ? getBonusName(bonus.value) : ''));
@@ -21,13 +21,13 @@ const isTileSaturated = computed(() => tile.value !== undefined && mainStore.was
 
 <template>
   <li
-    v-memo="[tile, bonus, isTileSaturated, tile ? inventoryStore.isTileSelected(tile) : false]"
+    v-memo="[tile, bonus, isTileSaturated, tile ? userStore.isTileSelected(tile) : false]"
     :class="{
       cell: true,
       'cell--center': isCellCenter,
       'cell--has-tile': tile,
     }"
-    @click.stop="events.handleClickBoardCell(cell)"
+    @click.stop="eventHandlers.handleClickBoardCell(cell)"
   >
     <Transition name="fade" appear>
       <svg
@@ -51,10 +51,10 @@ const isTileSaturated = computed(() => tile.value !== undefined && mainStore.was
       <GameTile
         v-if="tile"
         :letter="mainStore.getTileLetter(tile)"
-        :is-inverted="inventoryStore.isTileSelected(tile)"
+        :is-inverted="userStore.isTileSelected(tile)"
         :is-saturated="isTileSaturated"
-        @click.stop="events.handleClickBoardTile(tile)"
-        @dblclick.stop="events.handleDoubleClickBoardTile(tile)"
+        @click.stop="eventHandlers.handleClickBoardTile(tile)"
+        @dblclick.stop="eventHandlers.handleDoubleClickBoardTile(tile)"
       />
     </Transition>
   </li>
@@ -79,6 +79,7 @@ const isTileSaturated = computed(() => tile.value !== undefined && mainStore.was
   &__bonus {
     font-weight: var(--font-weight-big);
     z-index: var(--z-index-level-1);
+    opacity: var(--cell-opacity-bonus);
     $bonuses: 'dw', 'tw', 'dl', 'tl';
     @each $bonus in $bonuses {
       &--#{$bonus} text {

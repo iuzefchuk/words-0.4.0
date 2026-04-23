@@ -2,10 +2,10 @@ import { computed } from 'vue';
 import { GameEvent, GameEventType, GamePlayer } from '@/application/types/index.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 
-export default class UseNotifications {
-  private static readonly MAX_DISPLAYED_MESSAGES = 3;
+export default class UseEventsHistory {
+  private static readonly MAX_DISPLAYED_EVENTS = 3;
 
-  readonly messages = computed(() => {
+  readonly history = computed(() => {
     return this.displayedEvents.map((event, index) => ({
       html: this.createEventHtml(event),
       key: this.createEventKey(index),
@@ -18,7 +18,7 @@ export default class UseNotifications {
 
   private get displayedEvents(): ReadonlyArray<GameEvent> {
     const events = this.allDisplayedEvents;
-    const start = Math.max(0, events.length - UseNotifications.MAX_DISPLAYED_MESSAGES);
+    const start = Math.max(0, events.length - UseEventsHistory.MAX_DISPLAYED_EVENTS);
     return events.slice(start);
   }
 
@@ -26,15 +26,15 @@ export default class UseNotifications {
     return MainStore.INSTANCE();
   }
 
-  private static createPassMessage(player: GamePlayer): string {
-    return player === GamePlayer.User ? window.text('game.message_pass_user') : window.text('game.message_pass_opponent');
+  private static getPassText(player: GamePlayer): string {
+    return player === GamePlayer.User ? window.text('game.event_pass_user') : window.text('game.event_pass_opponent');
   }
 
-  private static createSaveMessage(player: GamePlayer, score: number, words: ReadonlyArray<string>): string {
+  private static getSaveText(player: GamePlayer, score: number, words: ReadonlyArray<string>): string {
     const joinedWords = words.join(', ');
     return player === GamePlayer.User
-      ? window.text('game.message_save_user', { score, words: joinedWords })
-      : window.text('game.message_save_opponent', { score, words: joinedWords });
+      ? window.text('game.event_save_user', { score, words: joinedWords })
+      : window.text('game.event_save_opponent', { score, words: joinedWords });
   }
 
   private createEventHtml(event: GameEvent): string {
@@ -48,15 +48,15 @@ export default class UseNotifications {
       case GameEventType.TurnValidated:
         return '';
       case GameEventType.TurnPassed:
-        return UseNotifications.createPassMessage(event.player);
+        return UseEventsHistory.getPassText(event.player);
       case GameEventType.TurnSaved:
-        return UseNotifications.createSaveMessage(event.player, event.score, event.words);
+        return UseEventsHistory.getSaveText(event.player, event.score, event.words);
     }
   }
 
   private createEventKey(index: number): number {
     const total = this.allDisplayedEvents.length;
-    const start = Math.max(0, total - UseNotifications.MAX_DISPLAYED_MESSAGES);
+    const start = Math.max(0, total - UseEventsHistory.MAX_DISPLAYED_EVENTS);
     return start + index;
   }
 

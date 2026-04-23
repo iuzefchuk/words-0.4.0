@@ -7,12 +7,12 @@ const DEFAULT_SETTINGS: GameMatchSettings = {
   type: GameMatchType.Classic,
 };
 
-export default async function bootstrapApplication(): Promise<Application> {
+export default async function launchWords(): Promise<Application> {
   const dependencies = Infrastructure.createAppDependencies();
-  const persisted = dependencies.repositories.settings.load();
+  const persistedSettings = dependencies.repositories.settings.load();
   const settings: GameMatchSettings = {
-    difficulty: persisted?.difficulty ?? DEFAULT_SETTINGS.difficulty,
-    type: persisted?.type ?? DEFAULT_SETTINGS.type,
+    difficulty: persistedSettings?.difficulty ?? DEFAULT_SETTINGS.difficulty,
+    type: persistedSettings?.type ?? DEFAULT_SETTINGS.type,
   };
   return await Application.create(dependencies, settings);
 }

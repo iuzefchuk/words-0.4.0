@@ -17,8 +17,6 @@ import { TIME } from '@/shared/constants.ts';
 export default class CommandsService {
   private static readonly OPPONENT_RESPONSE_MIN_TIME = TIME.ms_in_second * 2;
 
-  private lastDrainedEventCount = 0;
-
   private get currentPlayer(): GamePlayer {
     return this.game.turnsView.currentPlayer;
   }
@@ -45,14 +43,6 @@ export default class CommandsService {
   clearTiles(): void {
     this.game.clearTiles();
     this.syncPersistence();
-  }
-
-  drainNewEvents(): Array<GameEvent> {
-    const log = this.game.eventsLogView;
-    if (this.lastDrainedEventCount > log.length) this.lastDrainedEventCount = 0;
-    const drained = log.slice(this.lastDrainedEventCount);
-    this.lastDrainedEventCount = log.length;
-    return [...drained];
   }
 
   handlePassTurn(): { opponentTurn: Promise<AppTurnResponse> | undefined } {

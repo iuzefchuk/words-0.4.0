@@ -2,11 +2,11 @@
 import { computed } from 'vue';
 import { GameMatchDifficulty, GameMatchType } from '@/application/types/index.ts';
 import AppSelect from '@/interface/components/shared/AppSelect/AppSelect.vue';
-import UseEvents from '@/interface/composables/UseEvents';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 type OptionValue = GameMatchDifficulty | GameMatchType;
 const mainStore = MainStore.INSTANCE();
-const events = UseEvents.create();
+const eventHandlers = UseEventHandlers.create();
 const optionsAreDisabled = computed(() => !mainStore.settingsChangeIsAllowed);
 const options = [
   {
@@ -17,7 +17,7 @@ const options = [
     label: window.text('game.settings_bonuses'),
     modelValue: () => mainStore.matchType,
     onChange: (value: OptionValue) => {
-      events.handleChangeMatchType(value as GameMatchType);
+      eventHandlers.handleChangeMatchType(value as GameMatchType);
     },
   },
   {
@@ -29,7 +29,7 @@ const options = [
     label: window.text('game.settings_difficulty'),
     modelValue: () => mainStore.matchDifficulty,
     onChange: (value: OptionValue) => {
-      events.handleChangeMatchDifficulty(value as GameMatchDifficulty);
+      eventHandlers.handleChangeMatchDifficulty(value as GameMatchDifficulty);
     },
   },
 ];

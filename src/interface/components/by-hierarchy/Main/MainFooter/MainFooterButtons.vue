@@ -1,18 +1,18 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
-import UseEvents from '@/interface/composables/UseEvents';
-import InventoryStore from '@/interface/stores/InventoryStore.ts';
+import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
+import UserStore from '@/interface/stores/UserStore.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
-const inventoryStore = InventoryStore.INSTANCE();
-const events = UseEvents.create();
-const { anyTileIsPlaced } = storeToRefs(inventoryStore);
+const userStore = UserStore.INSTANCE();
+const eventHandlers = UseEventHandlers.create();
+const { anyTileIsPlaced } = storeToRefs(userStore);
 const { allActionsAreDisabled } = storeToRefs(mainStore);
 const items = reactive([
   {
     action: () => {
-      void events.handleResign();
+      void eventHandlers.handleResign();
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
@@ -20,7 +20,7 @@ const items = reactive([
   },
   {
     action: () => {
-      void events.handlePass();
+      void eventHandlers.handlePass();
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
@@ -28,7 +28,7 @@ const items = reactive([
   },
   {
     action: () => {
-      events.handleShuffle();
+      eventHandlers.handleShuffle();
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => !anyTileIsPlaced.value,
@@ -36,7 +36,7 @@ const items = reactive([
   },
   {
     action: () => {
-      events.handleClearTiles();
+      eventHandlers.handleClearTiles();
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => anyTileIsPlaced.value,
@@ -44,7 +44,7 @@ const items = reactive([
   },
   {
     action: () => {
-      events.handleSave();
+      eventHandlers.handleSave();
     },
     isDisabled: () => allActionsAreDisabled.value || !mainStore.currentTurnIsValid,
     isRendered: () => true,

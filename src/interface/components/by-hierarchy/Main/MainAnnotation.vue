@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import UseNotifications from '@/interface/composables/UseNotifications.ts';
-const { messages } = new UseNotifications();
+import UseEventsHistory from '@/interface/composables/UseEventsHistory.ts';
+const { history } = new UseEventsHistory();
 </script>
 
 <template>
-  <TransitionGroup v-if="messages.length > 0" name="fade-from-right" tag="ul" class="annotation app__make-secondary" appear>
-    <li v-for="{ key, html } in messages" :key="key" v-html="html" />
+  <TransitionGroup v-if="history.length > 0" name="fade-from-right" tag="ul" class="annotation app__make-secondary" appear>
+    <li v-for="{ key, html } in history" :key="key" v-html="html" />
   </TransitionGroup>
 </template>
 

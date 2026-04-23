@@ -5,11 +5,13 @@ import CommandsService from '@/application/services/CommandsService.ts';
 import QueriesService from '@/application/services/QueriesService.ts';
 import { GameCell, GameMatchDifficulty, GameMatchType, GameTile } from '@/application/types/index.ts';
 import { SchedulingService } from '@/application/types/ports.ts';
+import launchWords from '@/index.ts';
 import { getEventSound } from '@/interface/mappings.ts';
-import SoundPlayer from '@/interface/services/SoundPlayer.ts';
-import bootstrapApplication from '@/main.ts';
+import SoundPlayer, { Sound } from '@/interface/services/SoundPlayer.ts';
 
 class Actions {
+  private lastDrainedEventCount = 0;
+
   private pendingValidationId = 0;
 
   constructor(
@@ -80,10 +82,15 @@ class Actions {
   };
 
   private playPendingSounds(): void {
-    for (const event of this.commandsService.drainNewEvents()) {
+    const log = this.queriesService.getEventsLog();
+    if (this.lastDrainedEventCount > log.length) this.lastDrainedEventCount = 0;
+    let lastSound: null | Sound = null;
+    for (const event of log.slice(this.lastDrainedEventCount)) {
       const sound = getEventSound(event);
-      if (sound !== null) SoundPlayer.play(sound);
+      if (sound !== null) lastSound = sound;
     }
+    this.lastDrainedEventCount = log.length;
+    if (lastSound !== null) SoundPlayer.play(lastSound);
   }
 
   private readonly scheduleDeferredValidation = (): void => {
@@ -287,6 +294,6 @@ export default class MainStore {
   }
 
   static async initiate(): Promise<void> {
-    MainStore.app = markRaw(await bootstrapApplication());
+    MainStore.app = markRaw(await launchWords());
   }
 }

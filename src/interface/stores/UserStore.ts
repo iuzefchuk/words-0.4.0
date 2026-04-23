@@ -4,9 +4,9 @@ import { GameTile } from '@/application/types/index.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 import shuffleWithFisherYates from '@/shared/shuffleWithFisherYates.ts';
 
-export default class InventoryStore {
-  static readonly INSTANCE = defineStore('inventory', () => {
-    const store = new InventoryStore();
+export default class UserStore {
+  static readonly INSTANCE = defineStore('user', () => {
+    const store = new UserStore();
     const mainStore = MainStore.INSTANCE();
     store.initialize(mainStore.userTiles);
     return {
@@ -17,12 +17,11 @@ export default class InventoryStore {
       },
       isTileInRack: store.isTileInRack.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
-      isTileVisible: store.isTileVisible.bind(store),
       selectedTile: computed(() => store.selectedTile),
       selectedTileIsPlaced: computed(() => store.selectedTileIsPlaced),
       selectTile: store.selectTile.bind(store),
-      shuffle: () => {
-        store.shuffle();
+      shuffleTiles: () => {
+        store.shuffleTiles();
       },
       switchTiles: (firstTile: GameTile, secondTile: GameTile) => {
         store.switchTiles(firstTile, secondTile);
@@ -82,16 +81,12 @@ export default class InventoryStore {
     return this.selectedTile !== null && this.mainStore.areTilesSame(this.selectedTile, tile);
   }
 
-  private isTileVisible(tile: GameTile): boolean {
-    return this.isTileInRack(tile) && !this.mainStore.isTilePlaced(tile);
-  }
-
   private selectTile(tile: GameTile): void {
     if (!this.isTileInRack(tile)) return;
     this.selectedTileRef.value = tile;
   }
 
-  private shuffle(): void {
+  private shuffleTiles(): void {
     shuffleWithFisherYates({ array: this.tiles });
     triggerRef(this.tilesRef);
   }

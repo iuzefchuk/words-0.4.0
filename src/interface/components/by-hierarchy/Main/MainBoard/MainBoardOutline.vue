@@ -3,10 +3,10 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import MainBoardTooltip from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoardTooltip.vue';
 import UseTileLocator from '@/interface/composables/UseTileLocator.ts';
-import InventoryStore from '@/interface/stores/InventoryStore.ts';
-const inventoryStore = InventoryStore.INSTANCE();
+import UserStore from '@/interface/stores/UserStore.ts';
+const userStore = UserStore.INSTANCE();
 const tileLocator = new UseTileLocator();
-const { tiles } = storeToRefs(inventoryStore);
+const { tiles } = storeToRefs(userStore);
 const locations = computed(() => tileLocator.getLocationsFor(tiles.value));
 const CELL_STEP = 'calc((100% + var(--cell-tile-gap)) / var(--cell-count-per-axis))'; // TODO move to css variable
 </script>
