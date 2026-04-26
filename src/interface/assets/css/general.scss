@@ -11,85 +11,86 @@
   --secondary-bg: transparent;
   --secondary-color: var(--color-gray-500);
 
-  --cell-bg: var(--color-gray-100);
+  --cell-bg: var(--color-gray-50);
   --cell-bg-highlighted: var(--color-gray-300);
   --cell-color-quaternary: var(--color-gray-400);
   --cell-color-tertiary: var(--color-gray-500);
   --cell-color-secondary: var(--color-gray-600);
   --cell-color-primary: var(--color-gray-700);
-  --cell-shadow: var(--shadow-xs);
+  --cell-shadow: none;
 
-  --tile-bg-primary: var(--color-gray-950);
+  --tile-bg-primary: var(--color-gray-800);
+  --tile-color-primary: var(--color-gray-100);
+  --tile-pts-color-primary: var(--tile-pts-color-tertiary);
+
   --tile-bg-secondary: var(--color-gray-600);
+  --tile-color-secondary: var(--color-gray-100);
+  --tile-pts-color-secondary: var(--tile-pts-color-tertiary);
+
   --tile-bg-tertiary: var(--color-gray-500);
-  --tile-color-primary: var(--color-gray-50);
-  --tile-color-secondary: var(--tile-color-primary);
-  --tile-color-tertiary: var(--tile-color-primary);
-  --tile-outline: 2px solid var(--color-gray-800);
+  --tile-color-tertiary: var(--color-gray-50);
+  --tile-pts-color-tertiary:  var(--tile-color-tertiary);
+
+  --tile-outline: 2px solid var(--color-gray-900);
 
   --tooltip-bg: var(--color-gray-900);
   --tooltip-color: var(--color-gray-50);
 
-  --banner-bg: var(--color-gray-400);
-  --banner-color: var(--color-gray-50);
+  --notification-bg: var(--color-gray-400);
+  --notification-color: var(--color-gray-50);
 
-  --rack-bg: var(--color-gray-300);
-  --rack-shadow: var(--inset-shadow-s);
+  --inventory-bg: var(--color-gray-300);
+  --inventory-shadow: var(--inset-shadow-s);
 
-  --btn-font-weight: var(--font-weight-big);
+  --btn-font-weight: var(--font-weight);
   --btn-font-size: var(--font-size-small);
 
   // PRIMARY
-  --btn-bg-primary: var(--color-gray-100);
-  --btn-color-primary: var(--color-gray-800);
-  --btn-border-color-primary: var(--color-gray-600);
+  --btn-bg-primary: var(--color-gray-900);
+  --btn-color-primary: var(--color-gray-50);
+  --btn-border-color-primary: transparent;
   // primary - hover
-  --btn-bg-primary-hover: var(--btn-bg-primary);
-  --btn-color-primary-hover: var(--btn-color-primary);
+  --btn-bg-primary-hover: var(--color-gray-800);
+  --btn-color-primary-hover: var(--color-white);
   --btn-border-color-primary-hover: var(--btn-border-color-primary);
   // primary - active
-  --btn-bg-primary-active: var(--btn-bg-primary);
-  --btn-color-primary-active: var(--btn-color-primary);
+  --btn-bg-primary-active: var(--color-gray-950);
+  --btn-color-primary-active: var(--color-gray-200);
   --btn-border-color-primary-active: var(--btn-border-color-primary);
-  // primary - disabled
-  --btn-bg-primary-disabled: transparent;
-  --btn-color-primary-disabled: var(--btn-color-primary);
-  --btn-border-color-primary-disabled: transparent;
 
   // SECONDARY
-  --btn-bg-secondary: transparent;
+  --btn-bg-secondary: var(--color-gray-50);
   --btn-color-secondary: var(--color-gray-800);
-  --btn-border-color-secondary: var(--color-gray-600);
+  --btn-border-color-secondary: var(--color-gray-400);
   // secondary - hover
-  --btn-bg-secondary-hover: var(--btn-bg-secondary);
-  --btn-color-secondary-hover: var(--btn-color-secondary);
-  --btn-border-color-secondary-hover: var(--btn-border-color-secondary);
+  --btn-bg-secondary-hover: var(--color-white);
+  --btn-color-secondary-hover: var(--color-gray-900);
+  --btn-border-color-secondary-hover: var(--btn-color-secondary-hover);
   // secondary - active
-  --btn-bg-secondary-active: var(--btn-bg-secondary);
-  --btn-color-secondary-active:  var(--btn-color-secondary);
-  --btn-border-color-secondary-active: var(--btn-border-color-secondary);
+  --btn-bg-secondary-active: var(--color-gray-100);
+  --btn-color-secondary-active: var(--color-gray-700);
+  --btn-border-color-secondary-active: var(--color-gray-500);
 
-  // TERTIARY
-  --btn-bg-tertiary: transparent;
-  --btn-color-tertiary: var(--color-gray-800);
-  --btn-border-color-tertiary: var(--color-gray-600);
-  // tertiary - hover
-  --btn-bg-tertiary-hover: var(--btn-bg-tertiary);
-  --btn-color-tertiary-hover: var(--btn-color-tertiary);
-  --btn-border-color-tertiary-hover: var(--btn-border-color-tertiary);
-  // tertiary - active
-  --btn-bg-tertiary-active: var(--btn-bg-tertiary);
-  --btn-color-tertiary-active: var(--btn-color-tertiary);
-  --btn-border-color-tertiary-active: var(--btn-border-color-tertiary);
+  // disabled
+  --btn-bg-disabled: transparent;
+  --btn-color-disabled: var(--color-gray-500);
+  --btn-border-color-disabled: var(--color-gray-400);
+
+  // // TERTIARY
+  // --btn-bg-tertiary: var(--color-gray-50);
+  // --btn-color-tertiary: var(--color-gray-800);
+  // --btn-border-color-tertiary: var(--color-gray-400);
+  // // tertiary - hover
+  // --btn-bg-tertiary-hover: var(--btn-bg-tertiary);
+  // --btn-color-tertiary-hover: var(--btn-color-tertiary);
+  // --btn-border-color-tertiary-hover: var(--btn-border-color-tertiary);
+  // // tertiary - active
+  // --btn-bg-tertiary-active: var(--btn-bg-tertiary);
+  // --btn-color-tertiary-active: var(--btn-color-tertiary);
+  // --btn-border-color-tertiary-active: var(--btn-border-color-tertiary);
 
   --dialog-bg: var(--color-gray-800);
   --dialog-color: var(--color-gray-100);
-  --dialog-btn-bg: transparent;
-  --dialog-btn-bg-hover: var(--dialog-btn-bg);
-  --dialog-btn-bg-active: var(--dialog-btn-bg);
-  --dialog-btn-border-color: var(--color-gray-50);
-  --dialog-btn-border-color-hover: var(--dialog-btn-border-color);
-  --dialog-btn-border-color-active: var(--dialog-btn-border-color);
 }
 
 @mixin dark-scheme() {
@@ -101,7 +102,7 @@
   --grid-item-size: var(--space-4xl);
   --grid-item-radius: var(--space-xs);
   --tooltip-radius: var(--space-3xs);
-  --btn-radius: var(--space-2xs);
+  --btn-radius: var(--space-xs);
   --dialog-radius: var(--space-s);
   --dialog-btn-radius: var(--space-xs);
   --opacity-disabled: 0.9;
@@ -148,7 +149,7 @@
     &--for-board {
       @include grid(var(--grid-items-per-axis), var(--grid-items-per-axis));
     }
-    &--for-rack {
+    &--for-inventory {
       @include grid(8, 1, calc(var(--grid-gap) * 2));
     }
   }

@@ -46,29 +46,27 @@ const players = [
 </script>
 
 <template>
-  <header class="header">
+  <section class="statistics">
     <Transition name="fade" mode="out-in">
-      <div v-if="optionsAreDisabled" class="header__group">
+      <div v-if="optionsAreDisabled" class="statistics__group">
         <p v-for="player in players" :key="player.name">
           {{ player.name }}: <span v-animate-number="{ number: player.score() }" />
         </p>
       </div>
-      <div v-else class="header__group">
+      <div v-else class="statistics__group">
         <p v-for="{ items, label, modelValue, onChange } in options" :key="label">
           {{ label }}:
           <AppSelect :model-value="modelValue()" :options="items" :is-disabled="false" @change="onChange" />
         </p>
       </div>
     </Transition>
-  </header>
+  </section>
 </template>
 
 <style lang="scss" scoped>
-.header {
-  width: 100%;
+.statistics {
   z-index: var(--z-index-level-2);
   padding: var(--primary-padding) 0;
-  align-self: start;
   &__group {
     display: flex;
     flex-direction: column;

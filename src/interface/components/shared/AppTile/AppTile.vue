@@ -46,6 +46,9 @@ const points = computed(() => mainStore.getLetterPoints(props.letter));
     &--#{$accent} {
       background: var(--tile-bg-#{$accent});
       color: var(--tile-color-#{$accent});
+      .tile__points {
+        color: var(--tile-pts-color-#{$accent});
+      }
     }
   }
   &__letter {

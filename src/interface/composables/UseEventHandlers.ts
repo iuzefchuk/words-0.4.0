@@ -52,7 +52,7 @@ export default class UseEventHandlers {
   }
 
   handleClickBoardTile(tile: GameTile): void {
-    if (!this.userStore.isTileInRack(tile)) return;
+    if (!this.userStore.isTileInInventory(tile)) return;
     if (this.userStore.isTileSelected(tile)) {
       this.userStore.deselectTile();
       return;
@@ -78,7 +78,7 @@ export default class UseEventHandlers {
     this.userStore.deselectTile();
   }
 
-  handleClickRackCell(idx: number): void {
+  handleClickInventoryCell(idx: number): void {
     const tile = this.userStore.tiles[idx];
     if (tile === undefined) throw new ReferenceError(`expected tile at rack index ${String(idx)}, got undefined`);
     const selected = this.selectedTile;
@@ -91,7 +91,7 @@ export default class UseEventHandlers {
     this.userStore.deselectTile();
   }
 
-  handleClickRackTile(tile: GameTile): void {
+  handleClickInventoryTile(tile: GameTile): void {
     const selected = this.selectedTile;
     if (selected === null) {
       this.userStore.selectTile(tile);
@@ -109,7 +109,7 @@ export default class UseEventHandlers {
   }
 
   handleDoubleClickBoardTile(tile: GameTile): void {
-    if (!this.userStore.isTileInRack(tile)) return;
+    if (!this.userStore.isTileInInventory(tile)) return;
     this.userStore.deselectTile();
     this.mainStore.undoPlaceTile(tile);
   }

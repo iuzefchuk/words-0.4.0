@@ -8,19 +8,19 @@ const message = computed(() =>
 
 <template>
   <Transition name="fade-down-up" appear>
-    <div v-if="launchError" class="banner" role="alert" v-html="message" />
+    <section v-if="launchError" class="notification" role="alert" v-html="message" />
   </Transition>
 </template>
 
 <style lang="scss" scoped>
-.banner {
+.notification {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   padding: var(--space-l);
-  background: var(--banner-bg);
-  color: var(--banner-color);
+  background: var(--notification-bg);
+  color: var(--notification-color);
   text-align: center;
   z-index: var(--z-index-level-3);
 }

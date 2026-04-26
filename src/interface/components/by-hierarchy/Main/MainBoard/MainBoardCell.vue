@@ -84,6 +84,7 @@ const tileAccent = computed(() => {
     font-weight: var(--font-weight-big);
     z-index: var(--z-index-level-1);
     opacity: var(--cell-opacity-bonus);
+    font-size: 15px;
     $accents: 'primary', 'secondary', 'tertiary', 'quaternary';
     @each $accent in $accents {
       &--#{$accent} text {

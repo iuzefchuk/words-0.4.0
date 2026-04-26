@@ -14,7 +14,7 @@ export default class UserStore {
       initialize: () => {
         store.initialize(mainStore.userTiles);
       },
-      isTileInRack: store.isTileInRack.bind(store),
+      isTileInInventory: store.isTileInInventory.bind(store),
       isTileSelected: store.isTileSelected.bind(store),
       selectedTile: computed(() => store.selectedTile),
       selectedTileIsPlaced: computed(() => store.selectedTileIsPlaced),
@@ -68,7 +68,7 @@ export default class UserStore {
     this.selectedTileRef.value = null;
   }
 
-  private isTileInRack(tile: GameTile): boolean {
+  private isTileInInventory(tile: GameTile): boolean {
     return this.getTileIdx(tile) !== -1;
   }
 
@@ -77,7 +77,7 @@ export default class UserStore {
   }
 
   private selectTile(tile: GameTile): void {
-    if (!this.isTileInRack(tile)) return;
+    if (!this.isTileInInventory(tile)) return;
     this.selectedTileRef.value = tile;
   }
 

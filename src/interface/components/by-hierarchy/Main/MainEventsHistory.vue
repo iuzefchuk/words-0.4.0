@@ -25,12 +25,5 @@ const { history } = new UseEventsHistory();
   :deep(em) {
     font-style: italic;
   }
-  li:first-child:nth-last-child(n + 2),
-  li:nth-child(2):nth-last-child(n + 2) {
-    opacity: 0.75;
-  }
-  li:first-child:nth-last-child(n + 3) {
-    opacity: 0.5;
-  }
 }
 </style>

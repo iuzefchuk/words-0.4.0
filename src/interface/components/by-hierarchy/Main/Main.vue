@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { nextTick, onMounted, ref } from 'vue';
-import MainAnnotation from '@/interface/components/by-hierarchy/Main/MainAnnotation.vue';
-import MainBanner from '@/interface/components/by-hierarchy/Main/MainBanner.vue';
+import MainEventsHistory from '@/interface/components/by-hierarchy/Main/MainEventsHistory.vue';
 import MainBoard from '@/interface/components/by-hierarchy/Main/MainBoard/MainBoard.vue';
+import MainNotification from '@/interface/components/by-hierarchy/Main/MainNotification.vue';
 import MainEndscreen from '@/interface/components/by-hierarchy/Main/MainEndscreen.vue';
-import MainFooter from '@/interface/components/by-hierarchy/Main/MainFooter/MainFooter.vue';
-import MainHeader from '@/interface/components/by-hierarchy/Main/MainHeader.vue';
+import MainMenu from '@/interface/components/by-hierarchy/Main/MainMenu.vue';
+import MainStatistics from '@/interface/components/by-hierarchy/Main/MainStatistics.vue';
+import MainInventory from '@/interface/components/by-hierarchy/Main/MainInventory.vue';
 import MainStore from '@/interface/stores/MainStore.ts';
 import UserStore from '@/interface/stores/UserStore.ts';
 await MainStore.initiate();
@@ -18,22 +19,30 @@ onMounted(() => nextTick(() => (isMounted.value = true)));
 </script>
 
 <template>
-  <MainBanner />
+  <MainNotification />
   <main
     :style="{ '--grid-items-per-axis': mainStore.boardCellsPerAxis }"
     :class="{ main: true, 'main--blurred': matchIsFinished }"
     @click="userStore.deselectTile()"
   >
-    <Transition name="fade-down-up">
-      <MainHeader v-if="isMounted" />
-    </Transition>
-    <div class="main__center app__limit-max-width">
-      <MainAnnotation class="main__center-annotation" />
+    <div class="main__top">
+      <Transition name="fade-down-up">
+        <MainStatistics v-if="isMounted" />
+      </Transition>
+    </div>
+    <div class="main__mid app__limit-max-width">
+      <MainEventsHistory class="main__mid-events-history" />
       <MainBoard />
     </div>
-    <Transition name="fade-up-down">
-      <MainFooter v-if="isMounted" />
-    </Transition>
+    <div class="main__bottom">
+      <Transition name="fade-up-down">
+        <MainInventory class="main__bottom-inventory app__limit-max-width" v-if="isMounted" />
+      </Transition>
+      <Transition name="fade-up-down">
+        <!-- TODO change direction -->
+        <MainMenu class="main__bottom-menu" v-if="isMounted" />
+      </Transition>
+    </div>
   </main>
   <Transition name="fade">
     <MainEndscreen v-if="matchIsFinished" />
@@ -56,12 +65,35 @@ onMounted(() => nextTick(() => (isMounted.value = true)));
   padding-left: var(--primary-padding);
   padding-right: var(--primary-padding);
   justify-items: center;
-  &__center {
+  &__top {
+    align-self: flex-start;
+    justify-self: flex-start;
+  }
+  &__mid {
     position: relative;
   }
-  &__center-annotation {
+  &__mid-events-history {
     position: absolute;
     top: -7rem;
+  }
+  &__bottom {
+    justify-self: center;
+    align-self: end;
+    padding: var(--primary-padding) 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1px 2fr 1px;
+    grid-template-rows: auto;
+    align-items: center;
+  }
+  &__bottom-inventory {
+    grid-column: 2;
+    align-self: flex-start;
+    justify-self: center;
+  }
+  &__bottom-menu {
+    grid-column: 3;
+    justify-self: end;
   }
   &--blurred {
     filter: blur(0.5rem);
