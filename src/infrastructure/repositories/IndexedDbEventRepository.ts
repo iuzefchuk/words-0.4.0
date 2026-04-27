@@ -7,7 +7,12 @@ export default class IndexedDbEventRepository implements EventRepository {
 
   private static readonly DB_NAME = 'words-events';
 
+  // Bump when the GameEvent shape changes in a backwards-incompatible way.
+  private static readonly EVENT_SCHEMA_VERSION = '1';
+
   private static readonly STORE_NAME = 'events';
+
+  private readonly cacheVersion: string;
 
   private readonly db = new IndexedDbService<ReadonlyArray<GameEvent>>(
     IndexedDbEventRepository.DB_NAME,
@@ -15,17 +20,19 @@ export default class IndexedDbEventRepository implements EventRepository {
     IndexedDbEventRepository.CACHE_KEY,
   );
 
-  constructor(private readonly version: string) {}
+  constructor(appVersion: string) {
+    this.cacheVersion = `${appVersion}:schema-${IndexedDbEventRepository.EVENT_SCHEMA_VERSION}`;
+  }
 
   async delete(): Promise<void> {
     await this.db.delete();
   }
 
   async load(): Promise<null | ReadonlyArray<GameEvent>> {
-    return this.db.load(this.version);
+    return this.db.load(this.cacheVersion);
   }
 
   async save(events: ReadonlyArray<GameEvent>): Promise<void> {
-    await this.db.save(this.version, events);
+    await this.db.save(this.cacheVersion, events);
   }
 }

@@ -68,7 +68,7 @@ export default class Game {
   }
 
   get turnGenerationAttempts(): number {
-    return Game.TURN_GENERATION_ATTEMPTS[this.match.settings.difficulty];
+    return Game.TURN_GENERATION_ATTEMPTS[this.match.difficulty];
   }
 
   get turnsView(): Readonly<GameTurnsView> {
@@ -160,7 +160,7 @@ export default class Game {
   applyToState(event: GameEvent): void {
     switch (event.type) {
       case GameEventType.MatchDifficultyChanged:
-        this.match.setDifficulty(event.difficulty);
+        this.match.applyDifficultyChange(event.difficulty);
         break;
       case GameEventType.MatchFinished:
         this.applyMatchFinished(event.winner);
@@ -175,7 +175,7 @@ export default class Game {
         this.initialize(
           Game.createInitParams(
             event.seed,
-            { difficulty: this.match.settings.difficulty, type: event.matchType },
+            { difficulty: this.match.difficulty, type: event.matchType },
             this.seedingService,
             this.identityService,
           ),
@@ -260,7 +260,7 @@ export default class Game {
 
   restart(): void {
     const seed = this.seedingService.createSeed();
-    const settings: GameMatchSettings = { ...this.match.settings };
+    const settings: GameMatchSettings = { difficulty: this.match.difficulty, type: this.match.type };
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     this.events.reset(event);
     this.initialize(Game.createInitParams(seed, settings, this.seedingService, this.identityService));

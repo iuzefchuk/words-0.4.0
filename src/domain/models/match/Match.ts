@@ -1,8 +1,12 @@
 import { GamePlayer } from '@/domain/enums.ts';
-import { Difficulty, Result, Type } from '@/domain/models/match/enums.ts';
+import { Difficulty, Result } from '@/domain/models/match/enums.ts';
 import { MatchSettings } from '@/domain/models/match/types.ts';
 
 export default class Match {
+  get difficulty(): Difficulty {
+    return this._settings.difficulty;
+  }
+
   get isFinished(): boolean {
     for (const result of this.results.values()) if (result !== Result.Undecided) return true;
     return false;
@@ -12,6 +16,14 @@ export default class Match {
     return this.getScoreFor(GamePlayer.Opponent);
   }
 
+  get settings(): Readonly<MatchSettings> {
+    return this._settings;
+  }
+
+  get type(): MatchSettings['type'] {
+    return this._settings.type;
+  }
+
   get userScore(): number {
     return this.getScoreFor(GamePlayer.User);
   }
@@ -19,13 +31,18 @@ export default class Match {
   private constructor(
     private readonly results: Map<GamePlayer, Result>,
     private readonly scores: Map<GamePlayer, number>,
-    public settings: MatchSettings,
+    private readonly _settings: MatchSettings,
   ) {}
 
   static create(players: ReadonlyArray<GamePlayer>, settings: MatchSettings): Match {
     const results = new Map(players.map(player => [player, Result.Undecided]));
     const scores = new Map(players.map(player => [player, 0]));
-    return new Match(results, scores, settings);
+    return new Match(results, scores, { ...settings });
+  }
+
+  applyDifficultyChange(difficulty: Difficulty): void {
+    this.ensureMutability();
+    this._settings.difficulty = difficulty;
   }
 
   getResultFor(player: GamePlayer): Result {
@@ -57,14 +74,6 @@ export default class Match {
     this.ensureMutability();
     this.recordResult(firstPlayer, Result.Tie);
     this.recordResult(secondPlayer, Result.Tie);
-  }
-
-  setDifficulty(difficulty: Difficulty): void {
-    this.settings.difficulty = difficulty;
-  }
-
-  setType(type: Type): void {
-    this.settings.type = type;
   }
 
   private ensureMutability(): void {

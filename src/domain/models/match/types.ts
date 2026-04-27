@@ -7,8 +7,10 @@ export type MatchSettings = {
 };
 
 export type MatchView = {
+  readonly difficulty: Difficulty;
   getResultFor(player: GamePlayer): Result;
   getScoreFor(player: GamePlayer): number;
   readonly isFinished: boolean;
-  readonly settings: MatchSettings;
+  readonly settings: Readonly<MatchSettings>;
+  readonly type: Type;
 };
