@@ -19,31 +19,34 @@ onMounted(() => nextTick(() => (isMounted.value = true)));
 </script>
 
 <template>
-  <MainError v-if="isMounted" />
   <main
+    v-if="isMounted"
     :style="{ '--grid-items-per-axis': mainStore.boardCellsPerAxis }"
     :class="{ main: true, 'main--blurred': matchIsFinished }"
     @click="userStore.deselectTile()"
   >
     <header class="main__top">
-      <Transition name="fade-down-up">
-        <MainScoreline v-if="isMounted" />
+      <Transition name="fade-down-up" appear>
+        <MainError />
+      </Transition>
+      <Transition name="fade-down-up" appear>
+        <MainScoreline />
       </Transition>
     </header>
     <div class="main__mid app__limit-max-width">
-      <MainFeed v-if="isMounted" class="main__mid-events-history" />
+      <MainFeed class="main__mid-history" />
       <MainPlayfield />
     </div>
     <footer class="main__bottom">
-      <Transition name="fade-up-down">
-        <MainRack v-if="isMounted" class="main__bottom-inventory app__limit-max-width" />
+      <Transition name="fade-up-down" appear>
+        <MainRack class="main__bottom-rack app__limit-max-width" />
       </Transition>
-      <Transition name="fade-from-left">
-        <MainActions v-if="isMounted" class="main__bottom-menu" />
+      <Transition name="fade-from-left" appear>
+        <MainActions class="main__bottom-actions" />
       </Transition>
     </footer>
   </main>
-  <Transition name="fade">
+  <Transition name="fade" appear>
     <MainEndscreen v-if="matchIsFinished" />
   </Transition>
 </template>
@@ -71,9 +74,10 @@ onMounted(() => nextTick(() => (isMounted.value = true)));
   &__mid {
     position: relative;
   }
-  &__mid-events-history {
+  &__mid-history {
     position: absolute;
     top: -7rem;
+    right: 0rem;
   }
   &__bottom {
     justify-self: center;
@@ -86,13 +90,13 @@ onMounted(() => nextTick(() => (isMounted.value = true)));
     align-items: center;
     overflow-x: hidden;
   }
-  &__bottom-inventory {
+  &__bottom-rack {
     grid-column: 2;
     align-self: flex-start;
     justify-self: center;
     margin-top: var(--space-m);
   }
-  &__bottom-menu {
+  &__bottom-actions {
     grid-column: 3;
     justify-self: end;
   }

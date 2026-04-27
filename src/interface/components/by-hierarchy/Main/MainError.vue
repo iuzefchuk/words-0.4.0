@@ -7,9 +7,7 @@ const message = computed(() =>
 </script>
 
 <template>
-  <Transition name="fade-down-up" appear>
-    <section v-if="launchError" class="error" role="alert" v-html="message" />
-  </Transition>
+  <section v-if="launchError" class="error" role="alert" v-html="message" />
 </template>
 
 <style lang="scss" scoped>

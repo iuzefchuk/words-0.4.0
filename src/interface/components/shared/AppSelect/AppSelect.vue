@@ -17,7 +17,7 @@ const selectedOption = computed({
 </script>
 
 <template>
-  <div :class="{ select: true, 'select--disabled': isDisabled }">
+  <section :class="{ select: true, 'select--disabled': isDisabled }">
     <button class="select__custom">
       {{ options.find(option => option.value === modelValue)?.text }}
     </button>
@@ -26,7 +26,7 @@ const selectedOption = computed({
         {{ option.text }}
       </option>
     </select>
-  </div>
+  </section>
 </template>
 
 <style lang="scss" scoped>

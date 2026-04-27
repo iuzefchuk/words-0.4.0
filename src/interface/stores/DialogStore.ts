@@ -14,10 +14,8 @@ type DialogResult = {
 };
 
 type DialogTriggerParams = {
-  cancelIsHidden?: boolean;
-  cancelText?: string;
-  confirmIsHidden?: boolean;
-  confirmText?: string;
+  cancelText: string;
+  confirmText: string;
   html: string;
   title?: string;
 };
@@ -26,9 +24,7 @@ export default class DialogStore {
   static readonly INSTANCE = defineStore('dialog', () => {
     const store = new DialogStore();
     return {
-      cancelIsHidden: store.cancelIsHiddenRef,
       cancelText: store.cancelTextRef,
-      confirmIsHidden: store.confirmIsHiddenRef,
       confirmText: store.confirmTextRef,
       html: store.htmlRef,
       resolve: store.resolve.bind(store),
@@ -37,65 +33,37 @@ export default class DialogStore {
     };
   });
 
-  // TODO delete defaults, replace with null or undefined
+  private readonly cancelTextRef = ref<null | string>(null);
 
-  private static readonly DEFAULT_CANCEL_IS_HIDDEN = false;
+  private readonly confirmTextRef = ref<null | string>(null);
 
-  private static readonly DEFAULT_CANCEL_TEXT = '';
-
-  private static readonly DEFAULT_CONFIRM_IS_HIDDEN = false;
-
-  private static readonly DEFAULT_CONFIRM_TEXT = '';
-
-  private static readonly DEFAULT_HTML = '';
-
-  private static readonly DEFAULT_TITLE = '';
-
-  private readonly cancelIsHiddenRef = ref(DialogStore.DEFAULT_CANCEL_IS_HIDDEN);
-
-  private readonly cancelTextRef = ref(DialogStore.DEFAULT_CANCEL_TEXT);
-
-  private readonly confirmIsHiddenRef = ref(DialogStore.DEFAULT_CONFIRM_IS_HIDDEN);
-
-  private readonly confirmTextRef = ref(DialogStore.DEFAULT_CONFIRM_TEXT);
-
-  private readonly htmlRef = ref(DialogStore.DEFAULT_HTML);
+  private readonly htmlRef = ref<null | string>(null);
 
   private pendingResolve: ((result: DialogResult) => void) | null = null;
 
-  private readonly titleRef = ref(DialogStore.DEFAULT_TITLE);
+  private readonly titleRef = ref<null | string>(null);
 
-  private set cancelIsHidden(newValue: boolean) {
-    this.cancelIsHiddenRef.value = newValue;
-  }
-
-  private set cancelText(newValue: string) {
+  private set cancelText(newValue: null | string) {
     this.cancelTextRef.value = newValue;
   }
 
-  private set confirmIsHidden(newValue: boolean) {
-    this.confirmIsHiddenRef.value = newValue;
-  }
-
-  private set confirmText(newValue: string) {
+  private set confirmText(newValue: null | string) {
     this.confirmTextRef.value = newValue;
   }
 
-  private set html(newValue: string) {
+  private set html(newValue: null | string) {
     this.htmlRef.value = newValue;
   }
 
-  private set title(newValue: string) {
+  private set title(newValue: null | string) {
     this.titleRef.value = newValue;
   }
 
   private resetState(): void {
-    this.title = DialogStore.DEFAULT_TITLE;
-    this.html = DialogStore.DEFAULT_HTML;
-    this.cancelText = DialogStore.DEFAULT_CANCEL_TEXT;
-    this.confirmText = DialogStore.DEFAULT_CONFIRM_TEXT;
-    this.cancelIsHidden = DialogStore.DEFAULT_CANCEL_IS_HIDDEN;
-    this.confirmIsHidden = DialogStore.DEFAULT_CONFIRM_IS_HIDDEN;
+    this.title = null;
+    this.html = null;
+    this.cancelText = null;
+    this.confirmText = null;
   }
 
   private resolve({ status }: { status: DialogStatus }): void {
@@ -109,20 +77,11 @@ export default class DialogStore {
     }
   }
 
-  private async trigger({
-    cancelIsHidden,
-    cancelText,
-    confirmIsHidden,
-    confirmText,
-    html,
-    title,
-  }: DialogTriggerParams): Promise<DialogResult> {
+  private async trigger({ cancelText, confirmText, html, title }: DialogTriggerParams): Promise<DialogResult> {
     this.html = html;
-    if (title !== undefined && title !== '') this.title = title;
-    if (cancelText !== undefined && cancelText !== '') this.cancelText = cancelText;
-    if (confirmText !== undefined && confirmText !== '') this.confirmText = confirmText;
-    if (cancelIsHidden !== undefined) this.cancelIsHidden = cancelIsHidden;
-    if (confirmIsHidden !== undefined) this.confirmIsHidden = confirmIsHidden;
+    this.title = title ?? null;
+    this.cancelText = cancelText;
+    this.confirmText = confirmText;
     const result = await new Promise<DialogResult>(resolve => {
       this.pendingResolve = resolve;
     });

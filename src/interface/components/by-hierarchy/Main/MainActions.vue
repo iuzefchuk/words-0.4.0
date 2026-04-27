@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { reactive } from 'vue';
+import { onMounted, onUnmounted, reactive } from 'vue';
 import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
 import { Accent } from '@/interface/enums.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
@@ -14,6 +14,7 @@ const items = reactive([
       eventHandlers.handleSave();
     },
     isDisabled: () => allActionsAreDisabled.value || !mainStore.currentTurnIsValid,
+    keys: ['Enter'],
     name: window.text('game.action_play'),
   },
   {
@@ -23,6 +24,7 @@ const items = reactive([
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
+    keys: ['p'],
     name: window.text('game.action_pass'),
   },
   {
@@ -32,30 +34,26 @@ const items = reactive([
     },
     isDisabled: () => allActionsAreDisabled.value,
     isRendered: () => true,
+    keys: ['r'],
     name: window.text('game.action_resign'),
   },
-  // {
-  //   accent: Accent.Secondary,
-  //   action: () => {
-  //     eventHandlers.handleShuffle();
-  //   },
-  //   isDisabled: () => allActionsAreDisabled.value,
-  //   name: window.text('game.action_shuffle'),
-  // },
-  // {
-  //   accent: Accent.Secondary,
-  //   action: () => {
-  //     eventHandlers.handleClearTiles();
-  //   },
-  //   isDisabled: () => allActionsAreDisabled.value,
-  //   name: window.text('game.action_clear'),
-  // },
 ]);
+function handleKeydown(event: KeyboardEvent): void {
+  const item = items.find(item => 'keys' in item && item.keys.includes(event.key));
+  if (item === undefined || item.isDisabled()) return;
+  item.action();
+}
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
-  <section>
-    <ul class="actions">
+  <section class="actions">
+    <ul class="actions__list">
       <li v-for="{ name, action, accent, isDisabled } in items" :key="name">
         <button
           :class="{
@@ -76,10 +74,13 @@ const items = reactive([
 
 <style lang="scss" scoped>
 .actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-s);
-  padding: var(--space-m);
+  z-index: var(--z-index-level-1);
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    padding: var(--space-m);
+  }
   &__btn {
     cursor: pointer;
     text-align: center;

@@ -1,14 +1,33 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { ref, watch } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import DialogStore, { DialogStatus } from '@/interface/stores/DialogStore.ts';
 const dialogStore = DialogStore.INSTANCE();
-const { cancelIsHidden, cancelText, confirmIsHidden, confirmText, html, title } = storeToRefs(dialogStore);
+const { cancelText, confirmText, html, title } = storeToRefs(dialogStore);
 const exitAnimation = ref(false);
 const isRendered = ref(false);
 function respond(status: DialogStatus): void {
   isRendered.value = false;
   dialogStore.resolve({ status });
+}
+const buttons = reactive([
+  {
+    keys: ['Enter'],
+    status: DialogStatus.Confirmed,
+    text: () => confirmText.value,
+  },
+  {
+    keys: ['Escape'],
+    status: DialogStatus.Canceled,
+    text: () => cancelText.value,
+  },
+]);
+function handleKeydown(event: KeyboardEvent): void {
+  if (!isRendered.value) return;
+  const button = buttons.find(button => button.keys.includes(event.key));
+  if (button === undefined) return;
+  event.stopImmediatePropagation();
+  respond(button.status);
 }
 function toggleExitAnimation(): void {
   exitAnimation.value = true;
@@ -17,7 +36,13 @@ function toggleExitAnimation(): void {
   }, 250);
 }
 watch(html, newValue => {
-  if (newValue !== '') isRendered.value = true;
+  if (newValue !== null) isRendered.value = true;
+});
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown, true);
+});
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown, true);
 });
 </script>
 
@@ -34,11 +59,8 @@ watch(html, newValue => {
           <p v-html="html" />
         </div>
         <div class="dialog__footer">
-          <button v-if="!confirmIsHidden" class="dialog__button" @click="respond(DialogStatus.Confirmed)">
-            {{ confirmText }}
-          </button>
-          <button v-if="!cancelIsHidden" class="dialog__button" @click="respond(DialogStatus.Canceled)">
-            {{ cancelText }}
+          <button v-for="button in buttons" :key="button.status" class="dialog__button" @click="respond(button.status)">
+            {{ button.text() }}
           </button>
         </div>
       </dialog>

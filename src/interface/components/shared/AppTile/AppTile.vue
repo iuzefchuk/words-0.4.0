@@ -12,18 +12,23 @@ const points = computed(() => mainStore.getLetterPoints(props.letter));
 </script>
 
 <template>
-  <svg
+  <section
     :class="{
       tile: true,
       'tile--primary': props.accent === Accent.Primary,
       'tile--secondary': props.accent === Accent.Secondary,
       'tile--tertiary': props.accent === Accent.Tertiary,
     }"
-    viewBox="0 0 40 40"
   >
-    <text class="tile__letter" x="45%" y="45%" font-size="22" text-anchor="middle" dominant-baseline="central">{{ letter }}</text>
-    <text class="tile__points" x="78%" y="78%" font-size="13" text-anchor="middle" dominant-baseline="central">{{ points }}</text>
-  </svg>
+    <svg viewBox="0 0 40 40">
+      <text class="tile__letter" x="45%" y="45%" font-size="22" text-anchor="middle" dominant-baseline="central">
+        {{ letter }}
+      </text>
+      <text class="tile__points" x="78%" y="78%" font-size="13" text-anchor="middle" dominant-baseline="central">
+        {{ points }}
+      </text>
+    </svg>
+  </section>
 </template>
 
 <style lang="scss" scoped>
@@ -41,6 +46,7 @@ const points = computed(() => mainStore.getLetterPoints(props.letter));
   left: 0;
   z-index: var(--z-index-level-1);
   min-height: 100%;
+  user-select: none;
   $accents: 'primary', 'secondary', 'tertiary';
   @each $accent in $accents {
     &--#{$accent} {

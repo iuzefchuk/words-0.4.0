@@ -8,11 +8,11 @@ const SHIMMER_THRESHOLD_SCORE = 29;
 </script>
 
 <template>
-  <div v-if="currentTurnScore" :class="{ tooltip: true, 'tooltip--flipped': props.isFlipped }">
+  <section v-if="currentTurnScore" :class="{ tooltip: true, 'tooltip--flipped': props.isFlipped }">
     <div :class="{ tooltip__score: true, 'tooltip__score--shimmer': currentTurnScore > SHIMMER_THRESHOLD_SCORE }">
       {{ currentTurnScore }}
     </div>
-  </div>
+  </section>
 </template>
 
 <style lang="scss" scoped>

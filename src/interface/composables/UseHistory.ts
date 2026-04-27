@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import { GameEvent, GameEventType, GamePlayer } from '@/application/types/index.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
 
-export default class UseEventsHistory {
+export default class UseHistory {
   private static readonly MAX_DISPLAYED_EVENTS = 3;
 
   readonly history = computed(() => {
@@ -18,7 +18,7 @@ export default class UseEventsHistory {
 
   private get displayedEvents(): ReadonlyArray<GameEvent> {
     const events = this.allDisplayedEvents;
-    const start = Math.max(0, events.length - UseEventsHistory.MAX_DISPLAYED_EVENTS);
+    const start = Math.max(0, events.length - UseHistory.MAX_DISPLAYED_EVENTS);
     return events.slice(start);
   }
 
@@ -48,15 +48,15 @@ export default class UseEventsHistory {
       case GameEventType.TurnValidated:
         return '';
       case GameEventType.TurnPassed:
-        return UseEventsHistory.getPassText(event.player);
+        return UseHistory.getPassText(event.player);
       case GameEventType.TurnSaved:
-        return UseEventsHistory.getSaveText(event.player, event.score, event.words);
+        return UseHistory.getSaveText(event.player, event.score, event.words);
     }
   }
 
   private createEventKey(index: number): number {
     const total = this.allDisplayedEvents.length;
-    const start = Math.max(0, total - UseEventsHistory.MAX_DISPLAYED_EVENTS);
+    const start = Math.max(0, total - UseHistory.MAX_DISPLAYED_EVENTS);
     return start + index;
   }
 

@@ -2,13 +2,12 @@
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import MainPlayfieldTooltip from '@/interface/components/by-hierarchy/Main/MainPlayfield/MainPlayfieldTooltip.vue';
-import UseTileLocator from '@/interface/composables/UseTileLocator.ts';
+import UseOutline from '@/interface/composables/UseOutline.ts';
 import UserStore from '@/interface/stores/UserStore.ts';
 const userStore = UserStore.INSTANCE();
-const tileLocator = new UseTileLocator();
+const tileLocator = new UseOutline();
 const { tiles } = storeToRefs(userStore);
 const locations = computed(() => tileLocator.getLocationsFor(tiles.value));
-const CELL_STEP = 'calc((100% + var(--grid-gap)) / var(--grid-items-per-axis))';
 </script>
 
 <template>
@@ -17,10 +16,11 @@ const CELL_STEP = 'calc((100% + var(--grid-gap)) / var(--grid-items-per-axis))';
     :key="idx"
     class="outline"
     :style="{
-      top: `calc(${CELL_STEP} * ${group.row})`,
-      left: `calc(${CELL_STEP} * ${group.col})`,
-      width: `calc(${CELL_STEP} * ${group.colSpan} - var(--grid-gap) - 1px)`,
-      height: `calc(${CELL_STEP} * ${group.rowSpan} - var(--grid-gap) - 1px)`,
+      '--outline-cell-step': `calc((100% + var(--grid-gap)) / var(--grid-items-per-axis))`,
+      top: `calc(var(--outline-cell-step) * ${group.row})`,
+      left: `calc(var(--outline-cell-step) * ${group.col})`,
+      width: `calc(var(--outline-cell-step) * ${group.colSpan} - var(--grid-gap) - 1px)`,
+      height: `calc(var(--outline-cell-step) * ${group.rowSpan} - var(--grid-gap) - 1px)`,
     }"
   >
     <Transition name="fade" appear>
@@ -34,13 +34,13 @@ const CELL_STEP = 'calc((100% + var(--grid-gap)) / var(--grid-items-per-axis))';
 
 <style lang="scss" scoped>
 .outline {
-  position: absolute;
   z-index: var(--z-index-level-1);
+  pointer-events: none;
+  position: absolute;
   outline: var(--tile-outline);
   border-radius: var(--grid-item-radius);
   transition-property: top, left, width, height, outline;
   transition-duration: var(--transition-duration-half);
   transition-timing-function: var(--transition-timing-function);
-  pointer-events: none;
 }
 </style>
