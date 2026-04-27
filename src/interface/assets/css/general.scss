@@ -42,42 +42,39 @@
   --rack-cell-bg: var(--color-gray-300);
   --rack-cell-shadow: var(--inset-shadow-s);
 
-  --action-font-weight: var(--font-weight);
-  --action-font-size: var(--font-size-small);
+  --btn-font-weight: var(--font-weight);
+  --btn-font-size: var(--font-size-small);
 
-  // PRIMARY
-  --action-bg-primary: var(--color-gray-900);
-  --action-color-primary: var(--color-gray-50);
-  --action-border-color-primary: transparent;
-  // primary - hover
-  --action-bg-primary-hover: var(--color-gray-800);
-  --action-color-primary-hover: var(--color-white);
-  --action-border-color-primary-hover: var(--action-border-color-primary);
-  // primary - active
-  --action-bg-primary-active: var(--color-gray-950);
-  --action-color-primary-active: var(--color-gray-200);
-  --action-border-color-primary-active: var(--action-border-color-primary);
+  --btn-bg-primary: var(--color-gray-900);
+  --btn-color-primary: var(--color-gray-50);
+  --btn-border-color-primary: transparent;
+  --btn-bg-primary-hover: var(--color-gray-800);
+  --btn-color-primary-hover: var(--color-white);
+  --btn-border-color-primary-hover: var(--btn-border-color-primary);
+  --btn-bg-primary-active: var(--color-gray-950);
+  --btn-color-primary-active: var(--color-gray-200);
+  --btn-border-color-primary-active: var(--btn-border-color-primary);
 
-  // SECONDARY
-  --action-bg-secondary: var(--color-gray-50);
-  --action-color-secondary: var(--color-gray-800);
-  --action-border-color-secondary: var(--color-gray-400);
-  // secondary - hover
-  --action-bg-secondary-hover: var(--color-white);
-  --action-color-secondary-hover: var(--color-gray-900);
-  --action-border-color-secondary-hover: var(--action-color-secondary-hover);
-  // secondary - active
-  --action-bg-secondary-active: var(--color-gray-100);
-  --action-color-secondary-active: var(--color-gray-700);
-  --action-border-color-secondary-active: var(--color-gray-500);
+  --btn-bg-secondary: var(--color-gray-50);
+  --btn-color-secondary: var(--color-gray-800);
+  --btn-border-color-secondary: var(--color-gray-400);
+  --btn-bg-secondary-hover: var(--color-white);
+  --btn-color-secondary-hover: var(--color-gray-900);
+  --btn-border-color-secondary-hover: var(--btn-color-secondary-hover);
+  --btn-bg-secondary-active: var(--color-gray-100);
+  --btn-color-secondary-active: var(--color-gray-700);
+  --btn-border-color-secondary-active: var(--color-gray-500);
 
-  // disabled
-  --action-bg-disabled: var(--primary-bg);
-  --action-color-disabled: var(--color-gray-500);
-  --action-border-color-disabled: var(--color-gray-400);
+  --btn-bg-disabled: var(--primary-bg);
+  --btn-color-disabled: var(--color-gray-500);
+  --btn-border-color-disabled: var(--color-gray-400);
 
-  --dialog-bg: var(--color-gray-800);
-  --dialog-color: var(--color-gray-100);
+  --dialog-bg: var(--color-gray-50);
+  --dialog-color: var(--primary-color);
+  --dialog-font-size: var(--secondary-font-size);
+  --dialog-font-weight: var(--secondary-font-weight);
+  --dialog-title-font-size: var(--primary-font-size);
+  --dialog-title-font-weight: var(--primary-font-weight);
 }
 
 @mixin dark-scheme() {
@@ -89,9 +86,8 @@
   --grid-item-size: var(--space-4xl);
   --grid-item-radius: var(--space-xs);
   --tooltip-radius: var(--space-3xs);
-  --action-radius: var(--space-xs);
-  --dialog-radius: var(--space-s);
-  --dialog-btn-radius: var(--space-xs);
+  --btn-radius: var(--space-xs);
+  --dialog-radius:  var(--space-s);
   --opacity-disabled: 0.9;
   --transition-duration: 250ms;
   --transition-duration-half: 125ms;

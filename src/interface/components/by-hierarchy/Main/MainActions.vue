@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, reactive } from 'vue';
+import AppButton from '@/interface/components/shared/AppButton/AppButton.vue';
 import UseEventHandlers from '@/interface/composables/UseEventHandlers.ts';
 import { Accent } from '@/interface/enums.ts';
 import MainStore from '@/interface/stores/MainStore.ts';
@@ -55,18 +56,9 @@ onUnmounted(() => {
   <section class="actions">
     <ul class="actions__list">
       <li v-for="{ name, action, accent, isDisabled } in items" :key="name">
-        <button
-          :class="{
-            actions__btn: true,
-            'actions__btn--primary': accent === Accent.Primary,
-            'actions__btn--secondary': accent === Accent.Secondary,
-            'actions__btn--tertiary': accent === Accent.Tertiary,
-          }"
-          :disabled="isDisabled()"
-          @click="action()"
-        >
+        <AppButton :accent="accent" :is-disabled="isDisabled()" @click="action()">
           {{ name }}
-        </button>
+        </AppButton>
       </li>
     </ul>
   </section>
@@ -80,49 +72,6 @@ onUnmounted(() => {
     flex-direction: column;
     gap: var(--space-s);
     padding: var(--space-m);
-  }
-  &__btn {
-    cursor: pointer;
-    text-align: center;
-    border-radius: var(--action-radius);
-    user-select: none;
-    transition-property: box-shadow;
-    transition-duration: var(--transition-duration);
-    transition-timing-function: var(--transition-timing-function);
-    border: 1px solid transparent;
-    font-size: var(--action-font-size);
-    font-weight: var(--action-font-weight);
-    display: grid;
-    place-items: center;
-    width: 5rem;
-    height: 2.25rem;
-    $accents: 'primary', 'secondary', 'tertiary', 'quaternary';
-    @each $accent in $accents {
-      &--#{$accent} {
-        background: var(--action-bg-#{$accent});
-        color: var(--action-color-#{$accent});
-        border-color: var(--action-border-color-#{$accent});
-        box-shadow: var(--shadow-xs);
-        &:hover:not(:active):not(:disabled) {
-          background: var(--action-bg-#{$accent}-hover);
-          color: var(--action-color-#{$accent}-hover);
-          border-color: var(--action-border-color-#{$accent}-hover);
-          box-shadow: var(--shadow-s);
-        }
-        &:active:not(:disabled) {
-          background: var(--action-bg-#{$accent}-active);
-          color: var(--action-color-#{$accent}-active);
-          border-color: var(--action-border-color-#{$accent}-active);
-        }
-      }
-    }
-    &:disabled {
-      cursor: not-allowed;
-      background: var(--action-bg-disabled);
-      color: var(--action-color-disabled);
-      border-color: var(--action-border-color-disabled);
-      box-shadow: none;
-    }
   }
 }
 </style>

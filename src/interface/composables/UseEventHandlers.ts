@@ -149,6 +149,7 @@ export default class UseEventHandlers {
       cancelText: window.text('game.dialog_cancel'),
       confirmText: window.text('game.dialog_confirm'),
       html: window.text('game.dialog_html_pass'),
+      title: window.text('game.dialog_title_pass'),
     });
   }
 
@@ -157,6 +158,7 @@ export default class UseEventHandlers {
       cancelText: window.text('game.dialog_cancel'),
       confirmText: window.text('game.dialog_confirm'),
       html: window.text('game.dialog_html_resign'),
+      title: window.text('game.dialog_title_resign'),
     });
   }
 }

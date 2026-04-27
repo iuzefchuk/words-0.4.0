@@ -1,22 +1,22 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import AppButton from '@/interface/components/shared/AppButton/AppButton.vue';
+import { Accent } from '@/interface/enums.ts';
 import DialogStore, { DialogStatus } from '@/interface/stores/DialogStore.ts';
 const dialogStore = DialogStore.INSTANCE();
 const { cancelText, confirmText, html, title } = storeToRefs(dialogStore);
-const exitAnimation = ref(false);
 const isRendered = ref(false);
-function respond(status: DialogStatus): void {
-  isRendered.value = false;
-  dialogStore.resolve({ status });
-}
+const exitAnimation = ref(false);
 const buttons = reactive([
   {
+    accent: Accent.Primary,
     keys: ['Enter'],
     status: DialogStatus.Confirmed,
     text: () => confirmText.value,
   },
   {
+    accent: Accent.Secondary,
     keys: ['Escape'],
     status: DialogStatus.Canceled,
     text: () => cancelText.value,
@@ -28,6 +28,10 @@ function handleKeydown(event: KeyboardEvent): void {
   if (button === undefined) return;
   event.stopImmediatePropagation();
   respond(button.status);
+}
+function respond(status: DialogStatus): void {
+  isRendered.value = false;
+  dialogStore.resolve({ status });
 }
 function toggleExitAnimation(): void {
   exitAnimation.value = true;
@@ -48,23 +52,27 @@ onUnmounted(() => {
 
 <template>
   <section v-if="isRendered" class="dialog" @mousedown="toggleExitAnimation">
-    <Transition name="fade-down-up" appear>
-      <dialog
-        open
-        :class="{ dialog__window: true, 'dialog__window--shaking': exitAnimation, 'app__limit-max-width': true }"
-        @mousedown.stop
-      >
-        <div class="dialog__content">
-          <p v-if="title" class="dialog__content-title">{{ title }}</p>
-          <p v-html="html" />
-        </div>
-        <div class="dialog__footer">
-          <button v-for="button in buttons" :key="button.status" class="dialog__button" @click="respond(button.status)">
-            {{ button.text() }}
-          </button>
-        </div>
-      </dialog>
-    </Transition>
+    <dialog
+      open
+      :class="{ dialog__window: true, 'dialog__window--shaking': exitAnimation, 'app__limit-max-width': true }"
+      @mousedown.stop
+    >
+      <div class="dialog__content">
+        <p v-if="title" class="dialog__content-title">{{ title }}</p>
+        <p v-html="html" />
+      </div>
+      <div class="dialog__footer">
+        <AppButton
+          v-for="button in buttons"
+          :key="button.status"
+          :accent="button.accent"
+          :is-disabled="false"
+          @click="respond(button.status)"
+        >
+          {{ button.text() }}
+        </AppButton>
+      </div>
+    </dialog>
   </section>
 </template>
 
@@ -73,64 +81,49 @@ onUnmounted(() => {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: var(--z-index-level-2);
   display: grid;
   place-items: center;
   &__window {
-    padding: var(--space-xl) var(--space-2xl);
-    border-radius: var(--dialog-radius);
+    $margin: var(--space-2xl);
     background: var(--dialog-bg);
+    border-radius: var(--dialog-radius);
     color: var(--dialog-color);
-    width: max-content;
+    width: calc(100% - $margin * 2);
+    height: calc(100% - $margin * 2);
+    margin: $margin;
     border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-2xl);
+    box-shadow: var(--shadow-2xl);
     &--shaking {
       animation: horizontal-shake var(--transition-duration) linear forwards;
+    }
+    & > * {
+      max-width: 15rem;
+      width: 100%;
     }
   }
   &__content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
-    font-weight: var(--font-weight-small);
+    gap: var(--space-m);
+    font-size: var(--dialog-font-size);
+    font-weight: var(--dialog-font-weight);
   }
   &__content-title {
-    font-size: var(--font-size-big);
-    line-height: var(--line-height-big);
+    font-size: var(--dialog-title-font-size);
+    font-weight: var(--dialog-title-font-weight);
   }
   &__footer {
     display: flex;
     flex-direction: row;
-    justify-content: center;
     gap: var(--space-m);
-    padding-top: var(--space-2xl);
-    padding-bottom: var(--space-xs);
-  }
-  &__button {
-    cursor: pointer;
-    padding: var(--space-s) var(--space-6xl);
-    border: 1px solid transparent;
-    border-color: var(--dialog-btn-border-color);
-    border-radius: var(--dialog-btn-radius);
-    transition-property: box-shadow;
-    transition-duration: var(--transition-duration-half);
-    transition-timing-function: var(--transition-timing-function);
-    text-transform: uppercase;
-    font-size: var(--font-size-small);
-    font-weight: var(--font-weight);
-    background: var(--dialog-btn-bg);
-    &:last-child {
-      color: var(--color-red-500);
-    }
-    &:hover {
-      background: var(--dialog-btn-bg-hover);
-      border-color: var(--dialog-btn-border-color-hover);
-    }
-    &:active {
-      background: var(--dialog-btn-bg-active);
-      border-color: var(--dialog-btn-border-color-active);
-    }
   }
 }
 </style>
