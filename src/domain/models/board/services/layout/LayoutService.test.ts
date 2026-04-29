@@ -48,7 +48,7 @@ class IndexMatrix {
   }
 }
 
-describe('Layout service', () => {
+describe('LayoutService', () => {
   const matrix = new IndexMatrix(LayoutService.CELLS_PER_AXIS);
 
   describe('CELLS_PER_AXIS', () => {
@@ -56,15 +56,13 @@ describe('Layout service', () => {
       expect(LayoutService.CELLS_PER_AXIS).toBeGreaterThan(0);
     });
   });
-
   describe('DEFAULT_AXIS', () => {
     test('is an axis', () => {
       expect(LayoutService.DEFAULT_AXIS).toBeOneOf(Object.values(Axis));
     });
   });
-
   describe.each(matrix.entries)('for $cell', ({ cell, column, row }) => {
-    test('getAdjacentCellseturns returns geometrically expected value', () => {
+    test('getAdjacentCells returns returns geometrically expected value', () => {
       const actual = LayoutService.getAdjacentCells(cell as Cell);
       const expected = matrix.getOrthogonalNeighbors(row, column);
       expect(actual).toEqual(expected);
@@ -89,13 +87,12 @@ describe('Layout service', () => {
     });
     describe.each(Object.values(Axis))('for $axis', axis => {
       test('getAxisCells returns geometrically expected value', () => {
-        const actual = LayoutService.getAxisCells({ axis, cell });
+        const actual = LayoutService.getAxisCells({ axis, cell: cell as Cell });
         const expected = matrix.getAxisCells(axis, row, column);
         expect(actual).toEqual(expected);
       });
     });
   });
-
   describe('getOppositeAxis', () => {
     describe.each(Object.values(Axis))('for $axis', axis => {
       test('returns axis', () => {
