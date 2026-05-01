@@ -5,6 +5,17 @@ import { AnchorCoordinates, BonusDistribution, Cell, Link, Placement } from '@/d
 import { GameTile } from '@/domain/types/index.ts';
 
 export default class Board {
+  get anchorCells(): ReadonlySet<Cell> {
+    if (this.tileByCell.size === 0) return new Set([LayoutService.CENTER_CELL]);
+    const result = new Set<Cell>();
+    for (const cell of this.tileByCell.keys()) {
+      for (const adjacent of LayoutService.getAdjacentCells(cell)) {
+        if (!this.tileByCell.has(adjacent)) result.add(adjacent);
+      }
+    }
+    return result;
+  }
+
   get cells(): ReadonlyArray<Cell> {
     return LayoutService.CELLS_BY_INDEX;
   }
@@ -28,35 +39,7 @@ export default class Board {
     return new Board(bonusByCell, new Map(), new Map());
   }
 
-  calculateAnchorCells(): ReadonlySet<Cell> {
-    if (this.tileByCell.size === 0) return new Set([LayoutService.CENTER_CELL]);
-    const result = new Set<Cell>();
-    for (const cell of this.tileByCell.keys()) {
-      for (const adjacent of LayoutService.getAdjacentCells(cell)) {
-        if (!this.tileByCell.has(adjacent)) result.add(adjacent);
-      }
-    }
-    return result;
-  }
-
-  calculateAxis(cells: ReadonlyArray<Cell>): Axis {
-    let normalizedSequence = cells;
-    if (cells.length === 1) {
-      const [firstCell] = cells;
-      if (firstCell === undefined) throw new ReferenceError('expected first cell, got undefined');
-      const connectedAdjacents = LayoutService.getAdjacentCells(firstCell).filter(cell => this.isCellOccupied(cell));
-      const firstConnectedAdjacent = connectedAdjacents[0];
-      normalizedSequence = firstConnectedAdjacent === undefined ? [] : [firstConnectedAdjacent, firstCell];
-    }
-    if (normalizedSequence.length === 0) return LayoutService.DEFAULT_AXIS;
-    const [firstIndex] = normalizedSequence;
-    if (firstIndex === undefined) throw new ReferenceError('expected first index, got undefined');
-    const firstColumn = LayoutService.getCellPositionInColumn(firstIndex);
-    const isVertical = normalizedSequence.every(cell => LayoutService.getCellPositionInColumn(cell) === firstColumn);
-    return isVertical ? Axis.Y : Axis.X;
-  }
-
-  createPlacement(coords: AnchorCoordinates, tiles: ReadonlyArray<GameTile>): Placement {
+  buildPlacement(coords: AnchorCoordinates, tiles: ReadonlyArray<GameTile>): Placement {
     if (tiles.length === 0) throw new Error('cannot create placement from empty tiles');
     const axisCells = LayoutService.getAxisCells(coords);
     const tilesToPlace = new Set(tiles);
@@ -81,6 +64,28 @@ export default class Board {
     }
     const isValid = segmentContainsTile && matchedTilesCount === tiles.length;
     return isValid ? links : [];
+  }
+
+  calculateAxis(cells: ReadonlyArray<Cell>): Axis {
+    let normalizedSequence = cells;
+    if (cells.length === 1) {
+      const [firstCell] = cells;
+      if (firstCell === undefined) throw new ReferenceError('expected first cell, got undefined');
+      const occupiedAdjacents = LayoutService.getAdjacentCells(firstCell).filter(cell => this.isCellOccupied(cell));
+      const firstOccupiedAdjacent = occupiedAdjacents[0];
+      normalizedSequence = firstOccupiedAdjacent === undefined ? [] : [firstOccupiedAdjacent, firstCell];
+    }
+    if (normalizedSequence.length > 0) {
+      const [firstIndex] = normalizedSequence;
+      if (firstIndex === undefined) throw new ReferenceError('expected first index, got undefined');
+      const firstColumn = LayoutService.getCellPositionInColumn(firstIndex);
+      const isVertical = normalizedSequence.every(cell => LayoutService.getCellPositionInColumn(cell) === firstColumn);
+      if (isVertical) return Axis.Y;
+      const firstRow = LayoutService.getCellPositionInRow(firstIndex);
+      const isHorizontal = normalizedSequence.every(cell => LayoutService.getCellPositionInRow(cell) === firstRow);
+      if (isHorizontal) return Axis.X;
+    }
+    return LayoutService.DEFAULT_AXIS;
   }
 
   findCellByTile(tile: GameTile): Cell | undefined {

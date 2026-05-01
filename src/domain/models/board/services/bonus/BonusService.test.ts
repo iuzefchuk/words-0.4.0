@@ -17,7 +17,7 @@ function buildSymmetryQuadruples(size: number): ReadonlyArray<readonly [number, 
 
 describe('BonusService', () => {
   describe('createDistribution', () => {
-    describe.each(Object.values(Type))('for $type', type => {
+    describe.each(Object.values(Type))('for %s', type => {
       const distribution = BonusService.createDistribution(type);
       const distributionsFromOtherTypes = Object.values(Type)
         .filter(someType => someType !== type)
@@ -44,12 +44,15 @@ describe('BonusService', () => {
         const symmetryQuadruples = buildSymmetryQuadruples(LayoutService.CELLS_PER_AXIS) as ReadonlyArray<
           readonly [Cell, Cell, Cell, Cell]
         >;
-        for (const [origin, horizontal, vertical, diagonal] of symmetryQuadruples) {
+        const asymmetric = symmetryQuadruples.filter(([origin, horizontal, vertical, diagonal]) => {
           const originBonus = presetDistribution.get(origin);
-          expect(presetDistribution.get(horizontal)).toBe(originBonus);
-          expect(presetDistribution.get(vertical)).toBe(originBonus);
-          expect(presetDistribution.get(diagonal)).toBe(originBonus);
-        }
+          return (
+            presetDistribution.get(horizontal) !== originBonus ||
+            presetDistribution.get(vertical) !== originBonus ||
+            presetDistribution.get(diagonal) !== originBonus
+          );
+        });
+        expect(asymmetric).toEqual([]);
       });
     });
     describe('only for Random', () => {

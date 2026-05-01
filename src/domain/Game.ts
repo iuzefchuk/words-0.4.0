@@ -40,7 +40,7 @@ export default class Game {
   };
 
   get anchorCellsCount(): number {
-    return this.board.calculateAnchorCells().size;
+    return this.board.anchorCells.size;
   }
 
   get boardView(): Readonly<GameBoardView> {

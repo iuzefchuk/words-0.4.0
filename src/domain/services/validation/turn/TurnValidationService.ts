@@ -97,7 +97,7 @@ export default class TurnValidationService {
       turns.currentTurnTiles,
       state.cells,
       cells => board.calculateAxis(cells),
-      (coords, tiles) => board.createPlacement(coords, tiles),
+      (coords, tiles) => board.buildPlacement(coords, tiles),
       axis => board.getOppositeAxis(axis),
       cell => board.findTileByCell(cell),
     );

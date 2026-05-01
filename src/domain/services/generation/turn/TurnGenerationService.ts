@@ -282,7 +282,7 @@ export default class TurnGenerationService {
     const { board, inventory } = context;
     const playerTileCollection = inventory.getTileCollectionFor(player);
     if (playerTileCollection.size === 0) return;
-    const anchorCells = board.calculateAnchorCells();
+    const { anchorCells } = board;
     if (anchorCells.size === 0) return;
     const allAnchors = Array.from(anchorCells);
     const anchors =
