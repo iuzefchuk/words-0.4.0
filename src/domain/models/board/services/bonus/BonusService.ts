@@ -24,6 +24,10 @@ type OctantLocation = readonly [row: number, col: number];
 // .     .     .     .     .     .     .     .     .     .     .     .     .     .     .
 
 export default class BonusService {
+  private static readonly NON_CENTER_CELLS: ReadonlyArray<Cell> = LayoutService.CELLS.filter(
+    cell => cell !== LayoutService.CENTER_CELL,
+  );
+
   private static readonly PRESET_OCTANT_LOCATIONS_BY_BONUS: ReadonlyMap<Bonus, ReadonlyArray<OctantLocation>> = new Map([
     [
       Bonus.DoubleLetter,
@@ -81,13 +85,14 @@ export default class BonusService {
   }
 
   private static createRandomDistribution(randomizer: () => number = Math.random): BonusDistribution {
-    const availableCells = LayoutService.CELLS.filter(cell => cell !== LayoutService.CENTER_CELL);
-    shuffleWithFisherYates({ array: availableCells, randomizer });
+    const cells = [...this.NON_CENTER_CELLS];
+    shuffleWithFisherYates({ array: cells, randomizer });
+    const bonuses = [...this.PRESET_DISTRIBUTION.values()];
     const result = new Map<Cell, Bonus>();
-    const bonuses = this.PRESET_DISTRIBUTION.values();
-    for (const cell of availableCells) {
-      const { done, value: bonus } = bonuses.next();
-      if (done === true) break;
+    for (let idx = 0; idx < bonuses.length; idx++) {
+      const cell = cells[idx];
+      const bonus = bonuses[idx];
+      if (cell === undefined || bonus === undefined) break;
       result.set(cell, bonus);
     }
     return result;

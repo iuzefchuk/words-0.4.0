@@ -44,26 +44,19 @@ export default class Board {
     const axisCells = LayoutService.getAxisCells(coords);
     const tilesToPlace = new Set(tiles);
     let links: Array<Link> = [];
-    let segmentContainsTile = false;
     let matchedTilesCount = 0;
     for (const cell of axisCells) {
       const tile = this.findTileByCell(cell);
       if (tile === undefined) {
         if (links.length === 0) continue;
-        if (segmentContainsTile) break;
+        if (matchedTilesCount > 0) break;
         links = [];
-        segmentContainsTile = false;
-        matchedTilesCount = 0;
         continue;
       }
       links.push({ cell, tile });
-      if (tilesToPlace.has(tile)) {
-        segmentContainsTile = true;
-        matchedTilesCount++;
-      }
+      if (tilesToPlace.has(tile)) matchedTilesCount++;
     }
-    const isValid = segmentContainsTile && matchedTilesCount === tiles.length;
-    return isValid ? links : [];
+    return matchedTilesCount === tiles.length ? links : [];
   }
 
   calculateAxis(cells: ReadonlyArray<Cell>): Axis {
@@ -71,8 +64,7 @@ export default class Board {
     if (cells.length === 1) {
       const [firstCell] = cells;
       if (firstCell === undefined) throw new ReferenceError('expected first cell, got undefined');
-      const occupiedAdjacents = LayoutService.getAdjacentCells(firstCell).filter(cell => this.isCellOccupied(cell));
-      const firstOccupiedAdjacent = occupiedAdjacents[0];
+      const firstOccupiedAdjacent = LayoutService.getAdjacentCells(firstCell).find(cell => this.isCellOccupied(cell));
       normalizedSequence = firstOccupiedAdjacent === undefined ? [] : [firstOccupiedAdjacent, firstCell];
     }
     if (normalizedSequence.length === 0) return LayoutService.DEFAULT_AXIS;

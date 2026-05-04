@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { Type } from '@/domain/models/board/enums.ts';
+import { Bonus, Type } from '@/domain/models/board/enums.ts';
 import BonusService from '@/domain/models/board/services/bonus/BonusService.ts';
 import LayoutService from '@/domain/models/board/services/layout/LayoutService.ts';
 import { Cell } from '@/domain/models/board/types.ts';
@@ -17,29 +17,34 @@ function buildSymmetryQuadruples(size: number): ReadonlyArray<readonly [number, 
 
 describe('BonusService', () => {
   describe('createDistribution', () => {
-    describe.each(Object.values(Type))('for %s', type => {
+    describe.each(Object.values(Type))('for %s type', type => {
       const distribution = BonusService.createDistribution(type);
-      const distributionsFromOtherTypes = Object.values(Type)
-        .filter(someType => someType !== type)
-        .map(otherType => BonusService.createDistribution(otherType));
-      test('returns not empty result', () => {
-        expect(distribution.size).toBeGreaterThan(0);
+      const otherTypes = Object.values(Type).filter(someType => someType !== type);
+      test('excludes CENTER_CELL', () => {
+        expect(distribution.has(LayoutService.CENTER_CELL)).toBe(false);
       });
-      test('returns not full result', () => {
-        expect(distribution.size).toBeLessThan(LayoutService.CELLS.length);
+      test('returns expected count per bonus', () => {
+        const counts = new Map<Bonus, number>();
+        for (const bonus of distribution.values()) {
+          counts.set(bonus, (counts.get(bonus) ?? 0) + 1);
+        }
+        expect(Object.fromEntries(counts)).toEqual({
+          [Bonus.DoubleLetter]: 24,
+          [Bonus.DoubleWord]: 16,
+          [Bonus.TripleLetter]: 12,
+          [Bonus.TripleWord]: 8,
+        });
       });
-      describe.each(distributionsFromOtherTypes)('comparing w/ others', otherDistribution => {
+      describe.each(otherTypes)('comparing w/ %s', otherType => {
+        const otherDistribution = BonusService.createDistribution(otherType);
         test('returns different result', () => {
           expect(distribution).not.toEqual(otherDistribution);
         });
-        test('returns same size result', () => {
-          expect(distribution.size).toBe(otherDistribution.size);
-        });
       });
     });
-    describe('only for Preset', () => {
+    describe('for Preset type', () => {
       const presetDistribution = BonusService.createDistribution(Type.Preset);
-      test('returns same result', () => {
+      test('always returns same result', () => {
         expect(presetDistribution).toEqual(BonusService.createDistribution(Type.Preset));
       });
       test('returns D4-symmetric result', () => {
@@ -57,9 +62,9 @@ describe('BonusService', () => {
         expect(asymmetric).toEqual([]);
       });
     });
-    describe('only for Random', () => {
+    describe('for Random type', () => {
       describe('w/ same randomizer', () => {
-        test('returns same result', () => {
+        test('always returns same result', () => {
           const randomizer = (): number => 0.5;
           const actual = BonusService.createDistribution(Type.Random, randomizer);
           const expected = BonusService.createDistribution(Type.Random, randomizer);
@@ -67,19 +72,19 @@ describe('BonusService', () => {
         });
       });
       describe('w/ different randomizers', () => {
-        test('returns different result', () => {
+        test('always returns different result', () => {
           const firstRandomizer = (): number => 0.25;
           const secondRandomizer = (): number => 0.5;
           const actual = BonusService.createDistribution(Type.Random, firstRandomizer);
-          const notExpected = BonusService.createDistribution(Type.Random, secondRandomizer);
-          expect(actual).not.toEqual(notExpected);
+          const unexpected = BonusService.createDistribution(Type.Random, secondRandomizer);
+          expect(actual).not.toEqual(unexpected);
         });
       });
       describe('w/out randomizer', () => {
-        test('returns different result', () => {
+        test('always returns different result', () => {
           const actual = BonusService.createDistribution(Type.Random);
-          const notExpected = BonusService.createDistribution(Type.Random);
-          expect(actual).not.toEqual(notExpected);
+          const unexpected = BonusService.createDistribution(Type.Random);
+          expect(actual).not.toEqual(unexpected);
         });
       });
     });

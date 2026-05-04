@@ -2,11 +2,11 @@ import { Axis } from '@/domain/models/board/enums.ts';
 import { AnchorCoordinates, Cell } from '@/domain/models/board/types.ts';
 
 export default class LayoutService {
-  static readonly CELLS: ReadonlyArray<Cell> = Array.from({ length: 225 }, (_, idx) => idx as Cell);
-
   static readonly CELLS_PER_AXIS = 15;
 
-  static readonly CENTER_CELL = 112 as Cell;
+  static readonly CELLS: ReadonlyArray<Cell> = Array.from({ length: this.CELLS_PER_AXIS ** 2 }, (_, idx) => idx as Cell);
+
+  static readonly CENTER_CELL = Math.floor(this.CELLS.length / 2) as Cell;
 
   static readonly DEFAULT_AXIS = Axis.X;
 
@@ -66,11 +66,11 @@ export default class LayoutService {
   }
 
   static getCellPositionInColumn(cell: Cell): number {
-    return cell % this.AXIS_Y_STEP;
+    return cell % this.CELLS_PER_AXIS;
   }
 
   static getCellPositionInRow(cell: Cell): number {
-    return Math.floor(cell / this.AXIS_Y_STEP);
+    return Math.floor(cell / this.CELLS_PER_AXIS);
   }
 
   static getOppositeAxis(axis: Axis): Axis {
