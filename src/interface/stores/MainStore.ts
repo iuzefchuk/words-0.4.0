@@ -272,7 +272,7 @@ export default class MainStore {
   private static readonly SINGLETON = new MainStore();
 
   static readonly INSTANCE = defineStore('main', () => {
-    const { appRef, bootProgress, launchError } = MainStore.SINGLETON;
+    const { appRef, bootError, bootProgress } = MainStore.SINGLETON;
     const requireApp = (): Application => {
       if (appRef.value === null) throw new Error('MainStore: app is not ready');
       return appRef.value;
@@ -283,8 +283,8 @@ export default class MainStore {
     return {
       boardCells: computed(() => appRef.value?.config.boardCells ?? []),
       boardCellsPerAxis: computed(() => appRef.value?.config.boardCellsPerAxis ?? 0),
+      bootError,
       bootProgress,
-      launchError,
       tilesPerPlayer: computed(() => appRef.value?.config.tilesPerPlayer ?? 0),
       ...(getters as { [K in keyof Getters]: Getters[K] }),
       ...(actions as { [K in keyof Actions]: Actions[K] }),
@@ -293,9 +293,9 @@ export default class MainStore {
 
   private readonly appRef = shallowRef<Application | null>(null);
 
-  private readonly bootProgress = ref(0);
+  private readonly bootError = ref<null | string>(null);
 
-  private readonly launchError = ref<null | string>(null);
+  private readonly bootProgress = ref(0);
 
   static async initiate(): Promise<void> {
     const singleton = MainStore.SINGLETON;
@@ -308,7 +308,7 @@ export default class MainStore {
     try {
       await app.bootDictionary();
     } catch (error: unknown) {
-      singleton.launchError.value = error instanceof Error ? error.message : String(error);
+      singleton.bootError.value = error instanceof Error ? error.message : String(error);
     }
   }
 }

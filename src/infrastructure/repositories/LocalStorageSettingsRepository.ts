@@ -1,18 +1,16 @@
 import { GameMatchSettings } from '@/application/types/index.ts';
 import { SettingsRepository } from '@/application/types/repositories.ts';
-import LocalStorage from '@/infrastructure/services/LocalStorage.ts';
+import LocalStorageService from '@/infrastructure/services/LocalStorageService.ts';
 
 export default class LocalStorageSettingsRepository implements SettingsRepository {
-  private static readonly KEY = 'Settings';
-
-  private readonly storage = new LocalStorage<Partial<GameMatchSettings>>(LocalStorageSettingsRepository.KEY);
+  private static readonly KEY = 'settings';
 
   load(): null | Partial<GameMatchSettings> {
-    return this.storage.load();
+    return LocalStorageService.load(LocalStorageSettingsRepository.KEY) as null | Partial<GameMatchSettings>;
   }
 
   save(settings: Partial<GameMatchSettings>): void {
-    const existing = this.storage.load() ?? {};
-    this.storage.save({ ...existing, ...settings });
+    const existing = this.load() ?? {};
+    LocalStorageService.save(LocalStorageSettingsRepository.KEY, { ...existing, ...settings });
   }
 }

@@ -14,7 +14,7 @@ export default class Infrastructure {
   private static readonly DICTIONARY_URL = '/dictionary.bin';
 
   static createAppDependencies(): AppDependencies {
-    const version = new VersioningService().getAppVersion();
+    const version = VersioningService.appVersion;
     const identity = new CryptoIdentityService();
     const turnGenerationTaskId = identity.createUniqueId();
     return {

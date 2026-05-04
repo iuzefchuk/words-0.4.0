@@ -1,5 +1,5 @@
 export default class VersioningService {
-  getAppVersion(): string {
+  static get appVersion(): string {
     return APP_VERSION;
   }
 }

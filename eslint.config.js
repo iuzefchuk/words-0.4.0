@@ -84,7 +84,7 @@ export default defineConfigWithVueTs([
       'lines-between-class-members': ['error', 'always'],
       'max-depth': ['error', 4],
       'max-params': ['error', 7],
-      'no-console': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-debugger': 'warn',
       'no-param-reassign': 'error',
       'no-var': 'error',

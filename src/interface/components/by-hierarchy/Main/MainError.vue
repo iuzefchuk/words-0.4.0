@@ -2,14 +2,12 @@
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import MainStore from '@/interface/stores/MainStore.ts';
-const { launchError } = storeToRefs(MainStore.INSTANCE());
-const message = computed(() =>
-  launchError.value === null ? '' : window.text('game.error_launch', { error: launchError.value }),
-);
+const { bootError } = storeToRefs(MainStore.INSTANCE());
+const message = computed(() => (bootError.value === null ? '' : window.text('game.error_launch', { error: bootError.value })));
 </script>
 
 <template>
-  <section v-if="launchError" class="error" role="alert" v-html="message" />
+  <section v-if="bootError" class="error" role="alert" v-html="message" />
 </template>
 
 <style lang="scss" scoped>
