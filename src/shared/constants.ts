@@ -1,4 +1,4 @@
-// TODO move to scheduler service
+// TODO move to SchedulerService
 export const TIME = {
   ms_in_day: 86_400_000,
   ms_in_hour: 3_600_000,

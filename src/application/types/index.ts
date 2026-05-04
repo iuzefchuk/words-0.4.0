@@ -44,6 +44,7 @@ export type AppDependencies = {
 };
 
 export type AppServices = {
+  // move bootObserver & worker outside this type because they are not services
   bootObserver: ObserverService;
   identifier: IdentifierService;
   loader: LoaderService;

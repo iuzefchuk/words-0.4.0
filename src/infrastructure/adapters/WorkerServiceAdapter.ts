@@ -7,6 +7,7 @@ import {
 } from '@/application/types/ports.ts';
 import WorkerPoolService from '@/infrastructure/services/WorkerPoolService.ts';
 
+// TODO delete Service from name because it is not a service. WorkerServiceAdapter -> WorkerAdapter, WorkerService -> Worker
 export default class WorkerServiceAdapter implements WorkerService {
   constructor(private readonly workers: Record<string, new () => Worker>) {}
 

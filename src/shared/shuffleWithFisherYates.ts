@@ -1,4 +1,4 @@
-// TODO move to randomizer service
+// TODO move to RandomizerService
 export default function shuffleWithFisherYates<T>({
   array,
   groupSize = 1,
