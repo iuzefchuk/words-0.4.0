@@ -13,16 +13,16 @@ export const enum WorkerResponseType {
 }
 
 export type LoaderService = {
-  loadBuffer(url: string): Promise<ArrayBufferLike>;
+  load(url: string): Promise<ArrayBufferLike>;
 };
 
 export type ObserverService = {
-  publish(value: number): void;
-  subscribe(callback: (value: number) => void): void;
+  notify(value: number): void;
+  observe(callback: (value: number) => void): void;
 };
 
 export type SchedulerService = {
-  ensureMinimumDuration<T>(minimumMs: number, callback: () => Promise<T> | T): Promise<T>;
+  padTo<T>(minimumMs: number, callback: () => Promise<T> | T): Promise<T>;
   yield(): Promise<void>;
 };
 

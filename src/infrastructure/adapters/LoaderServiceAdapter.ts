@@ -1,7 +1,7 @@
 import { LoaderService } from '@/application/types/ports.ts';
 
 export default class LoaderServiceAdapter {
-  static async loadBuffer(url: string): Promise<ArrayBufferLike> {
+  static async load(url: string): Promise<ArrayBufferLike> {
     const gzUrl = `${url}.gz`;
     const response = await fetch(gzUrl);
     if (!response.ok) throw new Error(`failed to fetch ${gzUrl}: ${String(response.status)} ${response.statusText}`);

@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS: GameMatchSettings = {
   type: GameMatchType.Classic,
 };
 
-export default function launchWords(): { app: Promise<Application>; bootObserver: Pick<ObserverService, 'subscribe'> } {
+export default function launchWords(): { app: Promise<Application>; bootObserver: Pick<ObserverService, 'observe'> } {
   const dependencies = Infrastructure.createAppDependencies();
   const persistedSettings = dependencies.repositories.settings.load();
   const settings: GameMatchSettings = {

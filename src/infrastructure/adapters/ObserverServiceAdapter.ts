@@ -1,15 +1,13 @@
 import { ObserverService } from '@/application/types/ports.ts';
 
-export default class ObserverServiceAdapter {
-  private static CALLBACK: ((value: number) => void) | null = null;
+export default class ObserverServiceAdapter implements ObserverService {
+  private callback: ((value: number) => void) | null = null;
 
-  static publish(value: number): void {
-    ObserverServiceAdapter.CALLBACK?.(value);
+  notify(value: number): void {
+    this.callback?.(value);
   }
 
-  static subscribe(callback: (value: number) => void): void {
-    ObserverServiceAdapter.CALLBACK = callback;
+  observe(callback: (value: number) => void): void {
+    this.callback = callback;
   }
 }
-
-ObserverServiceAdapter satisfies ObserverService;

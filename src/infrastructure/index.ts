@@ -15,8 +15,7 @@ export default class Infrastructure {
 
   static createAppDependencies(): AppDependencies {
     const version = VersioningService.appVersion;
-    const turnGenerationTaskId = IdentifierServiceAdapter.createUniqueId();
-    WorkerServiceAdapter.configure({ [turnGenerationTaskId]: TurnGenerationWorker });
+    const turnGenerationTaskId = IdentifierServiceAdapter.create();
     return {
       config: { dictionaryUrl: Infrastructure.DICTIONARY_URL },
       repositories: {
@@ -24,12 +23,12 @@ export default class Infrastructure {
         settings: new LocalStorageSettingsRepository(),
       },
       services: {
-        bootObserver: ObserverServiceAdapter,
+        bootObserver: new ObserverServiceAdapter(),
         identifier: IdentifierServiceAdapter,
         loader: LoaderServiceAdapter,
         randomizer: RandomizerServiceAdapter,
         scheduler: SchedulerServiceAdapter,
-        worker: WorkerServiceAdapter,
+        worker: new WorkerServiceAdapter({ [turnGenerationTaskId]: TurnGenerationWorker }),
       },
       tasks: { turnGeneration: turnGenerationTaskId },
     };

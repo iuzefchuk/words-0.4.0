@@ -154,9 +154,7 @@ export default class CommandsService {
   }
 
   private async executeOpponentTurn(): Promise<AppTurnResponse> {
-    const event = await this.scheduler.ensureMinimumDuration(CommandsService.OPPONENT_RESPONSE_MIN_TIME, () =>
-      this.createOpponentTurn(),
-    );
+    const event = await this.scheduler.padTo(CommandsService.OPPONENT_RESPONSE_MIN_TIME, () => this.createOpponentTurn());
     const response = this.opponentResponseFor(event);
     if (this.game.matchView.isFinished) {
       this.clearPersistence();

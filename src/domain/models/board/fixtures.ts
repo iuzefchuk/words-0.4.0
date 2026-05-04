@@ -16,7 +16,7 @@ type BoardFixture = {
 
 const cells = [...Board.create(Type.Preset).cells];
 const tiles = cells.map((_, idx) => `tile-${String(idx)}` as GameTile);
-const shuffledCells = shuffleWithFisherYates({ array: [...cells], randomizer: () => 0.5 });
+const shuffledCells = shuffleWithFisherYates({ array: [...cells], randomizerFunction: () => 0.5 });
 
 const fixtures: ReadonlyArray<BoardFixture> = [0, 1, 2, 3, 4, 5, 10, 25, 50, tiles.length].map(placementCount => {
   const instance = Board.create(Type.Preset);

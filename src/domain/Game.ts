@@ -92,7 +92,7 @@ export default class Game {
   ) {}
 
   static create(identifier: IdentifierService, randomizer: RandomizerService, settings: GameMatchSettings): Game {
-    const seed = randomizer.createSeed();
+    const seed = randomizer.createNewSeed();
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     const events = Events.create([event]);
     const game = new Game(events, identifier, randomizer);
@@ -126,10 +126,10 @@ export default class Game {
     identifier: IdentifierService,
   ): { board: Board; inventory: Inventory; match: Match; turns: Turns } {
     const players = Object.values(GamePlayer);
-    const random = randomizer.createRandomizer(seed);
+    const randomizerFunction = randomizer.createFunctionFromSeed(seed);
     return {
-      board: Board.create(this.mapTypeFromSettingsToBoard(settings.type), random),
-      inventory: Inventory.create(players, random),
+      board: Board.create(this.mapTypeFromSettingsToBoard(settings.type), randomizerFunction),
+      inventory: Inventory.create(players, randomizerFunction),
       match: Match.create(players, settings),
       turns: Turns.create(identifier),
     };
@@ -209,8 +209,8 @@ export default class Game {
   changeMatchType(matchType: GameMatchType): void {
     this.ensureMutability();
     this.ensureSettingsMutability();
-    const newSeed = this.randomizer.createSeed();
-    this.applyEvent({ matchType, seed: newSeed, type: GameEventType.MatchTypeChanged });
+    const seed = this.randomizer.createNewSeed();
+    this.applyEvent({ matchType, seed, type: GameEventType.MatchTypeChanged });
   }
 
   clearTiles(): void {
@@ -262,7 +262,7 @@ export default class Game {
   }
 
   restart(): void {
-    const seed = this.randomizer.createSeed();
+    const seed = this.randomizer.createNewSeed();
     const settings: GameMatchSettings = { difficulty: this.match.difficulty, type: this.match.type };
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     this.events.reset(event);

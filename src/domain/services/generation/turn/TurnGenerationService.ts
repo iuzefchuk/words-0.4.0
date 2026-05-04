@@ -308,7 +308,7 @@ export default class TurnGenerationService {
       crossCheckTable: CrossCheckTable.createFromBuffer(crossCheckBuffer, board.cells.length),
       dictionary,
       inventory: Inventory.clone(source.inventory),
-      turns: Turns.clone(source.turns, { createUniqueId: () => '' }),
+      turns: Turns.clone(source.turns, { create: () => '' }),
     };
   }
 

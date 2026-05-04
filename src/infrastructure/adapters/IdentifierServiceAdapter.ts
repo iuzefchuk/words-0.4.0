@@ -1,7 +1,7 @@
 import { IdentifierService } from '@/application/types/ports.ts';
 
 export default class IdentifierServiceAdapter {
-  static createUniqueId(): string {
+  static create(): string {
     if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
     const bytes = crypto.getRandomValues(new Uint8Array(16));
     bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;

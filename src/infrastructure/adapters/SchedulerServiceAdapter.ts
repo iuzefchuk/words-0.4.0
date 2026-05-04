@@ -1,7 +1,7 @@
 import { SchedulerService } from '@/application/types/ports.ts';
 
 export default class SchedulerServiceAdapter {
-  static async ensureMinimumDuration<T>(minimumMs: number, callback: () => Promise<T> | T): Promise<T> {
+  static async padTo<T>(minimumMs: number, callback: () => Promise<T> | T): Promise<T> {
     const startTime = SchedulerServiceAdapter.getCurrentTime();
     const result = await callback();
     const elapsed = SchedulerServiceAdapter.getCurrentTime() - startTime;
@@ -11,8 +11,7 @@ export default class SchedulerServiceAdapter {
   }
 
   static yield(): Promise<void> {
-    if (typeof schedulingService !== 'undefined' && typeof schedulingService.yield === 'function')
-      return schedulingService.yield();
+    if (typeof schedulerService !== 'undefined' && typeof schedulerService.yield === 'function') return schedulerService.yield();
     return new Promise(resolve => {
       queueMicrotask(resolve);
     });

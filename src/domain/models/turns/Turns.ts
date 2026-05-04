@@ -41,7 +41,7 @@ class Turn {
   }
 
   static create({ identifier, player }: { identifier: IdentifierService; player: GamePlayer }): Turn {
-    const id = identifier.createUniqueId();
+    const id = identifier.create();
     return new Turn(id, player, []);
   }
 

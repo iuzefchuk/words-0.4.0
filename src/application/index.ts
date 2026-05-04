@@ -63,12 +63,12 @@ export default class Application {
 
   async bootDictionary(): Promise<void> {
     const { config, services, tasks } = this.dependencies;
-    services.bootObserver.publish(BootProgress.Initialized);
-    const buffer = await services.loader.loadBuffer(config.dictionaryUrl);
-    services.bootObserver.publish(BootProgress.DictionaryFetched);
+    services.bootObserver.notify(BootProgress.Initialized);
+    const buffer = await services.loader.load(config.dictionaryUrl);
+    services.bootObserver.notify(BootProgress.DictionaryFetched);
     this.game.setDictionary(GameDictionary.createFromBuffer(buffer));
-    services.bootObserver.publish(BootProgress.DictionaryParsed);
+    services.bootObserver.notify(BootProgress.DictionaryParsed);
     await services.worker.init(tasks.turnGeneration, buffer);
-    services.bootObserver.publish(BootProgress.Done);
+    services.bootObserver.notify(BootProgress.Done);
   }
 }

@@ -7,7 +7,8 @@ declare module '*?worker' {
 
 declare const brandSymbol: unique symbol;
 
-declare const schedulingService: { yield(): Promise<void> };
+// TODO move to scheduler service
+declare const schedulerService: { yield(): Promise<void> };
 
 type Brand<T, B extends string> = { readonly [brandSymbol]: B } & T;
 

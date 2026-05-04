@@ -1,15 +1,16 @@
+// TODO move to randomizer service
 export default function shuffleWithFisherYates<T>({
   array,
   groupSize = 1,
-  randomizer = Math.random,
+  randomizerFunction = Math.random,
 }: {
   array: Array<T>;
   groupSize?: number;
-  randomizer?: () => number;
+  randomizerFunction?: () => number;
 }): Array<T> {
   const length = array.length - (array.length % groupSize);
   for (let srcIdx = length - groupSize; srcIdx >= 0; srcIdx -= groupSize) {
-    const targetIdx = Math.floor(randomizer() * (srcIdx / groupSize + 1)) * groupSize;
+    const targetIdx = Math.floor(randomizerFunction() * (srcIdx / groupSize + 1)) * groupSize;
     for (let offset = 0; offset < groupSize; offset++) {
       const fromIdx = srcIdx + offset;
       const toIdx = targetIdx + offset;

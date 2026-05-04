@@ -300,7 +300,7 @@ export default class MainStore {
   static async initiate(): Promise<void> {
     const singleton = MainStore.SINGLETON;
     const { app: appPromise, bootObserver } = launchWords();
-    bootObserver.subscribe(value => {
+    bootObserver.observe(value => {
       singleton.bootProgress.value = value;
     });
     const app = await appPromise;

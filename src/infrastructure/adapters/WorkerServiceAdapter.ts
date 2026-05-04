@@ -7,25 +7,21 @@ import {
 } from '@/application/types/ports.ts';
 import WorkerPoolService from '@/infrastructure/services/WorkerPoolService.ts';
 
-export default class WorkerServiceAdapter {
-  private static WORKERS: Record<string, new () => Worker> = {};
+export default class WorkerServiceAdapter implements WorkerService {
+  constructor(private readonly workers: Record<string, new () => Worker>) {}
 
-  static configure(workers: Record<string, new () => Worker>): void {
-    WorkerServiceAdapter.WORKERS = workers;
-  }
-
-  static getPoolSize(taskId: string): number {
+  getPoolSize(taskId: string): number {
     return WorkerPoolService.getPoolSize(taskId);
   }
 
-  static async init(taskId: string, data: unknown): Promise<void> {
-    const workers = Array.from({ length: WorkerPoolService.computePoolSize() }, () => WorkerServiceAdapter.createWorker(taskId));
-    await Promise.all(workers.map(worker => WorkerServiceAdapter.initWorker(worker, data)));
+  async init(taskId: string, data: unknown): Promise<void> {
+    const workers = Array.from({ length: WorkerPoolService.computePoolSize() }, () => this.createWorker(taskId));
+    await Promise.all(workers.map(worker => this.initWorker(worker, data)));
     for (const worker of workers) WorkerPoolService.returnToPool(taskId, worker);
   }
 
-  static async *stream<O>(taskId: string, data: unknown): AsyncGenerator<O> {
-    const worker = WorkerServiceAdapter.createWorker(taskId);
+  async *stream<O>(taskId: string, data: unknown): AsyncGenerator<O> {
+    const worker = this.createWorker(taskId);
     const state = WorkerPoolService.createStreamState<WorkerResponse>();
     WorkerPoolService.wireWorker(worker, state, msg => msg.type === WorkerResponseType.Done);
     worker.postMessage({ input: data, type: WorkerRequestType.Stream } satisfies WorkerRequest);
@@ -39,10 +35,8 @@ export default class WorkerServiceAdapter {
     }
   }
 
-  static async *streamParallel<O>(taskId: string, inputs: ReadonlyArray<unknown>): AsyncGenerator<O> {
-    const workers: Array<Worker> = inputs.map(
-      () => WorkerPoolService.takeFromPool(taskId) ?? WorkerServiceAdapter.createWorker(taskId),
-    );
+  async *streamParallel<O>(taskId: string, inputs: ReadonlyArray<unknown>): AsyncGenerator<O> {
+    const workers: Array<Worker> = inputs.map(() => WorkerPoolService.takeFromPool(taskId) ?? this.createWorker(taskId));
     const state = WorkerPoolService.createStreamState<WorkerResponse>();
     const totalWorkers = workers.length;
     for (let idx = 0; idx < workers.length; idx++) {
@@ -65,14 +59,14 @@ export default class WorkerServiceAdapter {
     }
   }
 
-  private static createWorker(taskId: string): Worker {
+  private createWorker(taskId: string): Worker {
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const WorkerConstructor = WorkerServiceAdapter.WORKERS[taskId];
+    const WorkerConstructor = this.workers[taskId];
     if (WorkerConstructor === undefined) throw new Error(`no worker registered for task ${taskId}`);
     return new WorkerConstructor();
   }
 
-  private static initWorker(worker: Worker, data: unknown): Promise<void> {
+  private initWorker(worker: Worker, data: unknown): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
         if (event.data.type === WorkerResponseType.Ready) resolve();
@@ -85,5 +79,3 @@ export default class WorkerServiceAdapter {
     });
   }
 }
-
-WorkerServiceAdapter satisfies WorkerService;

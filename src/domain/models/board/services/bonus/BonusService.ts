@@ -73,20 +73,20 @@ export default class BonusService {
     return result;
   })();
 
-  static createDistribution(type: Type, randomizer?: () => number): BonusDistribution {
+  static createDistribution(type: Type, randomizerFunction?: () => number): BonusDistribution {
     switch (type) {
       case Type.Preset:
         return this.PRESET_DISTRIBUTION;
       case Type.Random:
-        return this.createRandomDistribution(randomizer);
+        return this.createRandomDistribution(randomizerFunction);
       default:
         throw new ReferenceError(`unexpected board type: ${String(type)}`);
     }
   }
 
-  private static createRandomDistribution(randomizer: () => number = Math.random): BonusDistribution {
+  private static createRandomDistribution(randomizerFunction: () => number = Math.random): BonusDistribution {
     const cells = [...this.NON_CENTER_CELLS];
-    shuffleWithFisherYates({ array: cells, randomizer });
+    shuffleWithFisherYates({ array: cells, randomizerFunction });
     const bonuses = [...this.PRESET_DISTRIBUTION.values()];
     const result = new Map<Cell, Bonus>();
     for (let idx = 0; idx < bonuses.length; idx++) {

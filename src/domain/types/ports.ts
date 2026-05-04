@@ -1,8 +1,8 @@
 export type IdentifierService = {
-  createUniqueId(): string;
+  create(): string;
 };
 
 export type RandomizerService = {
-  createRandomizer(seed: number): () => number;
-  createSeed(): number;
+  createFunctionFromSeed(seed: number): () => number;
+  createNewSeed(): number;
 };
