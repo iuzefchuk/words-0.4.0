@@ -167,19 +167,17 @@ describe('Board', () => {
     test('returns y for vertical cell combo', () => {
       expect(board.calculateAxis([inputCell, (inputCell + yAxisStep) as Cell, (inputCell + yAxisStep * 2) as Cell])).toBe(Axis.Y);
     });
-    test('throws error for diagonal cell combo', () => {
-      expect(() => {
+    test('returns null for diagonal cell combo', () => {
+      expect(
         board.calculateAxis([
           inputCell,
           (inputCell + xAxisStep + yAxisStep) as Cell,
           (inputCell + (xAxisStep + yAxisStep) * 2) as Cell,
-        ]);
-      }).toThrow();
+        ]),
+      ).toBeNull();
     });
-    test('throws error for unconnected cell combo', () => {
-      expect(() => {
-        board.calculateAxis([inputCell, 100 as Cell, 200 as Cell]);
-      }).toThrow();
+    test('returns null for unconnected cell combo', () => {
+      expect(board.calculateAxis([inputCell, 100 as Cell, 200 as Cell])).toBeNull();
     });
   });
   describe('getMultiplierForLetter', () => {

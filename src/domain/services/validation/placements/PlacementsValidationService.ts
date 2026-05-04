@@ -5,12 +5,13 @@ export default class PlacementsValidationService {
   static execute(
     tiles: ReadonlyArray<GameTile>,
     cells: ReadonlyArray<GameCell>,
-    calculateAxis: (cells: ReadonlyArray<GameCell>) => GameAxis,
+    calculateAxis: (cells: ReadonlyArray<GameCell>) => GameAxis | null,
     buildPlacement: (coords: GameAnchorCoordinates, tiles: ReadonlyArray<GameTile>) => GamePlacement,
     getOppositeAxis: (axis: GameAxis) => GameAxis,
     findTileByCell: (cell: GameCell) => GameTile | undefined,
   ): GameValidationError | ReadonlyArray<GamePlacement> {
     const primaryAxis = calculateAxis(cells);
+    if (primaryAxis === null) return GameValidationError.InvalidTilePlacement;
     const cell = cells[0];
     if (cell === undefined) throw new ReferenceError('expected first cell, got undefined');
     const coords = { axis: primaryAxis, cell };

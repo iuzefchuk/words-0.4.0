@@ -194,6 +194,9 @@ export default class Game {
       case GameEventType.TurnValidated:
         this.turns.recordValidationResult(event.result);
         break;
+      default: {
+        throw new Error(`unhandled event: ${JSON.stringify(event)}`);
+      }
     }
   }
 

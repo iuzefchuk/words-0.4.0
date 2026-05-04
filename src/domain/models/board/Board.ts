@@ -59,7 +59,7 @@ export default class Board {
     return matchedTilesCount === tiles.length ? links : [];
   }
 
-  calculateAxis(cells: ReadonlyArray<Cell>): Axis {
+  calculateAxis(cells: ReadonlyArray<Cell>): Axis | null {
     let normalizedSequence = cells;
     if (cells.length === 1) {
       const [firstCell] = cells;
@@ -76,7 +76,7 @@ export default class Board {
     const firstRow = LayoutService.getCellPositionInRow(firstIndex);
     const isHorizontal = normalizedSequence.every(cell => LayoutService.getCellPositionInRow(cell) === firstRow);
     if (isHorizontal) return Axis.X;
-    throw new Error('cells are not aligned along a single axis');
+    return null;
   }
 
   findCellByTile(tile: GameTile): Cell | undefined {
