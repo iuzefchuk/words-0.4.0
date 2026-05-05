@@ -299,9 +299,9 @@ export default class MainStore {
 
   static async initiate(): Promise<void> {
     const singleton = MainStore.SINGLETON;
-    const { app: appPromise, bootObserver } = launchWords();
-    bootObserver.observe(value => {
-      singleton.bootProgress.value = value;
+    const { app: appPromise, bootProgressPublisher } = launchWords();
+    bootProgressPublisher.subscribe(progress => {
+      singleton.bootProgress.value = progress;
     });
     const app = await appPromise;
     singleton.appRef.value = markRaw(app);

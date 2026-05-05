@@ -1,6 +1,6 @@
 import { GameEvent } from '@/application/types/index.ts';
 import { EventRepository } from '@/application/types/repositories.ts';
-import IndexedDbService from '@/infrastructure/services/IndexedDbService.ts';
+import IndexedDbGateway from '@/infrastructure/gateways/IndexedDbGateway.ts';
 
 export default class IndexedDbEventRepository implements EventRepository {
   private static readonly DB_NAME = 'events';
@@ -13,16 +13,16 @@ export default class IndexedDbEventRepository implements EventRepository {
     const start = this.persistedEventsCount;
     // Claim the range synchronously so back-to-back fire-and-forget calls don't double-write.
     this.persistedEventsCount = events.length;
-    await IndexedDbService.append(IndexedDbEventRepository.DB_NAME, this.appVersion, events.slice(start));
+    await IndexedDbGateway.append(IndexedDbEventRepository.DB_NAME, this.appVersion, events.slice(start));
   }
 
   async delete(): Promise<void> {
     this.persistedEventsCount = 0;
-    await IndexedDbService.delete(IndexedDbEventRepository.DB_NAME);
+    await IndexedDbGateway.delete(IndexedDbEventRepository.DB_NAME);
   }
 
   async load(): Promise<null | ReadonlyArray<GameEvent>> {
-    const events = (await IndexedDbService.load(
+    const events = (await IndexedDbGateway.load(
       IndexedDbEventRepository.DB_NAME,
       this.appVersion,
     )) as null | ReadonlyArray<GameEvent>;

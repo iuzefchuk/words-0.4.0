@@ -1,33 +1,32 @@
 import {
+  WorkerGateway,
   WorkerRequest,
   WorkerRequestType,
   WorkerResponse,
   WorkerResponseType,
-  WorkerService,
 } from '@/application/types/ports.ts';
-import WorkerPoolService from '@/infrastructure/services/WorkerPoolService.ts';
+import WorkerPoolGateway from '@/infrastructure/gateways/WorkerPoolGateway.ts';
 
-// TODO delete Service from name because it is not a service. WorkerServiceAdapter -> WorkerAdapter, WorkerService -> Worker
-export default class WorkerServiceAdapter implements WorkerService {
+export default class WebWorkerGateway implements WorkerGateway {
   constructor(private readonly workers: Record<string, new () => Worker>) {}
 
   getPoolSize(taskId: string): number {
-    return WorkerPoolService.getPoolSize(taskId);
+    return WorkerPoolGateway.getPoolSize(taskId);
   }
 
   async init(taskId: string, data: unknown): Promise<void> {
-    const workers = Array.from({ length: WorkerPoolService.computePoolSize() }, () => this.createWorker(taskId));
+    const workers = Array.from({ length: WorkerPoolGateway.computePoolSize() }, () => this.createWorker(taskId));
     await Promise.all(workers.map(worker => this.initWorker(worker, data)));
-    for (const worker of workers) WorkerPoolService.returnToPool(taskId, worker);
+    for (const worker of workers) WorkerPoolGateway.returnToPool(taskId, worker);
   }
 
   async *stream<O>(taskId: string, data: unknown): AsyncGenerator<O> {
     const worker = this.createWorker(taskId);
-    const state = WorkerPoolService.createStreamState<WorkerResponse>();
-    WorkerPoolService.wireWorker(worker, state, msg => msg.type === WorkerResponseType.Done);
+    const state = WorkerPoolGateway.createStreamState<WorkerResponse>();
+    WorkerPoolGateway.wireWorker(worker, state, msg => msg.type === WorkerResponseType.Done);
     worker.postMessage({ input: data, type: WorkerRequestType.Stream } satisfies WorkerRequest);
     try {
-      for await (const msg of WorkerPoolService.drainStream(state, () => state.doneCount > 0)) {
+      for await (const msg of WorkerPoolGateway.drainStream(state, () => state.doneCount > 0)) {
         if (msg.type === WorkerResponseType.Error) throw new Error(msg.error);
         if (msg.type === WorkerResponseType.Result) yield msg.value as O;
       }
@@ -37,23 +36,23 @@ export default class WorkerServiceAdapter implements WorkerService {
   }
 
   async *streamParallel<O>(taskId: string, inputs: ReadonlyArray<unknown>): AsyncGenerator<O> {
-    const workers: Array<Worker> = inputs.map(() => WorkerPoolService.takeFromPool(taskId) ?? this.createWorker(taskId));
-    const state = WorkerPoolService.createStreamState<WorkerResponse>();
+    const workers: Array<Worker> = inputs.map(() => WorkerPoolGateway.takeFromPool(taskId) ?? this.createWorker(taskId));
+    const state = WorkerPoolGateway.createStreamState<WorkerResponse>();
     const totalWorkers = workers.length;
     for (let idx = 0; idx < workers.length; idx++) {
       const worker = workers[idx];
       if (worker === undefined) throw new ReferenceError(`expected worker at index ${String(idx)}, got undefined`);
-      WorkerPoolService.wireWorker(worker, state, msg => msg.type === WorkerResponseType.Done);
+      WorkerPoolGateway.wireWorker(worker, state, msg => msg.type === WorkerResponseType.Done);
       worker.postMessage({ input: inputs[idx], type: WorkerRequestType.Stream } satisfies WorkerRequest);
     }
     try {
-      for await (const msg of WorkerPoolService.drainStream(state, () => state.doneCount >= totalWorkers)) {
+      for await (const msg of WorkerPoolGateway.drainStream(state, () => state.doneCount >= totalWorkers)) {
         if (msg.type === WorkerResponseType.Error) throw new Error(msg.error);
         if (msg.type === WorkerResponseType.Result) yield msg.value as O;
       }
     } finally {
       if (state.doneCount >= totalWorkers) {
-        for (const worker of workers) WorkerPoolService.returnToPool(taskId, worker);
+        for (const worker of workers) WorkerPoolGateway.returnToPool(taskId, worker);
       } else {
         for (const worker of workers) worker.terminate();
       }

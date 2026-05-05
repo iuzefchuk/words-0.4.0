@@ -1,6 +1,6 @@
-import { IdentifierService } from '@/application/types/ports.ts';
+import { IdentifierGateway } from '@/application/types/ports.ts';
 
-export default class IdentifierServiceAdapter {
+export default class CryptoIdentifierGateway {
   static create(): string {
     if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
     const bytes = crypto.getRandomValues(new Uint8Array(16));
@@ -11,4 +11,4 @@ export default class IdentifierServiceAdapter {
   }
 }
 
-IdentifierServiceAdapter satisfies IdentifierService;
+CryptoIdentifierGateway satisfies IdentifierGateway;

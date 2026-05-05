@@ -2,7 +2,7 @@ import { GamePlayer } from '@/domain/enums.ts';
 import { ValidationError, ValidationStatus } from '@/domain/models/turns/enums.ts';
 import { ValidationResult } from '@/domain/models/turns/types.ts';
 import { GameCell, GameTile } from '@/domain/types/index.ts';
-import { IdentifierService } from '@/domain/types/ports.ts';
+import { IdentifierGateway } from '@/domain/types/ports.ts';
 
 class Turn {
   get cells(): ReadonlyArray<GameCell> | undefined {
@@ -40,7 +40,7 @@ class Turn {
     return new Turn(source.id, source.player, [...source.tiles], { ...source.validationResult });
   }
 
-  static create({ identifier, player }: { identifier: IdentifierService; player: GamePlayer }): Turn {
+  static create({ identifier, player }: { identifier: IdentifierGateway; player: GamePlayer }): Turn {
     const id = identifier.create();
     return new Turn(id, player, []);
   }
@@ -113,18 +113,18 @@ export default class Turns {
   }
 
   private constructor(
-    private readonly identifier: IdentifierService | null,
+    private readonly identifier: IdentifierGateway | null,
     private readonly history: Array<Turn>,
   ) {}
 
-  static clone(source: Turns, identifier: IdentifierService | null = null): Turns {
+  static clone(source: Turns, identifier: IdentifierGateway | null = null): Turns {
     return new Turns(
       identifier,
       source.history.map(turn => Turn.clone(turn)),
     );
   }
 
-  static create(identifier: IdentifierService): Turns {
+  static create(identifier: IdentifierGateway): Turns {
     return new Turns(identifier, []);
   }
 

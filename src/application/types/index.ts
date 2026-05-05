@@ -1,7 +1,7 @@
-import { LoaderService, ObserverService, SchedulerService, WorkerService } from '@/application/types/ports.ts';
+import { BootProgressPublisher, LoaderGateway, SchedulerGateway, WorkerGateway } from '@/application/types/ports.ts';
 import { EventRepository, SettingsRepository } from '@/application/types/repositories.ts';
 import { GameCell } from '@/domain/types/index.ts';
-import { IdentifierService, RandomizerService } from '@/domain/types/ports.ts';
+import { IdentifierGateway, RandomizerGateway } from '@/domain/types/ports.ts';
 
 export {
   GameBonus,
@@ -44,13 +44,13 @@ export type AppDependencies = {
 };
 
 export type AppServices = {
-  // move bootObserver & worker outside this type because they are not services
-  bootObserver: ObserverService;
-  identifier: IdentifierService;
-  loader: LoaderService;
-  randomizer: RandomizerService;
-  scheduler: SchedulerService;
-  worker: WorkerService;
+  // TODO move bootProgressPublisher & worker outside this type because they are not services
+  bootProgressPublisher: BootProgressPublisher;
+  identifier: IdentifierGateway;
+  loader: LoaderGateway;
+  randomizer: RandomizerGateway;
+  scheduler: SchedulerGateway;
+  worker: WorkerGateway;
 };
 
 export type AppTurnResponse = Result<{ words: ReadonlyArray<string> }, string>;

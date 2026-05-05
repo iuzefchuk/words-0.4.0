@@ -1,12 +1,12 @@
-import { SchedulerService } from '@/application/types/ports.ts';
+import { SchedulerGateway } from '@/application/types/ports.ts';
 
-export default class SchedulerServiceAdapter {
+export default class BrowserSchedulerGateway {
   static async padTo<T>(minimumMs: number, callback: () => Promise<T> | T): Promise<T> {
-    const startTime = SchedulerServiceAdapter.getCurrentTime();
+    const startTime = BrowserSchedulerGateway.getCurrentTime();
     const result = await callback();
-    const elapsed = SchedulerServiceAdapter.getCurrentTime() - startTime;
+    const elapsed = BrowserSchedulerGateway.getCurrentTime() - startTime;
     const delay = minimumMs - elapsed;
-    if (delay > 0) await SchedulerServiceAdapter.wait(delay);
+    if (delay > 0) await BrowserSchedulerGateway.wait(delay);
     return result;
   }
 
@@ -26,4 +26,4 @@ export default class SchedulerServiceAdapter {
   }
 }
 
-SchedulerServiceAdapter satisfies SchedulerService;
+BrowserSchedulerGateway satisfies SchedulerGateway;

@@ -6,7 +6,7 @@ type StreamState<T> = {
   resolve: (() => void) | null;
 };
 
-export default class WorkerPoolService {
+export default class WorkerPoolGateway {
   private static readonly POOL = new Map<string, Array<Worker>>();
 
   static computePoolSize(): number {
@@ -45,17 +45,17 @@ export default class WorkerPoolService {
   }
 
   static getPoolSize(key: string): number {
-    return WorkerPoolService.POOL.get(key)?.length ?? 0;
+    return WorkerPoolGateway.POOL.get(key)?.length ?? 0;
   }
 
   static returnToPool(key: string, worker: Worker): void {
-    const existing = WorkerPoolService.POOL.get(key) ?? [];
+    const existing = WorkerPoolGateway.POOL.get(key) ?? [];
     existing.push(worker);
-    WorkerPoolService.POOL.set(key, existing);
+    WorkerPoolGateway.POOL.set(key, existing);
   }
 
   static takeFromPool(key: string): undefined | Worker {
-    return WorkerPoolService.POOL.get(key)?.pop();
+    return WorkerPoolGateway.POOL.get(key)?.pop();
   }
 
   static wireWorker<T>(worker: Worker, state: StreamState<T>, isDoneMessage: (msg: T) => boolean): void {

@@ -1,11 +1,11 @@
-import { LoaderService } from '@/application/types/ports.ts';
+import { LoaderGateway } from '@/application/types/ports.ts';
 
-export default class LoaderServiceAdapter {
+export default class HttpLoaderGateway {
   static async load(url: string): Promise<ArrayBufferLike> {
     const gzUrl = `${url}.gz`;
     const response = await fetch(gzUrl);
     if (!response.ok) throw new Error(`failed to fetch ${gzUrl}: ${String(response.status)} ${response.statusText}`);
-    const buffer = await LoaderServiceAdapter.decompressIfGzipped(await response.arrayBuffer());
+    const buffer = await HttpLoaderGateway.decompressIfGzipped(await response.arrayBuffer());
     if (typeof SharedArrayBuffer === 'undefined') return buffer;
     const shared = new SharedArrayBuffer(buffer.byteLength);
     new Uint8Array(shared).set(new Uint8Array(buffer));
@@ -20,4 +20,4 @@ export default class LoaderServiceAdapter {
   }
 }
 
-LoaderServiceAdapter satisfies LoaderService;
+HttpLoaderGateway satisfies LoaderGateway;

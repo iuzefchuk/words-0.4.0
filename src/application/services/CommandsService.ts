@@ -9,7 +9,7 @@ import {
   GamePlayer,
   GameTile,
 } from '@/application/types/index.ts';
-import { SchedulerService, WorkerService } from '@/application/types/ports.ts';
+import { SchedulerGateway, WorkerGateway } from '@/application/types/ports.ts';
 import { EventRepository, SettingsRepository } from '@/application/types/repositories.ts';
 import Game from '@/domain/Game.ts';
 import { TIME } from '@/shared/constants.ts';
@@ -23,8 +23,8 @@ export default class CommandsService {
 
   constructor(
     private readonly game: Game,
-    private readonly scheduler: SchedulerService,
-    private readonly worker: WorkerService,
+    private readonly scheduler: SchedulerGateway,
+    private readonly worker: WorkerGateway,
     private readonly turnGenerationTaskId: string,
     private readonly eventRepository: EventRepository,
     private readonly settingsRepository: SettingsRepository,

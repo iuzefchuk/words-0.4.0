@@ -1,8 +1,8 @@
-export type IdentifierService = {
+export type IdentifierGateway = {
   create(): string;
 };
 
-export type RandomizerService = {
+export type RandomizerGateway = {
   createFunctionFromSeed(seed: number): () => number;
   createNewSeed(): number;
 };

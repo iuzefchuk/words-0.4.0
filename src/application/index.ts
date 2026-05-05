@@ -9,7 +9,7 @@ import {
   GameEvent,
   GameMatchSettings,
 } from '@/application/types/index.ts';
-import { SchedulerService } from '@/application/types/ports.ts';
+import { SchedulerGateway } from '@/application/types/ports.ts';
 import Game from '@/domain/Game.ts';
 
 export default class Application {
@@ -21,7 +21,7 @@ export default class Application {
     };
   }
 
-  get scheduler(): SchedulerService {
+  get scheduler(): SchedulerGateway {
     return this.dependencies.services.scheduler;
   }
 
@@ -63,12 +63,12 @@ export default class Application {
 
   async bootDictionary(): Promise<void> {
     const { config, services, tasks } = this.dependencies;
-    services.bootObserver.notify(BootProgress.Initialized);
+    services.bootProgressPublisher.publish(BootProgress.Initialized);
     const buffer = await services.loader.load(config.dictionaryUrl);
-    services.bootObserver.notify(BootProgress.DictionaryFetched);
+    services.bootProgressPublisher.publish(BootProgress.DictionaryFetched);
     this.game.setDictionary(GameDictionary.createFromBuffer(buffer));
-    services.bootObserver.notify(BootProgress.DictionaryParsed);
+    services.bootProgressPublisher.publish(BootProgress.DictionaryParsed);
     await services.worker.init(tasks.turnGeneration, buffer);
-    services.bootObserver.notify(BootProgress.Done);
+    services.bootProgressPublisher.publish(BootProgress.Done);
   }
 }

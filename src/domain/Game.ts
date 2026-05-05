@@ -30,7 +30,7 @@ import {
   GameTile,
   GameTurnsView,
 } from '@/domain/types/index.ts';
-import { IdentifierService, RandomizerService } from '@/domain/types/ports.ts';
+import { IdentifierGateway, RandomizerGateway } from '@/domain/types/ports.ts';
 
 export default class Game {
   private static readonly TURN_GENERATION_ATTEMPTS: Record<GameMatchDifficulty, number> = {
@@ -87,11 +87,11 @@ export default class Game {
 
   private constructor(
     private readonly events: Events,
-    private readonly identifier: IdentifierService,
-    private readonly randomizer: RandomizerService,
+    private readonly identifier: IdentifierGateway,
+    private readonly randomizer: RandomizerGateway,
   ) {}
 
-  static create(identifier: IdentifierService, randomizer: RandomizerService, settings: GameMatchSettings): Game {
+  static create(identifier: IdentifierGateway, randomizer: RandomizerGateway, settings: GameMatchSettings): Game {
     const seed = randomizer.createNewSeed();
     const event: GameEvent = { seed, settings, type: GameEventType.MatchStarted };
     const events = Events.create([event]);
@@ -102,8 +102,8 @@ export default class Game {
 
   static createFromEvents(
     initialEvents: ReadonlyArray<GameEvent>,
-    identifier: IdentifierService,
-    randomizer: RandomizerService,
+    identifier: IdentifierGateway,
+    randomizer: RandomizerGateway,
   ): Game {
     if (initialEvents[0] === undefined) throw new Error('cannot create game from empty events');
     const first = initialEvents[0];
@@ -122,8 +122,8 @@ export default class Game {
   private static createInitParams(
     seed: number,
     settings: GameMatchSettings,
-    randomizer: RandomizerService,
-    identifier: IdentifierService,
+    randomizer: RandomizerGateway,
+    identifier: IdentifierGateway,
   ): { board: Board; inventory: Inventory; match: Match; turns: Turns } {
     const players = Object.values(GamePlayer);
     const randomizerFunction = randomizer.createFunctionFromSeed(seed);

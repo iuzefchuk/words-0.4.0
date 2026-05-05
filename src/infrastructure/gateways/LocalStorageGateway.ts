@@ -1,9 +1,9 @@
-export default class LocalStorageService {
+export default class LocalStorageGateway {
   static delete(key: string): void {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('LocalStorageService:', error);
+      console.warn('LocalStorageGateway:', error);
     }
   }
 
@@ -13,8 +13,8 @@ export default class LocalStorageService {
       if (raw === null) return null;
       return JSON.parse(raw);
     } catch (error) {
-      console.warn('LocalStorageService:', error);
-      LocalStorageService.delete(key);
+      console.warn('LocalStorageGateway:', error);
+      LocalStorageGateway.delete(key);
       return null;
     }
   }
@@ -23,7 +23,7 @@ export default class LocalStorageService {
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
-      console.warn('LocalStorageService:', error);
+      console.warn('LocalStorageGateway:', error);
     }
   }
 }
