@@ -68,6 +68,10 @@ class Actions {
     });
   };
 
+  shuffleUserTiles = (tiles: Array<GameTile>): void => {
+    this.requireApp().commandsService.shuffleUserTiles(tiles);
+  };
+
   undoPlaceTile = (tile: GameTile): void => {
     const previousCell = this.requireApp().queriesService.findCellWithTile(tile);
     const affectedCells = previousCell === undefined ? undefined : [previousCell];

@@ -12,6 +12,7 @@ import {
 } from '@/application/types/index.ts';
 import { EventRepository, SettingsRepository } from '@/application/types/repositories.ts';
 import Game from '@/domain/Game.ts';
+import ShuffleService from '@/domain/services/ShuffleService.ts';
 
 export default class CommandsService {
   private static readonly OPPONENT_RESPONSE_MIN_TIME_MS = 2_000;
@@ -84,6 +85,10 @@ export default class CommandsService {
   restartGame(): void {
     this.game.restart();
     this.clearPersistence();
+  }
+
+  shuffleUserTiles(tiles: Array<GameTile>): void {
+    ShuffleService.shuffle({ array: tiles });
   }
 
   undoPlaceTile(tile: GameTile): void {
