@@ -73,7 +73,6 @@ const paddedTiles = computed<Array<GameTile | null>>(() => {
     border-radius: calc(var(--grid-item-radius) * 2);
     box-shadow: var(--rack-cell-shadow);
     &--disabled {
-      opacity: 0.9; // TODO change somehow
       cursor: not-allowed;
       & > * {
         pointer-events: none;

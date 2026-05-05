@@ -1,10 +1,5 @@
 declare const APP_VERSION: string;
 
-declare module '*?worker' {
-  const workerConstructor: new () => Worker;
-  export default workerConstructor;
-}
-
 declare const brandSymbol: unique symbol;
 
 type Brand<T, B extends string> = { readonly [brandSymbol]: B } & T;

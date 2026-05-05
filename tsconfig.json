@@ -8,7 +8,7 @@
       "@/*": ["./src/*"],
       "$/*": ["./tests/*"]
     },
-    "types": ["vue", "vitest/globals"],
+    "types": ["vite/client", "vitest/globals", "vue"],
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "jsx": "preserve",
