@@ -4,7 +4,7 @@ import { computed } from 'vue';
 import MainStore from '@/interface/stores/MainStore.ts';
 const mainStore = MainStore.INSTANCE();
 const { bootProgress } = storeToRefs(mainStore);
-const displayedWidth = computed(() => bootProgress.value + 25);
+const displayedWidth = computed(() => bootProgress.value);
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const displayedWidth = computed(() => bootProgress.value + 25);
   top: 0;
   left: 0;
   height: 2px;
-  background: var(--color-rose-500);
+  background: var(--primary-color);
   transition-property: width;
   transition-duration: var(--transition-duration);
   transition-timing-function: var(--transition-timing-function);

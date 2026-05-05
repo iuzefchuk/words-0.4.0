@@ -2,7 +2,6 @@
 	 viewBox="0 0 91.4 91.4" style="enable-background:new 0 0 91.4 91.4;" xml:space="preserve">
 <style>
 	.tile-bg { fill: #f5d0fe; }
-	@media (prefers-color-scheme: dark) { .tile-bg { fill: #5eead4; } }
 </style>
 <g>
 	<path class="tile-bg" d="M82.3,1.8C78.8,0,74.1,0,64.8,0H26.6c-9.3,0-14,0-17.5,1.8C6,3.4,3.4,5.9,1.8,9.1C0,12.7,0,17.3,0,26.6v38.2
